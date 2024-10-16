@@ -5,7 +5,7 @@ return {
   dependencies = {
     'nvim-tree/nvim-web-devicons',
   },
-  cmd = 'Oil',
+
   config = function()
     require('oil').setup {
 
