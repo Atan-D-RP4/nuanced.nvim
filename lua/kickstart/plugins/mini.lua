@@ -1,7 +1,84 @@
+function SessionSave()
+  local mini_sessions = require 'mini.sessions'
+  local session_name = vim.fn.input 'Session name: '
+  if session_name == '' then
+    print 'No session saved'
+    return
+  end
+
+  local session_path = mini_sessions.save(session_name)
+  if session_path == nil then
+    print 'Failed to save session.'
+    return
+  end
+
+  print('Session saved to: ' .. session_path)
+end
+
+-- Interatively select a session to load with telescope.nvim
+function SessionLoad()
+  local mini_sessions = require 'mini.sessions'
+  local detected_sessions = mini_sessions.detected
+
+  -- Convert the detected sessions (key-value pairs) into a list of entries
+  local sessions = {}
+  for name, session_info in pairs(detected_sessions) do
+    table.insert(sessions, {
+      name = name,
+      path = session_info.path,
+      -- format the modify_time as a human-readable string
+      modify_time = os.date('%Y-%m-%d %H:%M:%S', session_info.modify_time),
+      type = session_info.type,
+    })
+  end
+
+  if #sessions == 0 then
+    print 'No sessions found.'
+    return
+  end
+
+  require('telescope.pickers')
+    .new({}, {
+      prompt_title = 'Sessions',
+      finder = require('telescope.finders').new_table {
+        results = sessions,
+        entry_maker = function(entry)
+          return {
+            value = entry.path,
+            display = string.format('[%s] %s (Modified: %s)', entry.type, entry.name, entry.modify_time),
+            ordinal = entry.name,
+          }
+        end,
+      },
+      sorter = require('telescope.config').values.generic_sorter {},
+      layout_strategy = 'vertical',
+      layout_config = { width = 0.5, height = 0.5 },
+      attach_mappings = function(_, map)
+        map('i', '<CR>', function(prompt_bufnr)
+          local entry = require('telescope.actions.state').get_selected_entry()
+          mini_sessions.read(entry.value) -- Load the selected session using its path
+          require('telescope.actions').close(prompt_bufnr)
+        end)
+        return true
+      end,
+    })
+    :find()
+end
+
 return {
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
     config = function()
+      require('mini.sessions').setup {
+        autoread = true,
+        autowrite = true,
+        directory = vim.fn.stdpath 'data' .. '/sessions',
+      }
+
+      -- Add a command to save a session
+      vim.keymap.set('n', '<leader>ss', SessionSave, { desc = '[S]ession [S]ave' })
+      vim.keymap.set('n', '<leader>sl', SessionLoad, { desc = '[S]ession [L]oad' })
+
       require('mini.tabline').setup()
 
       -- Better Around/Inside textobjects
@@ -39,4 +116,5 @@ return {
     end,
   },
 }
+
 -- vim: ts=2 sts=2 sw=2 et

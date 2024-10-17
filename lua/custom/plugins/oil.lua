@@ -9,6 +9,8 @@ return {
   config = function()
     require('oil').setup {
 
+      vim.keymap.set('n', '<leader>o', '<cmd>Oil<CR>'),
+
       default_file_explorer = true,
 
       columns = {
@@ -79,11 +81,11 @@ return {
           return vim.startswith(name, '.')
         end,
 
+        natural_order = true,
+
         is_always_hidden = function(name, bufnr)
           return false
         end,
-
-        natural_order = true,
 
         case_insensitive = false,
         sort = {
