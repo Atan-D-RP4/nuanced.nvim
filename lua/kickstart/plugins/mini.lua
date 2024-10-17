@@ -1,50 +1,42 @@
 function SessionSave()
-  local has_ms, mini_sessions = pcall(require, 'mini.sessions')
-  if not has_ms then
-    print 'Please install mini.nvim to use this feature'
-    return
-  end
+  local mini_sessions = require 'mini.sessions'
   local session_name = vim.fn.input 'Session name: '
   if session_name == '' then
     print 'No session saved'
     return
   end
 
-  mini_sessions.write(session_name)
+  local session_path = mini_sessions.save(session_name)
+  if session_path == nil then
+    print 'Failed to save session.'
+    return
+  end
 
-  print('Session saved to: ' .. mini_sessions.get_latest())
+  print('Session saved to: ' .. session_path)
 end
 
 -- Interatively select a session to load with telescope.nvim
 function SessionLoad()
-  local has_ms, mini_sessions = pcall(require, 'mini.sessions')
-  if not has_ms then
-    print 'Please install mini.nvim to use this feature'
+  local mini_sessions = require 'mini.sessions'
+  local detected_sessions = mini_sessions.detected
+
+  -- Convert the detected sessions (key-value pairs) into a list of entries
+  local sessions = {}
+  for name, session_info in pairs(detected_sessions) do
+    table.insert(sessions, {
+      name = name,
+      path = session_info.path,
+      -- format the modify_time as a human-readable string
+      modify_time = os.date('%Y-%m-%d %H:%M:%S', session_info.modify_time),
+      type = session_info.type,
+    })
+  end
+
+  if #sessions == 0 then
+    print 'No sessions found.'
     return
   end
 
-  local has_ts, _ = pcall(require, 'telescope')
-  if not has_ts then
-    print 'Please install telescope.nvim to use this feature'
-    return
-  end
-
-  local get_sessions = function()
-    -- Convert the detected sessions (key-value pairs) into a list of entries
-    local sessions = {}
-    for name, session_info in pairs(MiniSessions.detected) do
-      table.insert(sessions, {
-        name = name,
-        path = session_info.path,
-        -- format the modify_time as a human-readable string
-        modify_time = os.date('%Y-%m-%d %H:%M:%S', session_info.modify_time),
-        type = session_info.type,
-      })
-    end
-    return sessions
-  end
-
-  local state = require 'telescope.actions.state'
   require('telescope.pickers')
     .new({}, {
       prompt_title = 'Sessions',
@@ -87,6 +79,10 @@ function SessionLoad()
             },
             { reset_prompt = true }
           )
+        map('i', '<CR>', function(prompt_bufnr)
+          local entry = require('telescope.actions.state').get_selected_entry()
+          mini_sessions.read(entry.value) -- Load the selected session using its path
+          require('telescope.actions').close(prompt_bufnr)
         end)
         return true
       end,

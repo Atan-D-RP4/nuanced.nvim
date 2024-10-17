@@ -160,6 +160,8 @@ return {
       -- end
       vim.api.nvim_set_hl(0, 'LspReferenceText', {})
 
+      vim.api.nvim_set_hl(0, 'LspReferenceText', {})
+
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
       --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
