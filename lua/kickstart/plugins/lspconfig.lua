@@ -150,7 +150,6 @@ return {
         end,
       })
 
-<<<<<<< HEAD
       -- Change diagnostic symbols in the sign column (gutter)
       -- if vim.g.have_nerd_font then
       --   local signs = { Error = '', Warn = '', Hint = '', Info = '' }
@@ -159,9 +158,7 @@ return {
       --     vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
       --   end
       -- end
-=======
       vim.api.nvim_set_hl(0, 'LspReferenceText', {})
->>>>>>> 8c5567d (Added quick-scope and mini.sessions)
 
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
