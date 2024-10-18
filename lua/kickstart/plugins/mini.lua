@@ -51,9 +51,9 @@ function SessionLoad()
       layout_config = { width = 0.5, height = 0.5 },
       attach_mappings = function(_, map)
         map('i', '<CR>', function(prompt_bufnr)
-          local entry = require('telescope.actions.state').get_selected_entry()
-          print(vim.inspect(entry.value))
-          mini_sessions.read(entry.value) -- Load the selected session using its path
+          local entry = require('telescope.actions.state').get_selected_entry().value
+          print(entry)
+          mini_sessions.read(entry) -- Load the selected session using its path
           require('telescope.actions').close(prompt_bufnr)
         end)
         return true

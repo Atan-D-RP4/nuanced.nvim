@@ -57,19 +57,34 @@ return {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+        defaults = {
+          --   mappings = {
+          --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+          --   },
+          -- pickers = {}
+        -- NOTE: Uncomment the following to use gnu-grep instead of ripgrep
+        --   vimgrep_arguments = {
+        --     'grep',
+        --     '--extended-regexp',
+        --     '--color=never',
+        --     '--with-filename',
+        --     '--line-number',
+        --     '-b', -- grep doesn't support a `--column` option :(
+        --     '--ignore-case',
+        --     '--recursive',
+        --     '--no-messages',
+        --     '--exclude-dir=*cache*',
+        --     '--exclude-dir=*.git',
+        --     '--exclude=.*',
+        --     '--binary-files=without-match',
         --   },
-        -- },
-        -- pickers = {}
-        extensions = {
-          ['ui-select'] = {
-            require('telescope.themes').get_dropdown(),
-          },
+        --   extensions = {
+        --     ['ui-select'] = {
+        --       require('telescope.themes').get_dropdown(),
+        --     },
+        --   },
         },
       }
-
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
