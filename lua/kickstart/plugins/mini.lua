@@ -6,13 +6,9 @@ function SessionSave()
     return
   end
 
-  local session_path = mini_sessions.save(session_name)
-  if session_path == nil then
-    print 'Failed to save session.'
-    return
-  end
+  mini_sessions.write(session_name)
 
-  print('Session saved to: ' .. session_path)
+  print('Session saved to: ' .. mini_sessions.get_latest())
 end
 
 -- Interatively select a session to load with telescope.nvim
@@ -56,6 +52,7 @@ function SessionLoad()
       attach_mappings = function(_, map)
         map('i', '<CR>', function(prompt_bufnr)
           local entry = require('telescope.actions.state').get_selected_entry()
+          print(vim.inspect(entry.value))
           mini_sessions.read(entry.value) -- Load the selected session using its path
           require('telescope.actions').close(prompt_bufnr)
         end)
