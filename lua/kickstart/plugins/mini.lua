@@ -1,5 +1,9 @@
 function SessionSave()
-  local mini_sessions = require 'mini.sessions'
+  local has_ms, mini_sessions = pcall(require, 'mini.sessions')
+  if not has_ms then
+    print 'Please install mini.nvim to use this feature'
+    return
+  end
   local session_name = vim.fn.input 'Session name: '
   if session_name == '' then
     print 'No session saved'
@@ -17,46 +21,56 @@ end
 
 -- Interatively select a session to load with telescope.nvim
 function SessionLoad()
-  local mini_sessions = require 'mini.sessions'
-  local detected_sessions = mini_sessions.detected
-
-  -- Convert the detected sessions (key-value pairs) into a list of entries
-  local sessions = {}
-  for name, session_info in pairs(detected_sessions) do
-    table.insert(sessions, {
-      name = name,
-      path = session_info.path,
-      -- format the modify_time as a human-readable string
-      modify_time = os.date('%Y-%m-%d %H:%M:%S', session_info.modify_time),
-      type = session_info.type,
-    })
-  end
-
-  if #sessions == 0 then
-    print 'No sessions found.'
+  local has_ms, mini_sessions = pcall(require, 'mini.sessions')
+  if not has_ms then
+    print 'Please install mini.nvim to use this feature'
     return
   end
+
+  local has_ts, _ = pcall(require, 'telescope')
+  if not has_ts then
+    print 'Please install telescope.nvim to use this feature'
+    return
+  end
+
+  -- Convert the detected sessions (key-value pairs) into a list of entries
+  local get_sessions = function(detected_sessions)
+    local sessions = {}
+    for name, session_info in pairs(detected_sessions) do
+      table.insert(sessions, {
+        name = name,
+        path = session_info.path,
+        -- format the modify_time as a human-readable string
+        modify_time = os.date('%Y-%m-%d %H:%M:%S', session_info.modify_time),
+        type = session_info.type,
+      })
+    end
+    return sessions
+  end
+
+  local make_finder = require('telescope.finders').new_table {
+    results = get_sessions(mini_sessions.detected),
+    entry_maker = function(entry)
+      return {
+        value = entry.path,
+        display = string.format('[%s] %s (Modified: %s)', entry.type, entry.name, entry.modify_time),
+        ordinal = entry.name,
+      }
+    end,
+  }
 
   require('telescope.pickers')
     .new({}, {
       prompt_title = 'Sessions',
-      finder = require('telescope.finders').new_table {
-        results = get_sessions(),
-        entry_maker = function(entry)
-          return {
-            value = entry.path,
-            display = string.format('[%s] %s (Modified: %s)', entry.type, entry.name, entry.modify_time),
-            ordinal = entry.name,
-          }
-        end,
-      },
+      finder = make_finder,
       sorter = require('telescope.config').values.generic_sorter {},
       layout_strategy = 'vertical',
       layout_config = { width = 0.5, height = 0.5 },
       attach_mappings = function(_, map)
-        map('i', '<CR>', function()
-          local entry = state.get_selected_entry().value
-          entry = vim.fs.basename(entry)
+        map('i', '<CR>', function(prompt_bufnr)
+          local entry = require('telescope.actions.state').get_selected_entry().value
+          -- Usae/asd.vim -> Use/asd.vim
+          entry = string.match(entry, '(.+%.vim)') -- Remove the trailing newline
           mini_sessions.read(entry) -- Load the selected session using its path
           vim.cmd [[bd #]]
           print('Loaded session: ' .. entry)
@@ -83,6 +97,28 @@ function SessionLoad()
           local entry = require('telescope.actions.state').get_selected_entry()
           mini_sessions.read(entry.value) -- Load the selected session using its path
           require('telescope.actions').close(prompt_bufnr)
+        end)
+
+        map('i', '<C-d>', function(prompt_bufnr)
+          local picker = require('telescope.actions.state').get_current_picker(prompt_bufnr)
+          local entry = require('telescope.actions.state').get_selected_entry().value
+          if vim.fn.delete(entry, 'rf') == 0 then
+            print('Deleted session: ' .. entry)
+          end
+          MiniSessions.setup() -- Re-detect sessions
+          picker:refresh(
+            require('telescope.finders').new_table {
+              results = get_sessions(mini_sessions.detected),
+              entry_maker = function(entry)
+                return {
+                  value = entry.path,
+                  display = string.format('[%s] %s (Modified: %s)', entry.type, entry.name, entry.modify_time),
+                  ordinal = entry.name,
+                }
+              end,
+            },
+            { reset_prompt = true }
+          )
         end)
         return true
       end,

@@ -91,7 +91,7 @@ vim.opt.pumheight = 20
 vim.opt.display = 'truncate'
 
 -- Keep signcolumn on by default
-vim.opt.signcolumn = 'number'
+vim.opt.signcolumn = 'yes'
 
 -- Decrease update time
 vim.opt.updatetime = 250
