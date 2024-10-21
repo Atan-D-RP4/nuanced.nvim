@@ -2,10 +2,17 @@ return {
   {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
-
     build = ':TSUpdate',
     event = { 'BufReadPre', 'BufNewFile' },
+
     main = 'nvim-treesitter.configs',
+
+    config = function()
+      if vim.loop.os_uname().sysname == 'Windows_NT' then
+        print('On Windows_NT')
+        require('nvim-treesitter.install').compilers = { 'clang' }
+      end
+    end,
 
     opts = {
       ensure_installed = {
