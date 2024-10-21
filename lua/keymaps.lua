@@ -3,8 +3,9 @@
 
 -- Better Escape
 vim.keymap.set('n', '<Esc>', '<C-c><C-c>', { noremap = true })
-vim.keymap.set('i', '<Esc>', '<Esc><Esc>', { noremap = true, desc = 'Better Escape' })
+vim.keymap.set('i', '<Esc>', '<Esc><Esc><Right>', { noremap = true, desc = 'Better Escape' })
 -- Clear highlights on search when pressing <Esc> in normal mode
+
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
