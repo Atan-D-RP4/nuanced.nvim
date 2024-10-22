@@ -60,24 +60,18 @@ vim.keymap.set('n', '<leader>d', ':bdelete! %<CR>', { noremap = true, silent = t
 vim.keymap.set('n', '<leader>u', ':edit! #<CR>', { noremap = true, silent = true, desc = 'Refresh Buffer' })
 
 -- CTRL+S for Save
-vim.keymap.set('n', '<C-S>', '<ESC>:update<CR>', { noremap = true, silent = true, desc = 'Better Save' })
-vim.keymap.set('i', '<C-S>', '<Esc>:update<CR>', { noremap = true, silent = true, desc = 'Better Save' })
-vim.keymap.set('v', '<C-S>', '<Esc>:update<CR>', { noremap = true, silent = true, desc = 'Better Save' })
+vim.keymap.set({ 'n', 'v', 'i' }, '<C-S>', '<ESC>:update<CR>', { noremap = true, silent = true, desc = 'Better Save' })
 
 -- Re-Select Visual Selection on Re-Indent
 vim.keymap.set('v', '<', '<gv', { noremap = true, desc = 'Re-Select Visual Selection on Re-Indent' })
 vim.keymap.set('v', '>', '>gv', { noremap = true, desc = 'Re-Select Visual Selection on Re-Indent' })
 
-vim.keymap.set('n', 'j', 'gj', { noremap = false, desc = 'Better j for wrapping text lines - Normal' })
-vim.keymap.set('n', 'k', 'gk', { noremap = false, desc = 'Better k for wrapping text lines - Normal' })
-vim.keymap.set('v', 'j', 'gj', { noremap = false, desc = 'Better j for wrapping text lines - Visual' })
-vim.keymap.set('v', 'k', 'gk', { noremap = false, desc = 'Better k for wrapping text lines - Visual' })
+vim.keymap.set({ 'n', 'v' }, 'j', 'gj', { noremap = false, desc = 'Better j for wrapping text lines' })
+vim.keymap.set({ 'n', 'v' }, 'k', 'gk', { noremap = false, desc = 'Better k for wrapping text lines' })
 
-vim.keymap.set('n', '<C-q>', '<C-b>', { noremap = true, silent = true })
-vim.keymap.set('v', '<C-q>', '<C-b>', { noremap = true, silent = true })
+vim.keymap.set({ 'n', 'v' }, '<C-q>', '<C-b>', { noremap = true, silent = true })
 
-vim.keymap.set('n', '<S-w>', 'b', { noremap = true, silent = true })
-vim.keymap.set('v', '<S-w>', 'b', { noremap = true, silent = true })
+vim.keymap.set({ 'n', 'v' }, '<S-w>', 'b', { noremap = true, silent = true })
 
 vim.keymap.set('n', '<leader>.', ':<Up><CR>', { noremap = true, silent = true, desc = 'Repeat Last Ex Command' })
 

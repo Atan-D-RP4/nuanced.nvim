@@ -29,10 +29,10 @@ function SessionLoad()
     return
   end
 
-  -- Convert the detected sessions (key-value pairs) into a list of entries
-  local get_sessions = function(detected_sessions)
+  local get_sessions = function()
+    -- Convert the detected sessions (key-value pairs) into a list of entries
     local sessions = {}
-    for name, session_info in pairs(detected_sessions) do
+    for name, session_info in pairs(MiniSessions.detected) do
       table.insert(sessions, {
         name = name,
         path = session_info.path,
@@ -45,7 +45,7 @@ function SessionLoad()
   end
 
   local make_finder = require('telescope.finders').new_table {
-    results = get_sessions(mini_sessions.detected),
+    results = get_sessions(),
     entry_maker = function(entry)
       return {
         value = entry.path,
@@ -63,24 +63,21 @@ function SessionLoad()
       layout_strategy = 'vertical',
       layout_config = { width = 0.5, height = 0.5 },
       attach_mappings = function(_, map)
-        map('i', '<CR>', function(prompt_bufnr)
+        map('i', '<CR>', function()
           local entry = require('telescope.actions.state').get_selected_entry().value
           -- Usae/asd.vim -> Use/asd.vim
-          entry = string.match(entry, '(.+%.vim)') -- Remove the trailing newline
+          entry = vim.fs.basename(entry)
           mini_sessions.read(entry) -- Load the selected session using its path
-          require('telescope.actions').close(prompt_bufnr)
+          print('Loaded session: ' .. entry)
         end)
 
         map('i', '<C-d>', function(prompt_bufnr)
           local picker = require('telescope.actions.state').get_current_picker(prompt_bufnr)
-          local entry = require('telescope.actions.state').get_selected_entry().value
-          if vim.fn.delete(entry, 'rf') == 0 then
-            print('Deleted session: ' .. entry)
-          end
-          MiniSessions.setup() -- Re-detect sessions
+          local session = require('telescope.actions.state').get_selected_entry().value
+          MiniSessions.delete(session)
           picker:refresh(
             require('telescope.finders').new_table {
-              results = get_sessions(mini_sessions.detected),
+              results = get_sessions(),
               entry_maker = function(entry)
                 return {
                   value = entry.path,
@@ -127,12 +124,18 @@ return {
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup()
+      require('mini.surround').setup {
+        mappings = {
+          add = 'gsa',
+          delete = 'gsd',
+        },
+      }
 
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
       --  and try some other statusline plugin
       local statusline = require 'mini.statusline'
+
       -- set use_icons to true if you have a Nerd Font
       statusline.setup { use_icons = vim.g.have_nerd_font }
 

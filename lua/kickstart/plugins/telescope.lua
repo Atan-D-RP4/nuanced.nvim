@@ -62,27 +62,28 @@ return {
           --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
           --   },
           -- pickers = {}
-        -- NOTE: Uncomment the following to use gnu-grep instead of ripgrep
-        --   vimgrep_arguments = {
-        --     'grep',
-        --     '--extended-regexp',
-        --     '--color=never',
-        --     '--with-filename',
-        --     '--line-number',
-        --     '-b', -- grep doesn't support a `--column` option :(
-        --     '--ignore-case',
-        --     '--recursive',
-        --     '--no-messages',
-        --     '--exclude-dir=*cache*',
-        --     '--exclude-dir=*.git',
-        --     '--exclude=.*',
-        --     '--binary-files=without-match',
-        --   },
-        --   extensions = {
-        --     ['ui-select'] = {
-        --       require('telescope.themes').get_dropdown(),
-        --     },
-        --   },
+
+          -- NOTE: Uncomment the following to use gnu-grep instead of ripgrep
+          --   vimgrep_arguments = {
+          --     'grep',
+          --     '--extended-regexp',
+          --     '--color=never',
+          --     '--with-filename',
+          --     '--line-number',
+          --     '-b', -- grep doesn't support a `--column` option :(
+          --     '--ignore-case',
+          --     '--recursive',
+          --     '--no-messages',
+          --     '--exclude-dir=*cache*',
+          --     '--exclude-dir=*.git',
+          --     '--exclude=.*',
+          --     '--binary-files=without-match',
+          --   },
+          --   extensions = {
+          --     ['ui-select'] = {
+          --       require('telescope.themes').get_dropdown(),
+          --     },
+          --   },
         },
       }
       -- Enable Telescope extensions if they are installed
