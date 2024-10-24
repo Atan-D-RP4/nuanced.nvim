@@ -58,10 +58,18 @@ return {
         --  All the info you're looking for is in `:help telescope.setup()`
         --
         defaults = {
-          --   mappings = {
-          --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-          --   },
-          -- pickers = {}
+          -- Window settings
+          layout_config = {
+            prompt_position = 'top',
+            preview_cutoff = 120,
+            width = 0.85,
+            height = 0.85,
+          },
+
+          mappings = {
+            i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+          },
+          pickers = {},
 
           -- NOTE: Uncomment the following to use gnu-grep instead of ripgrep
           --   vimgrep_arguments = {
@@ -79,11 +87,11 @@ return {
           --     '--exclude=.*',
           --     '--binary-files=without-match',
           --   },
-          --   extensions = {
-          --     ['ui-select'] = {
-          --       require('telescope.themes').get_dropdown(),
-          --     },
-          --   },
+          extensions = {
+            ['ui-select'] = {
+              require('telescope.themes').get_dropdown(),
+            },
+          },
         },
       }
       -- Enable Telescope extensions if they are installed

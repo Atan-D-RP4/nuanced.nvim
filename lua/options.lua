@@ -26,6 +26,26 @@ vim.opt.showtabline = 2
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
 vim.schedule(function()
+  if vim.fn.has 'clipboard' == 0 then
+    return
+  end
+
+  if vim.loop.os_uname().sysname == 'Windows_NT' then
+    vim.opt.clipboard = 'unnamedplus'
+    vim.g.clipboard = {
+      name = 'clip.exe (WSL)',
+      copy = {
+        ['+'] = 'clip.exe',
+        ['*'] = 'clip.exe',
+      },
+      paste = {
+        ['+'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+        ['*'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+      },
+      cache_enabled = 0,
+    }
+    return
+  end
   vim.opt.clipboard = 'unnamedplus,unnamed'
 end)
 

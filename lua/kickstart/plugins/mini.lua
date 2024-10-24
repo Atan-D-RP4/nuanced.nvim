@@ -44,36 +44,34 @@ function SessionLoad()
     return sessions
   end
 
-  local make_finder = require('telescope.finders').new_table {
-    results = get_sessions(),
-    entry_maker = function(entry)
-      return {
-        value = entry.path,
-        display = string.format('[%s] %s (Modified: %s)', entry.type, entry.name, entry.modify_time),
-        ordinal = entry.name,
-      }
-    end,
-  }
-
+  local state = require 'telescope.actions.state'
   require('telescope.pickers')
     .new({}, {
       prompt_title = 'Sessions',
-      finder = make_finder,
+      finder = require('telescope.finders').new_table {
+        results = get_sessions(),
+        entry_maker = function(entry)
+          return {
+            value = entry.path,
+            display = string.format('[%s] %s (Modified: %s)', entry.type, entry.name, entry.modify_time),
+            ordinal = entry.name,
+          }
+        end,
+      },
       sorter = require('telescope.config').values.generic_sorter {},
       layout_strategy = 'vertical',
       layout_config = { width = 0.5, height = 0.5 },
       attach_mappings = function(_, map)
         map('i', '<CR>', function()
-          local entry = require('telescope.actions.state').get_selected_entry().value
-          -- Usae/asd.vim -> Use/asd.vim
+          local entry = state.get_selected_entry().value
           entry = vim.fs.basename(entry)
           mini_sessions.read(entry) -- Load the selected session using its path
           print('Loaded session: ' .. entry)
         end)
 
         map('i', '<C-d>', function(prompt_bufnr)
-          local picker = require('telescope.actions.state').get_current_picker(prompt_bufnr)
-          local session = require('telescope.actions.state').get_selected_entry().value
+          local picker = state.get_current_picker(prompt_bufnr)
+          local session = state.get_selected_entry().value
           MiniSessions.delete(session)
           picker:refresh(
             require('telescope.finders').new_table {
@@ -101,7 +99,6 @@ return {
     config = function()
       require('mini.sessions').setup {
         autoread = true,
-        autowrite = true,
         directory = vim.fn.stdpath 'data' .. '/sessions',
       }
 
