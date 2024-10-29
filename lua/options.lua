@@ -7,6 +7,7 @@
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.ruler = true
+
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
 -- vim.opt.relativenumber = true
@@ -51,6 +52,8 @@ end)
 
 -- Enable break indent
 vim.opt.breakindent = true
+vim.opt.breakindentopt = 'shift:4,min:20'
+vim.opt.showbreak = '↪'
 
 -- Save undo history
 vim.opt.undofile = true
@@ -88,14 +91,13 @@ vim.opt.pumheight = 20
 vim.opt.display = 'truncate'
 
 -- Keep signcolumn on by default
-vim.opt.signcolumn = 'yes'
+vim.opt.signcolumn = 'number'
 
 -- Decrease update time
 vim.opt.updatetime = 250
 
 -- Decrease mapped sequence wait time
 -- Displays which-key popup sooner
-vim.opt.timeoutlen = 300
 vim.opt.ttimeout = true
 vim.opt.ttimeoutlen = 10
 vim.opt.timeoutlen = 1000

@@ -66,6 +66,7 @@ function SessionLoad()
           local entry = state.get_selected_entry().value
           entry = vim.fs.basename(entry)
           mini_sessions.read(entry) -- Load the selected session using its path
+          vim.cmd [[bd #]]
           print('Loaded session: ' .. entry)
         end)
 

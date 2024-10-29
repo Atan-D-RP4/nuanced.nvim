@@ -1,3 +1,35 @@
+local custom = {
+  multi_open = function(prompt_bufnr)
+    local picker = require('telescope.actions.state').get_current_picker(prompt_bufnr)
+    local multi = picker:get_multi_selection()
+
+    if vim.tbl_isempty(multi) then
+      require('telescope.actions').select_default(prompt_bufnr)
+      return
+    end
+
+    require('telescope.actions').close(prompt_bufnr)
+    for _, entry in pairs(multi) do
+      local filename = entry.filename or entry.value
+      local line = entry.lnum or 1
+      local col = entry.col or 1
+
+      vim.cmd(string.format('e +%d %s', line, filename))
+      vim.cmd(string.format('normal! %d|', col))
+    end
+  end,
+
+  buf_del = function(prompt_bufnr)
+    local picker = require('telescope.actions.state').get_current_picker(prompt_bufnr)
+    local selection = picker:get_selection()
+
+    if vim.fn.buflisted(selection.bufnr) == 1 then
+      require('telescope.actions').delete_buffer(prompt_bufnr)
+    else
+      print 'Buffer is not open'
+    end
+  end,
+}
 -- NOTE: Plugins can specify dependencies.
 --
 -- The dependencies are proper plugin specifications as well - anything
@@ -67,8 +99,16 @@ return {
           },
 
           mappings = {
-            i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+            i = {
+              ['<c-enter>'] = 'to_fuzzy_refine',
+              ['<CR>'] = custom.multi_open,
+              ['<C-d>'] = custom.buf_del,
+            },
+            n = {
+              ['<C-d>'] = custom.buf_del,
+            },
           },
+
           pickers = {},
 
           -- NOTE: Uncomment the following to use gnu-grep instead of ripgrep
