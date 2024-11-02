@@ -62,10 +62,8 @@ vim.keymap.set("i", "<C-U>", "<C-G>u<C-U>", { noremap = true })
 vim.keymap.set("n", "<leader>'", ":terminal fish<CR>", { noremap = true, desc = "Open Terminal Buffer" })
 
 -- Buffer Management
-vim.keymap.set("n", "<leader>]", ":bnext!<CR>", { noremap = true, silent = true, desc = "Next Buffer" })
-vim.keymap.set("n", "<leader>[", ":bprevious!<CR>", { noremap = true, silent = true, desc = "Previous Buffer" })
-vim.keymap.set("n", "<leader>d", ":bdelete! %<CR>", { noremap = true, silent = true, desc = "Delete Buffer" })
-vim.keymap.set("n", "<leader>u", ":edit! #<CR>", { noremap = true, silent = true, desc = "Refresh Buffer" })
+vim.keymap.set("n", "<leader>dd", ":bdelete! %<CR>", { noremap = true, silent = true, desc = "Delete Buffer" })
+vim.keymap.set("n", "<leader>du", ":edit! #<CR>", { noremap = true, silent = true, desc = "Refresh Buffer" })
 
 -- CTRL+S for Save
 vim.keymap.set({ "n", "v", "i" }, "<C-S>", "<ESC>:update<CR>", { noremap = true, silent = true, desc = "Better Save" })

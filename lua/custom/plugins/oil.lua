@@ -71,6 +71,7 @@ return {
         ['gx'] = 'actions.open_external',
         ['g.'] = 'actions.toggle_hidden',
         ['g\\'] = 'actions.toggle_trash',
+        ['<Right>'] = 'actions.select',
       },
 
       use_default_keymaps = true,
@@ -90,7 +91,6 @@ return {
 
         case_insensitive = false,
         sort = {
-
           { 'type', 'asc' },
           { 'name', 'asc' },
         },
@@ -99,7 +99,6 @@ return {
       extra_scp_args = {},
 
       git = {
-
         add = function(path)
           return false
         end,

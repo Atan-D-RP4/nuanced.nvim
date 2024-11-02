@@ -99,7 +99,7 @@ return {
     'echasnovski/mini.nvim',
     config = function()
       require('mini.sessions').setup {
-        autoread = true,
+        autoread = false,
         directory = vim.fn.stdpath 'data' .. '/sessions',
       }
 
