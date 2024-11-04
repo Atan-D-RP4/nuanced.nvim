@@ -92,7 +92,7 @@ return {
         defaults = {
           -- Window settings
           layout_config = {
-            prompt_position = 'top',
+            prompt_position = 'bottom',
             preview_cutoff = 120,
             width = 0.85,
             height = 0.85,
