@@ -6,14 +6,15 @@ return {
     event = { 'BufReadPre', 'BufNewFile' },
 
     main = 'nvim-treesitter.configs',
-    config = function()
+
+    opts = function()
       if vim.loop.os_uname().sysname == 'Windows_NT' then
         print('On Windows_NT')
         require('nvim-treesitter.install').compilers = { 'clang' }
       end
-    end,
 
-    opts = {
+	-- Return Configuration
+    return {
       ensure_installed = {
         'bash',
         'c',
@@ -28,44 +29,27 @@ return {
         'vimdoc',
       },
       auto_install = true,
+
       highlight = {
         enable = true,
         additional_vim_regex_highlighting = { 'ruby' },
       },
+
       indent = {
         enable = true,
         disable = { 'ruby' },
       },
+	  
       incremental_selection = {
         enable = true,
         keymaps = {
-          init_selection = '<C-Space>',
-          node_incremental = '<C-Space>',
+          init_selection = '<C-g>',
+          node_incremental = '<C-g>',
           scope_incremental = '<CR>',
           node_decremental = '<BS>',
         },
-        auto_install = true,
-
-        highlight = {
-          enable = true,
-          additional_vim_regex_highlighting = { 'ruby' },
-        },
-
-        indent = {
-          enable = true,
-          disable = { 'ruby', 'c' },
-        },
-
-        incremental_selection = {
-          enable = true,
-          keymaps = {
-            init_selection = '<C-g>',
-            node_incremental = '<C-g>',
-            scope_incremental = '<CR>',
-            node_decremental = '<BS>',
-          },
-        },
-      }
+      },
+  }
     end,
-  },
+},
 }
