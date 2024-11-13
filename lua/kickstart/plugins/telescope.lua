@@ -29,6 +29,36 @@ local custom = {
       print 'Buffer is not open'
     end
   end,
+
+  grep_args = function()
+    if vim.fn.executable 'rg' == 1 then
+      return {
+        'rg',
+        '--color=never',
+        '--no-heading',
+        '--with-filename',
+        '--line-number',
+        '--column',
+        '--smart-case',
+      }
+    else
+      return {
+        'grep',
+        '--extended-regexp',
+        '--color=never',
+        '--with-filename',
+        '--line-number',
+        '-b', -- grep doesn't support a `--column` option :(
+        '--ignore-case',
+        '--recursive',
+        '--no-messages',
+        '--exclude-dir=*cache*',
+        '--exclude-dir=*.git',
+        '--exclude=.*',
+        '--binary-files=without-match',
+      }
+    end
+  end,
 }
 -- NOTE: Plugins can specify dependencies.
 --
@@ -40,12 +70,13 @@ local custom = {
 return {
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
-    event = 'VimEnter',
+    event = 'VeryLazy',
     branch = '0.1.x',
     dependencies = {
       'nvim-lua/plenary.nvim',
       { -- If encountering errors, see telescope-fzf-native README for installation instructions
         'nvim-telescope/telescope-fzf-native.nvim',
+        event = 'VeryLazy',
 
         -- `build` is used to run some command when the plugin is installed/updated.
         -- This is only run then, not every time Neovim starts up.
@@ -57,7 +88,7 @@ return {
           return vim.fn.executable 'make' == 1
         end,
       },
-      { 'nvim-telescope/telescope-ui-select.nvim' },
+      { 'nvim-telescope/telescope-ui-select.nvim', event = 'VeryLazy' },
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
@@ -111,22 +142,8 @@ return {
 
           pickers = {},
 
-          -- NOTE: Uncomment the following to use gnu-grep instead of ripgrep
-          --   vimgrep_arguments = {
-          --     'grep',
-          --     '--extended-regexp',
-          --     '--color=never',
-          --     '--with-filename',
-          --     '--line-number',
-          --     '-b', -- grep doesn't support a `--column` option :(
-          --     '--ignore-case',
-          --     '--recursive',
-          --     '--no-messages',
-          --     '--exclude-dir=*cache*',
-          --     '--exclude-dir=*.git',
-          --     '--exclude=.*',
-          --     '--binary-files=without-match',
-          --   },
+          vimgrep_arguments = custom.grep_args(),
+
           extensions = {
             ['ui-select'] = {
               require('telescope.themes').get_dropdown(),

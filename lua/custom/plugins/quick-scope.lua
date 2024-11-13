@@ -1,5 +1,7 @@
 return {
   'unblevable/quick-scope',
+  -- Load the plugin when fFtT are pressed in normal mode
+  keys = { 'f', 'F', 't', 'T' },
   init = function()
     vim.cmd [[
     let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
