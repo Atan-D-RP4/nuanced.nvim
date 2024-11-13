@@ -158,7 +158,6 @@ return {
       --     vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
       --   end
       -- end
-      vim.api.nvim_set_hl(0, 'LspReferenceText', {})
 
       vim.api.nvim_set_hl(0, 'LspReferenceText', {})
 

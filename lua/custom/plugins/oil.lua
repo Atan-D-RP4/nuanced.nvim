@@ -9,7 +9,7 @@ return {
   config = function()
     require('oil').setup {
 
-      vim.keymap.set('n', '<leader>o', '<cmd>Oil --float<CR>'),
+      vim.keymap.set('n', '<leader>o', '<cmd>Oil<CR>'),
 
       default_file_explorer = true,
 
