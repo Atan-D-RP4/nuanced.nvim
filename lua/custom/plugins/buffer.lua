@@ -1,10 +1,15 @@
 return {
   {
+    -- Detect tabstop and shiftwidth automatically
+	"tpope/vim-sleuth",
+  },
+  {
+
     -- Bufferswitcher
     'leath-dub/snipe.nvim',
     keys = {
       {
-        '<leader>e',
+        'E',
         function()
           require('snipe').open_buffer_menu()
         end,

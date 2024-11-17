@@ -12,7 +12,11 @@ return {
       },
     },
   },
+
   { 'Bilal2453/luvit-meta', lazy = true },
+
+  { "github/copilot.vim" },
+
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
