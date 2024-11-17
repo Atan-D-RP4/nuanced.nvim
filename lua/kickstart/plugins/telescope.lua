@@ -123,24 +123,62 @@ return {
         defaults = {
           -- Window settings
           layout_config = {
-            prompt_position = 'bottom',
-            preview_cutoff = 120,
-            width = 0.85,
-            height = 0.85,
+            -- prompt_position = "top",
+            flex = {
+              -- use vertical layout when window column < filp_columns
+              flip_columns = 160,
+            },
+            vertical = {
+              height = 0.8,
+              width = 120,
+              preview_height = 0.4,
+              mirror = true, -- flip location of results/prompt and preview windows
+              -- prompt_position = "top",
+            },
+            horizontal = {
+              -- mirror = true,
+              width = 0.85,
+              preview_width = 0.6,
+            },
+            center = {
+              -- mirror = true,
+            },
+            bottom_pane = {
+              height = { 0.5, min = 25, max = 50 },
+            },
+          },
+
+          file_ignore_patterns = { 'node_modules', '/dist', 'target' },
+
+          preview = {
+            hide_on_startup = false,
+          },
+
+          path_display = {
+            'truncate', -- truncate long file name
+            'smart',
+            'filename_first',
           },
 
           mappings = {
             i = {
               ['<c-enter>'] = 'to_fuzzy_refine',
               ['<CR>'] = custom.multi_open,
-              ['<C-d>'] = custom.buf_del,
+              ['<c-d>'] = custom.buf_del,
             },
             n = {
-              ['<C-d>'] = custom.buf_del,
+              ['<CR>'] = custom.multi_open,
+              ['<c-d>'] = custom.buf_del,
             },
           },
 
-          pickers = {},
+          pickers = {
+            buffers = {
+              sort_mru = true,
+              sort_lastused = true,
+              ignore_current_buffer = true,
+            },
+          },
 
           vimgrep_arguments = custom.grep_args(),
 
@@ -156,45 +194,42 @@ return {
       pcall(require('telescope').load_extension, 'ui-select')
 
       -- Telescope command prefix
-      local prefix = '<leader>s'
+      local prefix = '<leader>f'
 
       -- See `:help telescope.builtin`
-      local builtin = require 'telescope.builtin'
+      local cmd = "<cmd>lua require('telescope.builtin').%s<CR>"
       nmap = require('utils').nmap
 
-      nmap(prefix .. 'h', builtin.help_tags, { desc = '[S]earch [H]elp' })
-      nmap(prefix .. 'k', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-      nmap(prefix .. 'f', builtin.find_files, { desc = '[S]earch [F]iles' })
-      nmap(prefix .. 'b', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-      nmap(prefix .. 'w', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-      nmap(prefix .. 'g', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-      nmap(prefix .. 'd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
-      nmap(prefix .. 'r', builtin.resume, { desc = '[S]earch [R]esume' })
-      nmap(prefix .. '.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-      nmap(prefix .. '[', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      nmap(prefix .. 'h', cmd:format 'help_tags()', { desc = '[F]ind [H]elp' })
+      nmap(prefix .. 'k', cmd:format 'keymaps()', { desc = '[F]ind [K]eymaps' })
+      nmap(prefix .. 'f', cmd:format 'find_files()', { desc = '[F]ind [F]iles' })
+      nmap(prefix .. 'B', cmd:format 'builtin()', { desc = '[F]ind [B]uiltins' })
+      nmap(prefix .. 'w', cmd:format 'grep_string()', { desc = '[F]ind current [W]ord' })
+      nmap(prefix .. 'g', cmd:format 'live_grep()', { desc = '[F]ind by [G]rep' })
+      nmap(prefix .. 'd', cmd:format 'diagnostics()', { desc = '[F]ind [D]iagnostics' })
+      nmap(prefix .. 'r', cmd:format 'resume()', { desc = '[F]ind [R]esume' })
+      nmap(prefix .. 'o', cmd:format 'oldfiles()', { desc = '[F]ind [O]ld Files' })
+      nmap(prefix .. 'b', cmd:format 'buffers()', { desc = '[F]ind [B]uffers' })
+      nmap(prefix .. 'c', cmd:format 'command_history()', { desc = '[F]ind [C]ommands' })
 
       -- Slightly advanced example of overriding default behavior and theme
-      nmap(prefix .. '/', function()
-        -- You can pass additional configuration to Telescope to change the theme, layout, etc.
-        builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-          winblend = 10,
-          previewer = false,
-        })
-      end, { desc = '[/] Fuzzily search in current buffer' })
+      -- You can pass additional configuration to Telescope to change the theme, layout, etc.
+      nmap(
+        prefix .. '/',
+        cmd:format "current_buffer_fuzzy_find(require('telescope.themes').get_dropdown { winblend = 10, previewer = false })",
+        { desc = '[/] Fuzzily search in current buffer' }
+      )
 
       -- It's also possible to pass additional configuration options.
       --  See `:help telescope.builtin.live_grep()` for information about particular keys
-      nmap(prefix .. '?', function()
-        builtin.live_grep {
-          grep_open_files = true,
-          prompt_title = 'Live Grep in Open Files',
-        }
-      end, { desc = '[S]earch [/] in Open Files' })
+      nmap(
+        prefix .. '?',
+        cmd:format "live_grep(require('telescope.themes').get_dropdown { winblend = 10, previewer = false })",
+        { desc = '[S]earch [/] in Open Files' }
+      )
 
       -- Shortcut for searching your Neovim configuration files
-      nmap(prefix .. 'n', function()
-        builtin.find_files { cwd = vim.fn.stdpath 'config', follow = true }
-      end, { desc = '[S]earch [N]eovim files' })
+      nmap(prefix .. 'n', cmd:format "find_files { cwd = vim.fn.stdpath 'config', follow = true }", { desc = '[S]earch [N]eovim files' })
     end,
   },
 }

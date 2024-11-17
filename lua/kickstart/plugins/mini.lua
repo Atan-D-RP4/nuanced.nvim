@@ -9,8 +9,8 @@ return {
       }
 
       -- Command to save a session
-      vim.keymap.set('n', '<leader>ss', require('utils').sessionSave, { desc = '[S]ession [S]ave' })
-      vim.keymap.set('n', '<leader>sl', require('utils').sessionLoad, { desc = '[S]ession [L]oad' })
+      -- vim.keymap.set('n', '<leader>ss', require('utils').sessionSave, { desc = '[S]ession [S]ave' })
+      -- vim.keymap.set('n', '<leader>sl', require('utils').sessionLoad, { desc = '[S]ession [L]oad' })
 
       require('mini.tabline').setup()
 
@@ -48,6 +48,13 @@ return {
       ---@diagnostic disable-next-line: duplicate-set-field
       statusline.section_location = function()
         return '%2l:%-2v'
+      end
+
+      -- Create a custom section in the statusline for session
+      statusline.section_session = function()
+        local session = require 'mini.sessions'
+        local session_name = session.get_current_session_name()
+        return session_name and 'Session: ' .. session_name or ''
       end
       -- ... and there is more!
       --  Check out: https://github.com/echasnovski/mini.nvim
