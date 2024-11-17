@@ -3,14 +3,9 @@ return {
     'echasnovski/mini.nvim',
     event = 'VeryLazy',
     config = function()
-      require('mini.sessions').setup {
-        autoread = false,
-        directory = vim.fn.stdpath 'data' .. '/sessions',
-      }
 
-      -- Command to save a session
-      -- vim.keymap.set('n', '<leader>ss', require('utils').sessionSave, { desc = '[S]ession [S]ave' })
-      -- vim.keymap.set('n', '<leader>sl', require('utils').sessionLoad, { desc = '[S]ession [L]oad' })
+
+      require('mini.icons').setup()
 
       require('mini.tabline').setup()
 

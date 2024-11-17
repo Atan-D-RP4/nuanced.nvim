@@ -1,6 +1,11 @@
 -- local M = {}
 --
 -- function M.sessionSave()
+--   require('mini.sessions').setup {
+--     autoread = false,
+--     directory = vim.fn.stdpath 'data' .. '/sessions',
+--   }
+
 --   local has_ms, mini_sessions = pcall(require, "mini.sessions")
 --   if not has_ms then
 --     print("Please install mini.nvim to use this feature")
