@@ -74,21 +74,21 @@ return {
     },
   },
 
-  {
-    'ThePrimeagen/git-worktree.nvim',
-    dependencies = { 'nvim-lua/plenary.nvim', 'nvim-telescope/telescope.nvim' },
-    event = 'VeryLazy',
-
-    config = function()
-      require('git-worktree').setup()
-
-      require('telescope').load_extension 'git_worktree'
-
-      -- Create a new worktree
-      vim.keymap.set('n', '<leader>wc', "<cmd>lua require('telescope').extensions.git_worktree.git_worktrees()<CR>", { desc = '[W]orktree [C]reate' })
-
-      -- Switch to a worktree
-      vim.keymap.set('n', '<leader>ws', "<cmd>lua require('telescope').extensions.git_worktree.git_worktree()<CR>", { desc = '[S]witch to [W]orktree' })
-    end,
-  },
+  -- {
+  --   'ThePrimeagen/git-worktree.nvim',
+  --   dependencies = { 'nvim-lua/plenary.nvim', 'nvim-telescope/telescope.nvim' },
+  --   event = 'VeryLazy',
+  --
+  --   config = function()
+  --     require('git-worktree').setup()
+  --
+  --     require('telescope').load_extension 'git_worktree'
+  --
+  --     -- Create a new worktree
+  --     vim.keymap.set('n', '<leader>wc', "<cmd>lua require('telescope').extensions.git_worktree.git_worktrees()<CR>", { desc = '[W]orktree [C]reate' })
+  --
+  --     -- Switch to a worktree
+  --     vim.keymap.set('n', '<leader>ws', "<cmd>lua require('telescope').extensions.git_worktree.git_worktree()<CR>", { desc = '[S]witch to [W]orktree' })
+  --   end,
+  -- },
 }
