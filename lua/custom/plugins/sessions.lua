@@ -115,10 +115,7 @@
 -- end
 
 return {
-  {
     'gennaro-tedesco/nvim-possession',
-    event = 'VeryLazy',
-
     keys = {
     	"<leader>sl",
     	"<leader>sn",
@@ -127,18 +124,18 @@ return {
     },
 
     config = function()
-      vim.keymap.set('n', '<leader>sl', function()
+      require('utils').nmap('<leader>sl', function()
         require('nvim-possession').list()
-      end, { silent = true })
-      vim.keymap.set('n', '<leader>sn', function()
+      end, { silent = true , desc = '[S]ession [L]ist' })
+      require('utils').nmap('<leader>sn', function()
         require('nvim-possession').new()
-      end, { silent = true })
-      vim.keymap.set('n', '<leader>su', function()
+      end, { silent = true, desc = '[S]ession [N]ew' })
+      require('utils').nmap('<leader>su', function()
         require('nvim-possession').update()
-      end, { silent = true })
-      vim.keymap.set('n', '<leader>sd', function()
+      end, { silent = true , desc = '[S]ession [U]pdate' })
+      require('utils').nmap('<leader>sd', function()
         require('nvim-possession').delete()
-      end, { silent = true })
+      end, { silent = true, desc = '[S]ession [D]elete' })
 
       require('nvim-possession').setup {
         autoload = false,
@@ -155,5 +152,4 @@ return {
         },
       }
     end,
-  },
 }
