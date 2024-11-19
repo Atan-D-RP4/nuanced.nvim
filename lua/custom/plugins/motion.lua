@@ -1,3 +1,18 @@
+local mapper = function()
+  local keys = { 'e', 'w', 'b' }
+  local final = {}
+
+  for _, key in ipairs(keys) do
+    table.insert(final, {
+      key,
+      string.format("<cmd>lua require('spider').motion('%s')<CR>", key),
+      mode = { 'n', 'o', 'x' },
+      desc = string.format('Spider Motion %s', key),
+    })
+  end
+  return final
+end
+
 return {
   {
     'unblevable/quick-scope',
@@ -15,12 +30,9 @@ return {
     end,
   },
 
-  -- {
-  --   "chrisgrieser/nvim-spider",
-  --   lazy = true,
-  --   -- NOTE: More config is needed - see https://github.com/chrisgrieser/nvim-spider
-  --   config = function()
-  --     require("spider").setup()
-  --   end,
-  -- }
+  {
+    'chrisgrieser/nvim-spider',
+    lazy = true,
+    keys = mapper(),
+  },
 }
