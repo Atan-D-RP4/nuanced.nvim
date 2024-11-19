@@ -1,28 +1,34 @@
 -- [[ Setting options ]]
--- See `:help vim.opt`
+-- See `:help opt`
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
 
-vim.opt.foldenable = false
+local opt = vim.opt
+
+-- disable nvim intro
+opt.shortmess:append 'sI'
+
+opt.foldenable = false
 
 -- Make line numbers default
-vim.opt.number = true
-vim.opt.relativenumber = true
-vim.opt.ruler = true
+opt.number = true
+opt.relativenumber = true
+opt.ruler = false
 
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+-- opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
-vim.opt.mouse = 'a'
-vim.opt.mousehide = true
+opt.mouse = 'a'
+opt.mousehide = true
 
 -- Don't show the mode, since it's already in the status line
-vim.opt.showmode = false
+opt.showmode = false
+vim.o.laststatus = 3
 
 -- Show Tabline
-vim.opt.showtabline = 2
+opt.showtabline = 2
 
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
@@ -34,7 +40,7 @@ vim.schedule(function()
   end
 
   if vim.loop.os_uname().sysname == 'Windows_NT' then
-    vim.opt.clipboard = 'unnamedplus'
+    opt.clipboard = 'unnamedplus'
     vim.g.clipboard = {
       name = 'clip.exe (WSL)',
       copy = {
@@ -49,84 +55,90 @@ vim.schedule(function()
     }
     return
   end
-  vim.opt.clipboard = 'unnamedplus,unnamed'
+  opt.clipboard = 'unnamedplus,unnamed'
 end)
 
 -- Enable break indent
-vim.opt.breakindent = true
-vim.opt.breakindentopt = 'shift:4,min:20'
-vim.opt.showbreak = '↪'
+opt.breakindent = true
+opt.breakindentopt = 'shift:4,min:20'
+opt.showbreak = '↪'
 
 -- Save undo history
-vim.opt.undofile = true
-vim.opt.undolevels = 1000
-vim.opt.undoreload = 10000
-vim.opt.undodir = '/tmp/.vim/undo.nvim'
+opt.undofile = true
+opt.undolevels = 1000
+opt.undoreload = 10000
+opt.undodir = '/tmp/.vim/undo.nvim'
 
 -- Command-line History
-vim.opt.history = 10000
+opt.history = 10000
 
 -- Backup and Swap Files
-vim.opt.swapfile = true
-vim.opt.directory = '/tmp/.vim/swap.nvim'
-vim.opt.backup = true
-vim.opt.backupdir = '/tmp/.vim/backup.nvim'
+opt.swapfile = true
+opt.directory = '/tmp/.vim/swap.nvim'
+opt.backup = true
+opt.backupdir = '/tmp/.vim/backup.nvim'
 
 -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
-vim.opt.ignorecase = true
-vim.opt.smartcase = true
+opt.ignorecase = true
+opt.smartcase = true
 
 -- Tab and Indent Settings
-vim.opt.smarttab = true
-vim.opt.tabstop = 4
-vim.opt.shiftwidth = 4
-vim.opt.expandtab = false
-vim.opt.smartindent = true
-vim.opt.autoindent = true
+opt.smarttab = true
+opt.tabstop = 4
+opt.shiftwidth = 4
+opt.expandtab = false
+opt.smartindent = true
+opt.autoindent = true
 
 -- Wild Menu and Pop-up Menue Settings
-vim.opt.wildignore = '*.o,*.so*.obj,*~,*swp,*.exe'
-vim.opt.wildmenu = true
-vim.opt.wildmode = 'longest:full,full'
-vim.opt.wildoptions = 'pum,fuzzy'
-vim.opt.pumheight = 20
-vim.opt.display = 'truncate'
+opt.wildignore = '*.o,*.so*.obj,*~,*swp,*.exe'
+opt.wildmenu = true
+opt.wildmode = 'longest:full,full'
+opt.wildoptions = 'pum,fuzzy'
+opt.pumheight = 20
+opt.display = 'truncate'
 
 -- Keep signcolumn on by default
-vim.opt.signcolumn = 'number'
+opt.signcolumn = 'number'
 
 -- Decrease update time
-vim.opt.updatetime = 250
+opt.updatetime = 250
 
 -- Decrease mapped sequence wait time
 -- Displays which-key popup sooner
-vim.opt.ttimeout = true
-vim.opt.ttimeoutlen = 10
-vim.opt.timeoutlen = 1000
+opt.ttimeout = true
+opt.ttimeoutlen = 10
+opt.timeoutlen = 500
 
 -- Configure how new splits should be opened
-vim.opt.splitright = true
-vim.opt.splitbelow = true
+opt.splitright = true
+opt.splitbelow = true
 
 -- Sets how neovim will display certain whitespace characters in the editor.
 --  See `:help 'list'`
 --  and `:help 'listchars'`
-vim.opt.list = true
-vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+opt.list = true
+opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+opt.fillchars = { vert = '│', eob = ' ' }
+
+-- go to previous/next line with h,l,left arrow and right arrow
+-- when cursor reaches end/beginning of line
+opt.whichwrap:append '<>[]hl'
 
 -- Preview substitutions live, as you type!
-vim.opt.inccommand = 'split'
+opt.inccommand = 'split'
 
 -- Show which line your cursor is on
-vim.opt.cursorline = true
+opt.cursorline = true
+opt.cursorlineopt = 'number'
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 10
+opt.scrolloff = 10
 
-vim.opt.hidden = true
-vim.opt.encoding = 'utf-8'
-vim.opt.path:append '**'
-vim.opt.autoread = true
+opt.hidden = true
+opt.encoding = 'utf-8'
+opt.path:append '**'
+opt.autoread = true
 
 -- Create directories if they don't exist
 vim.fn.mkdir(vim.fn.expand '~/.vim/undo.nvim', 'p')
@@ -144,5 +156,11 @@ if vim.fn.executable(clip) == 1 then
     end,
   })
 end
+
+-- add binaries installed by mason.nvim to path
+local is_windows = vim.fn.has 'win32' ~= 0
+local sep = is_windows and '\\' or '/'
+local delim = is_windows and ';' or ':'
+vim.env.PATH = table.concat({ vim.fn.stdpath 'data', 'mason', 'bin' }, sep) .. delim .. vim.env.PATH
 
 -- vim: ts=2 sts=2 sw=2 et
