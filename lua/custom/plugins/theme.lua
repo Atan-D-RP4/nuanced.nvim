@@ -16,5 +16,25 @@ return {
       vim.cmd.hi 'Comment gui=none'
     end,
   },
+  --
+  -- {
+  --   'Shadorain/shadotheme',
+  --   lazy = false,
+  --   config = function()
+  --     vim.cmd [[
+  --       hi Keyword gui=italic
+  --       hi WinBar guibg=None
+  --       hi WinBarNC guibg=None
+  --       hi Comment gui=none
+  --     ]]
+  --   end,
+  -- },
+  --
+  --
+  {
+    'xiyaowong/nvim-transparent',
+    event = 'VimEnter',
+    config = true,
+  },
 }
 -- vim: ts=2 sts=2 sw=2 et
