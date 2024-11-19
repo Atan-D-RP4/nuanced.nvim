@@ -1,7 +1,7 @@
 return {
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
-    event = 'InsertEnter',
+    event = { 'InsertEnter' },
     dependencies = {
       -- Snippet Engine & its associated nvim-cmp source
       {
@@ -34,6 +34,8 @@ return {
       --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
+      'lukas-reineke/cmp-rg',
+      -- 'uga-rosa/cmp-dictionary',
     },
     config = function()
       -- See `:help cmp`
@@ -47,6 +49,7 @@ return {
             luasnip.lsp_expand(args.body)
           end,
         },
+
         completion = { completeopt = 'menu,menuone,noinsert' },
 
         -- For an understanding of why these mappings were
@@ -110,8 +113,14 @@ return {
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
           { name = 'path' },
+          { name = 'rg' },
+          -- { name = 'dictionary', keyword_length = 2 },
         },
       }
+
+      -- require('cmp_dictionary').setup {
+      --   exact_length = 2,
+      -- }
     end,
   },
 }
