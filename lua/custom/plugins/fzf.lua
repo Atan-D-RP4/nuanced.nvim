@@ -74,8 +74,10 @@ return {
     require('fzf-lua').setup {
       'telescope',
       -- Map tab to add selection
-
     }
+
+    require('fzf-lua').register_ui_select()
+
     -- Fzf command template
     local cmd = "<cmd>lua require('fzf-lua').%s<CR>"
 

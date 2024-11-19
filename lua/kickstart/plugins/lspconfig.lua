@@ -28,7 +28,7 @@ return {
 
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', opts = {} },
+      -- { 'j-hui/fidget.nvim', opts = {} },
 
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
@@ -82,10 +82,6 @@ return {
             map('<leader>D', fzf.lsp_typedefs, 'Type [D]efinition')
             map('<leader>ds', fzf.lsp_document_symbols, '[D]ocument [S]ymbols')
             map('<leader>ws', fzf.lsp_live_workspace_symbols, '[W]orkspace [S]ymbols')
-
-            -- Execute a code action, usually your cursor needs to be on top of an error
-            -- or a suggestion from your LSP for this to activate.
-            require('utils').map({'n', 'x'}, '<leader>ca', fzf.lsp_code_actions,  '[C]ode [A]ction')
           else
             local fzf = require 'telescope.builtin'
 
@@ -95,13 +91,15 @@ return {
             map('<leader>D', fzf.lsp_type_definitions, 'Type [D]efinition')
             map('<leader>ds', fzf.lsp_document_symbols, '[D]ocument [S]ymbols')
             map('<leader>ws', fzf.lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
-            require('utils').map({'n', 'x'}, '<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
           end
+
+          -- Execute a code action, usually your cursor needs to be on top of an error
+          -- or a suggestion from your LSP for this to activate.
+          require('utils').map({ 'n', 'x' }, '<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
           -- Rename the variable under your cursor.
           --  Most Language Servers support renaming across files, etc.
           map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
