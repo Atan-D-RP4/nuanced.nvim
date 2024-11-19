@@ -5,6 +5,7 @@ return {
     -- used for completion, annotations and signatures of Neovim apis
     'folke/lazydev.nvim',
     ft = 'lua',
+    events = 'VeryLazy',
     opts = {
       library = {
         -- Load luvit types when the `vim.uv` word is found
@@ -15,23 +16,24 @@ return {
 
   { 'Bilal2453/luvit-meta', lazy = true },
 
-  { 'github/copilot.vim' },
+  { 'github/copilot.vim', events = 'VeryLazy' },
 
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
+    event = 'VeryLazy',
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
-      { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
-      'williamboman/mason-lspconfig.nvim',
-      'WhoIsSethDaniel/mason-tool-installer.nvim',
+      { 'williamboman/mason.nvim', config = true, event = 'VeryLazy' }, -- NOTE: Must be loaded before dependants
+      { 'williamboman/mason-lspconfig.nvim', event = 'VeryLazy' },
+      { 'WhoIsSethDaniel/mason-tool-installer.nvim', event = 'VeryLazy' },
 
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       -- { 'j-hui/fidget.nvim', opts = {} },
 
       -- Allows extra capabilities provided by nvim-cmp
-      'hrsh7th/cmp-nvim-lsp',
+      { 'hrsh7th/cmp-nvim-lsp', event = 'VeryLazy' },
     },
     config = function()
       -- Brief aside: **What is LSP?**
