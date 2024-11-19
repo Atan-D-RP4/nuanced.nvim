@@ -116,6 +116,10 @@
 
 return {
     'gennaro-tedesco/nvim-possession',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'ibhagwan/fzf-lua',
+    },
     keys = {
     	"<leader>sl",
     	"<leader>sn",
