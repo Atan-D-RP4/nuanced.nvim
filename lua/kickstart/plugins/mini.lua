@@ -1,22 +1,31 @@
 return {
-  { -- Collection of various small independent plugins/modules
-    'echasnovski/mini.nvim',
-    event = 'VeryLazy',
+  {
+    'echasnovski/mini.tabline',
+    event = 'VimEnter',
     config = function()
-
-
-      require('mini.icons').setup()
-
       require('mini.tabline').setup()
+    end,
+  },
 
-      -- Better Around/Inside textobjects
-      --
-      -- Examples:
-      --  - va)  - [V]isually select [A]round [)]paren
-      --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
-      --  - ci'  - [C]hange [I]nside [']quote
+  {
+    'echasnovski/mini.ai',
+    event = 'VeryLazy',
+    -- Better Around/Inside textobjects
+    --
+    -- Examples:
+    --  - va)  - [V]isually select [A]round [)]paren
+    --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
+    --  - ci'  - [C]hange [I]nside [']quote
+    config = function()
       require('mini.ai').setup { n_lines = 500 }
+    end,
+  },
 
+  {
+    'echasnovski/mini.surround',
+    event = 'VeryLazy',
+
+    config = function()
       -- Add/delete/replace surroundings (brackets, quotes, etc.)
       --
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
@@ -28,7 +37,14 @@ return {
           delete = 'gsd',
         },
       }
+    end,
+  },
 
+  {
+    'echasnovski/mini.statusline',
+    event = 'VeryLazy',
+
+    config = function()
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
       --  and try some other statusline plugin
@@ -51,10 +67,28 @@ return {
         local session_name = session.get_current_session_name()
         return session_name and 'Session: ' .. session_name or ''
       end
-      -- ... and there is more!
-      --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
+
+  -- { -- Collection of various small independent plugins/modules
+  --   'echasnovski/mini.nvim',
+  --   event = 'VeryLazy',
+  --   config = function()
+  --     require('mini.icons').setup()
+  --
+  --     require('mini.ai').setup { n_lines = 500 }
+  --
+  --     require('mini.surround').setup {
+  --       mappings = {
+  --         add = 'gsa',
+  --         delete = 'gsd',
+  --       },
+  --     }
+  --
+  --     -- ... and there is more!
+  --     --  Check out: https://github.com/echasnovski/mini.nvim
+  --   end,
+  -- },
 }
 
 -- vim: ts=2 sts=2 sw=2 et
