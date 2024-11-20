@@ -31,10 +31,19 @@ return {
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
+      local surroud_prefix = '<leader>s'
       require('mini.surround').setup {
         mappings = {
-          add = 'gsa',
-          delete = 'gsd',
+          add = surroud_prefix .. 'a', -- Add surrounding in Normal and Visual modes
+          delete = surroud_prefix .. 'd', -- Delete surrounding
+          find = surroud_prefix .. 'f', -- Find surrounding (to the right)
+          find_left = surroud_prefix .. 'F', -- Find surrounding (to the left)
+          highlight = surroud_prefix .. 'h', -- Highlight surrounding
+          replace = surroud_prefix .. 'r', -- Replace surrounding
+          update_n_lines = surroud_prefix .. 'n', -- Update `n_lines`
+
+          suffix_last = 'l', -- Suffix to search with "prev" method
+          suffix_next = 'n', -- Suffix to search with "next" method
         },
       }
     end,

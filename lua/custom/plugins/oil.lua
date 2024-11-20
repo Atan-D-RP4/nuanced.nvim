@@ -1,7 +1,16 @@
 return {
   'stevearc/oil.nvim',
-
+  event = 'VeryLazy',
   version = '*',
+  cmd = 'Oil',
+
+  init = function()
+    if vim.fn.argc() == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1 then
+      require('lazy').load({ plugins = { 'oil.nvim' } })
+      vim.cmd('bd') -- Close the initial buffer
+      vim.cmd('Oil ' .. vim.fn.argv(0))
+    end
+  end,
 
   config = function()
     require('oil').setup {
