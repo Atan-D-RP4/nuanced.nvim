@@ -40,7 +40,7 @@ return {
 
     keys = {
       {
-        '<leader>f',
+        '<leader>cf',
         function()
           require('conform').format { async = false, lsp_format = 'fallback' }
         end,

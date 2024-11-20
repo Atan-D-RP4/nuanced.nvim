@@ -16,7 +16,11 @@ return {
         desc = 'Open Snipe buffer menu',
       },
     },
-    opts = {},
+    opts = {
+       hints = {
+        dictionary = '0123456789',
+      }
+    },
   },
 
   {
