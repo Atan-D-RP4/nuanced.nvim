@@ -1,5 +1,7 @@
-local mapper = function()
-  local keys = { 'e', 'w', 'b' }
+local mapper = function(keys)
+  if vim.tbl_isempty(keys) then
+    keys = { 'w', 'e', 'b' }
+  end
   local final = {}
 
   for _, key in ipairs(keys) do
@@ -35,6 +37,6 @@ return {
   {
     'chrisgrieser/nvim-spider',
     lazy = true,
-    keys = mapper(),
+    keys = mapper({ 'w', 'e', 'b' }),
   },
 }
