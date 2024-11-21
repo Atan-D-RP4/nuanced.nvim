@@ -121,23 +121,24 @@ return {
       'ibhagwan/fzf-lua',
     },
     keys = {
-    	"<leader>sl",
-    	"<leader>sn",
-    	"<leader>su",
-    	"<leader>sd",
+    	"<leader>al",
+    	"<leader>an",
+    	"<leader>as",
+    	"<leader>ad",
     },
 
     config = function()
-      require('utils').nmap('<leader>sl', function()
+      local session_prefix = '<leader>a'
+      require('utils').nmap(session_prefix .. 'l', function()
         require('nvim-possession').list()
       end, { silent = true , desc = '[S]ession [L]ist' })
-      require('utils').nmap('<leader>sn', function()
+      require('utils').nmap(session_prefix .. 'n', function()
         require('nvim-possession').new()
       end, { silent = true, desc = '[S]ession [N]ew' })
-      require('utils').nmap('<leader>su', function()
+      require('utils').nmap(session_prefix .. 's', function()
         require('nvim-possession').update()
-      end, { silent = true , desc = '[S]ession [U]pdate' })
-      require('utils').nmap('<leader>sd', function()
+      end, { silent = true , desc = '[S]ession [S]ave/Update' })
+      require('utils').nmap(session_prefix .. 'd', function()
         require('nvim-possession').delete()
       end, { silent = true, desc = '[S]ession [D]elete' })
 

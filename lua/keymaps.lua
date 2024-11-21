@@ -1,23 +1,22 @@
 -- [[ Basic Keymaps ]]
 --  See `:helpvim.keymap.set()`
 
-local map = require("utils").map
-local nmap = require("utils").nmap
-local tmap = require("utils").tmap
-local imap = require("utils").imap
-local vmap = require("utils").vmap
+local map = require('utils').map
+local nmap = require('utils').nmap
+local tmap = require('utils').tmap
+local imap = require('utils').imap
+local vmap = require('utils').vmap
 
 -- Better Escape
-
-nmap("<Esc>", "<C-c><C-c>", { noremap = true })
-imap("<Esc>", "<Esc><Esc><Right>", { noremap = true, desc = "Better Escape" })
+nmap('<Esc>', '<C-c><C-c>', { noremap = true, silent = true })
+imap('<Esc>', '<Esc><Esc><Right>', { noremap = true, desc = 'Better Escape' })
 -- Clear highlights on search when pressing <Esc> in normal mode
 
 --  See `:help hlsearch`
-nmap("<Esc>", "<cmd>nohlsearch<CR>", { noremap = true, silent = true, desc = "Clear highlights on search" })
+nmap('<Esc>', '<cmd>nohlsearch<CR>', { noremap = true, silent = true, desc = 'Clear highlights on search' })
 
 -- Diagnostic keymaps
-nmap("<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
+nmap('<leader>q', vim.diagnostic.setloclist, { noremap = true, silent = true, desc = 'Open diagnostic [Q]uickfix list' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
