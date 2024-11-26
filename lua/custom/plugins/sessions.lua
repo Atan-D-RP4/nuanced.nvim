@@ -132,6 +132,11 @@ return {
     local session_cmd = '<cmd>lua require("nvim-possession").%s()<CR>'
     local nmap = require('utils').nmap
 
+    -- Check if session dir exists and if not create it
+    if vim.fn.isdirectory(require('nvim-possession.config').sessions.sessions_path) == 0 then
+      vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
+    end
+
     -- Use <Enter> to switch to selected session, <C-x> to delete it
     nmap(session_prefix .. 'l', session_cmd:format 'list', '[S]ession [L]ist')
     nmap(session_prefix .. 'n', session_cmd:format 'new', '[S]ession [N]ew')
