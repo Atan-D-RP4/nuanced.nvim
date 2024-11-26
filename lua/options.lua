@@ -5,8 +5,20 @@
 
 local opt = vim.opt
 
+vim.opt.gcr = {
+  'i-c-ci-ve:-block-TermCursor',
+  'n-v:block-Curosr/lCursor',
+  'o:hor50-Curosr/lCursor',
+  'r-cr:hor20-Curosr/lCursor',
+}
+
+vim.opt.termguicolors = true -- set term gui colors (most terminals support this)
+
 -- disable nvim intro
 opt.shortmess:append 'sI'
+
+-- separate vim plugins from neovim in case vim still in use
+opt.runtimepath:remove '/usr/share/vim/vimfiles'
 
 opt.foldenable = false
 
@@ -25,7 +37,7 @@ opt.mousehide = true
 
 -- Don't show the mode, since it's already in the status line
 opt.showmode = false
-vim.o.laststatus = 3
+vim.o.laststatus = 0
 
 -- Show Tabline
 opt.showtabline = 2
@@ -94,8 +106,8 @@ opt.autoindent = true
 opt.wildignore = '*.o,*.so*.obj,*~,*swp,*.exe'
 opt.wildmenu = true
 opt.wildmode = 'longest:full,full'
-opt.wildoptions = 'pum,fuzzy'
-opt.pumheight = 20
+opt.wildoptions = 'pum,fuzzy,tagfile'
+opt.pumheight = 10
 opt.display = 'truncate'
 
 -- Keep signcolumn on by default
