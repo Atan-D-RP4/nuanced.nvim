@@ -7,7 +7,9 @@ return {
         desc = "Delete Empty Buffer at startup",
         pattern = '*',
         callback = function()
-          vim.cmd('Bdelete!')
+          if vim.api.nvim_buf_get_name(0) == '' then
+            vim.cmd('Bdelete!')
+          end
         end,
       })
     end,
