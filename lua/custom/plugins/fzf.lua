@@ -95,7 +95,7 @@ return {
     nmap(prefix .. 'k', cmd:format 'keymaps()', { desc = '[F]ind [K]eymaps' })
     nmap(prefix .. 'f', cmd:format 'files()', { desc = '[F]ind [F]iles' })
     nmap(prefix .. 'B', cmd:format 'builtin()', { desc = '[F]ind [B]uiltins' })
-    nmap(prefix .. 'v', cmd:format 'grep_visual()', { desc = '[F]ind [V]isual' })
+    require('utils').vmap(prefix .. 'v', cmd:format 'grep_visual()', { desc = '[F]ind [V]isual' })
     nmap(prefix .. 'g', cmd:format 'live_grep()', { desc = '[F]ind by [G]rep' })
     nmap(prefix .. 'd', cmd:format 'lsp_document_diagnostics()', { desc = '[F]ind [D]iagnostics' })
     nmap(prefix .. 'r', cmd:format 'resume()', { desc = '[F]ind [R]esume' })

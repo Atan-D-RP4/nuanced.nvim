@@ -1,9 +1,16 @@
 return {
+  -- {
+  --   'echasnovski/mini.icons',
+  --   config = function()
+  --     require('mini.icons').setup()
+  --   end
+  -- },
+
   {
-    'echasnovski/mini.tabline',
-    event = 'VimEnter',
+    'echasnovski/mini.notify',
+    event = 'VeryLazy',
     config = function()
-      require('mini.tabline').setup()
+      require('mini.notify').setup()
     end,
   },
 
@@ -50,8 +57,16 @@ return {
   },
 
   {
+    'echasnovski/mini.tabline',
+    event = 'VimEnter',
+    config = function()
+      require('mini.tabline').setup()
+    end,
+  },
+
+  {
     'echasnovski/mini.statusline',
-    event = 'VeryLazy',
+    event = 'VimEnter',
 
     config = function()
       -- Simple and easy statusline.
