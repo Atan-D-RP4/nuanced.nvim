@@ -1,7 +1,7 @@
 local utils = {}
 
 function utils.map(mode, lhs, rhs, opts)
-  local options = {}
+  local options = { noremap = true, silent = true}
   if opts then
     if type(opts) == "string" then
       opts = { desc = opts }
@@ -27,5 +27,8 @@ function utils.vmap(lhs, rhs, opts)
   utils.map("v", lhs, rhs, opts)
 end
 
+function utils.ternary ( cond , T , F , ...)
+    if cond then return T(...) else return F(...) end
+end
 
 return utils
