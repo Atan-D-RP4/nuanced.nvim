@@ -1,10 +1,16 @@
 return {
   {
-    -- Detect tabstop and shiftwidth automatically
-	"tpope/vim-sleuth",
+    "moll/vim-bbye",
+    keys = {
+      {
+        "<leader>dd",
+        "<cmd>Bdelete!<CR>",
+        desc = "Delete buffer",
+      },
+    }
   },
-  {
 
+  {
     -- Bufferswitcher
     'leath-dub/snipe.nvim',
     keys = {
@@ -18,7 +24,7 @@ return {
     },
     opts = {
        hints = {
-        dictionary = '0123456789',
+        dictionary = '1234567890',
       }
     },
   },
