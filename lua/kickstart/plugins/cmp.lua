@@ -36,6 +36,7 @@ return {
       'hrsh7th/cmp-path',
       'lukas-reineke/cmp-rg',
       -- 'uga-rosa/cmp-dictionary',
+      'hrsh7th/cmp-cmdline',
     },
     config = function()
       -- See `:help cmp`
@@ -104,6 +105,20 @@ return {
           -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
           --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
         },
+
+        cmp.setup.cmdline(':', {
+          completion = { completeopt = 'menu,menuone,noselect' },
+          mapping = cmp.mapping.preset.cmdline(),
+          sources = cmp.config.sources({
+            { name = 'path' },
+          }, {
+            {
+              name = 'cmdline',
+              option = { ignore_cmds = { 'Man', '!' } },
+            },
+          }),
+        }),
+
         sources = {
           {
             name = 'lazydev',

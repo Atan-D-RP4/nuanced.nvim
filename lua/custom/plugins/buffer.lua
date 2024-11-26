@@ -1,13 +1,16 @@
 return {
   {
-    "moll/vim-bbye",
-    keys = {
-      {
-        "<leader>dd",
-        "<cmd>Bdelete!<CR>",
-        desc = "Delete buffer",
-      },
-    }
+    'moll/vim-bbye',
+    config = function()
+      require('utils').nmap('<leader>dd', ':Bdelete!<CR>', 'Delete Buffer')
+      vim.api.nvim_create_autocmd('VimEnter', {
+        desc = "Delete Empty Buffer at startup",
+        pattern = '*',
+        callback = function()
+          vim.cmd('Bdelete!')
+        end,
+      })
+    end,
   },
 
   {
@@ -23,9 +26,9 @@ return {
       },
     },
     opts = {
-       hints = {
+      hints = {
         dictionary = '1234567890',
-      }
+      },
     },
   },
 
@@ -40,5 +43,5 @@ return {
         desc = 'Toggle undotree',
       },
     },
-  }
+  },
 }
