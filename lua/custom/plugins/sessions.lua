@@ -115,46 +115,42 @@
 -- end
 
 return {
-    'gennaro-tedesco/nvim-possession',
-    dependencies = {
-      'nvim-lua/plenary.nvim',
-      'ibhagwan/fzf-lua',
-    },
-    keys = {
-    	"<leader>al",
-    	"<leader>an",
-    	"<leader>as",
-    	"<leader>ad",
-    },
+  'gennaro-tedesco/nvim-possession',
+  dependencies = {
+    'nvim-lua/plenary.nvim',
+    'ibhagwan/fzf-lua',
+  },
+  keys = {
+    '<leader>al',
+    '<leader>an',
+    '<leader>as',
+    '<leader>ad',
+  },
 
-    config = function()
-      local session_prefix = '<leader>a'
-      require('utils').nmap(session_prefix .. 'l', function()
-        require('nvim-possession').list()
-      end, { silent = true , desc = '[S]ession [L]ist' })
-      require('utils').nmap(session_prefix .. 'n', function()
-        require('nvim-possession').new()
-      end, { silent = true, desc = '[S]ession [N]ew' })
-      require('utils').nmap(session_prefix .. 's', function()
-        require('nvim-possession').update()
-      end, { silent = true , desc = '[S]ession [S]ave/Update' })
-      require('utils').nmap(session_prefix .. 'd', function()
-        require('nvim-possession').delete()
-      end, { silent = true, desc = '[S]ession [D]elete' })
+  config = function()
+    local session_prefix = '<leader>a'
+    local session_cmd = '<cmd>lua require("nvim-possession").%s()<CR>'
+    local nmap = require('utils').nmap
 
-      require('nvim-possession').setup {
-        autoload = false,
+    -- Use <Enter> to switch to selected session, <C-x> to delete it
+    nmap(session_prefix .. 'l', session_cmd:format('list'), '[S]ession [L]ist')
+    nmap(session_prefix .. 'n', session_cmd:format('new'), '[S]ession [N]ew')
+    nmap(session_prefix .. 's', session_cmd:format('update'), '[S]ession [S]ave/Update')
+    nmap(session_prefix .. 'd', session_cmd:format('delete'), '[S]ession [D]elete')
 
-        autoswitch = {
-          enable = true,
-        },
+    require('nvim-possession').setup {
+      autoload = false,
 
-        fzf_winopts = {
-          height = 0.4,
-          width = 0.2,
-          row = 0.5,
-          col = 0.5,
-        },
-      }
-    end,
+      autoswitch = {
+        enable = true,
+      },
+
+      fzf_winopts = {
+        height = 0.4,
+        width = 0.2,
+        row = 0.5,
+        col = 0.5,
+      },
+    }
+  end,
 }
