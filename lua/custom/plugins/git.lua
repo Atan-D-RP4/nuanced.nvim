@@ -6,7 +6,7 @@ return {
       vim.cmd [[
      " Any options I may want to add 
       ]]
-      vim.keymap.set('n', '<leader>gs', '<cmd>Gstatus<CR>', { desc = '[G]it [S]tatus' })
+      vim.keymap.set('n', '<leader>gs', '<cmd>Git status<CR>', { desc = '[G]it [S]tatus' })
       vim.keymap.set('n', '<leader>gg', '<cmd>Git<CR>', { desc = '[G]it' })
     end,
   },
@@ -74,21 +74,20 @@ return {
     },
   },
 
-  -- {
-  --   'ThePrimeagen/git-worktree.nvim',
-  --   dependencies = { 'nvim-lua/plenary.nvim', 'nvim-telescope/telescope.nvim' },
-  --   event = 'VeryLazy',
-  --
-  --   config = function()
-  --     require('git-worktree').setup()
-  --
-  --     require('telescope').load_extension 'git_worktree'
-  --
-  --     -- Create a new worktree
-  --     vim.keymap.set('n', '<leader>wc', "<cmd>lua require('telescope').extensions.git_worktree.git_worktrees()<CR>", { desc = '[W]orktree [C]reate' })
-  --
-  --     -- Switch to a worktree
-  --     vim.keymap.set('n', '<leader>ws', "<cmd>lua require('telescope').extensions.git_worktree.git_worktree()<CR>", { desc = '[S]witch to [W]orktree' })
-  --   end,
-  -- },
+  {
+    'ThePrimeagen/git-worktree.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim', },
+    event = 'VeryLazy',
+
+    config = function()
+      require('git-worktree').setup()
+
+      require('fzf-lua.utils').io_system({'git', 'worktree', 'list'})
+      local worktree = require('git-worktree')
+      -- Create a new worktree
+      
+
+      -- Switch to a worktree
+    end,
+  },
 }
