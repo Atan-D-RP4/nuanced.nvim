@@ -76,16 +76,15 @@ return {
 
   {
     'ThePrimeagen/git-worktree.nvim',
-    dependencies = { 'nvim-lua/plenary.nvim', },
+    dependencies = { 'nvim-lua/plenary.nvim' },
     event = 'VeryLazy',
 
     config = function()
       require('git-worktree').setup()
 
-      require('fzf-lua.utils').io_system({'git', 'worktree', 'list'})
-      local worktree = require('git-worktree')
+      require('fzf-lua.utils').io_system { 'git', 'worktree', 'list' }
+      local worktree = require 'git-worktree'
       -- Create a new worktree
-      
 
       -- Switch to a worktree
     end,

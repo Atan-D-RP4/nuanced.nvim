@@ -20,7 +20,7 @@ return {
     'github/copilot.vim',
     events = 'VeryLazy',
     config = function()
-      vim.cmd[[
+      vim.cmd [[
         let g:copilot_node_command = '/usr/sbin/bun'
       ]]
     end,

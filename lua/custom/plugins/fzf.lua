@@ -1,4 +1,4 @@
--- TODO: 
+-- TODO:
 --
 -- local custom = {
 --   multi_open = function(prompt_bufnr)

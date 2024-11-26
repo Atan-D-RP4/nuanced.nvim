@@ -133,10 +133,10 @@ return {
     local nmap = require('utils').nmap
 
     -- Use <Enter> to switch to selected session, <C-x> to delete it
-    nmap(session_prefix .. 'l', session_cmd:format('list'), '[S]ession [L]ist')
-    nmap(session_prefix .. 'n', session_cmd:format('new'), '[S]ession [N]ew')
-    nmap(session_prefix .. 's', session_cmd:format('update'), '[S]ession [S]ave/Update')
-    nmap(session_prefix .. 'd', session_cmd:format('delete'), '[S]ession [D]elete')
+    nmap(session_prefix .. 'l', session_cmd:format 'list', '[S]ession [L]ist')
+    nmap(session_prefix .. 'n', session_cmd:format 'new', '[S]ession [N]ew')
+    nmap(session_prefix .. 's', session_cmd:format 'update', '[S]ession [S]ave/Update')
+    nmap(session_prefix .. 'd', session_cmd:format 'delete', '[S]ession [D]elete')
 
     require('nvim-possession').setup {
       autoload = false,

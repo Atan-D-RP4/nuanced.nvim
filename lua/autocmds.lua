@@ -4,20 +4,20 @@
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
 --  See `:help vim.highlight.on_yank()`
-vim.api.nvim_create_autocmd("TextYankPost", {
-	desc = "Highlight when yanking (copying) text",
-	group = vim.api.nvim_create_augroup("kickstart-highlight-yank", { clear = true }),
-	callback = function()
-		vim.hl.on_yank()
-	end,
+vim.api.nvim_create_autocmd('TextYankPost', {
+  desc = 'Highlight when yanking (copying) text',
+  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
+  callback = function()
+    vim.hl.on_yank()
+  end,
 })
 
-vim.api.nvim_create_autocmd("VimResized", {
-	desc = "Resize splits when resizing the window",
-	group = vim.api.nvim_create_augroup("kickstart-resize-splits", { clear = true }),
-	callback = function()
-		vim.cmd("wincmd =")
-	end,
+vim.api.nvim_create_autocmd('VimResized', {
+  desc = 'Resize splits when resizing the window',
+  group = vim.api.nvim_create_augroup('kickstart-resize-splits', { clear = true }),
+  callback = function()
+    vim.cmd 'wincmd ='
+  end,
 })
 
 -- toggle relative number on the basis of mode
@@ -48,7 +48,7 @@ vim.api.nvim_create_autocmd("VimResized", {
 -- })
 
 -- don't auto comment new line
-vim.api.nvim_create_autocmd("BufEnter", { command = [[set formatoptions-=cro]] })
+vim.api.nvim_create_autocmd('BufEnter', { command = [[set formatoptions-=cro]] })
 
 -- NOTE: Originally tried to put this in FileType event autocmd but it is apparently
 -- too early for `set modifiable` to take effect

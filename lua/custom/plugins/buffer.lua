@@ -4,11 +4,11 @@ return {
     config = function()
       require('utils').nmap('<leader>dd', ':Bdelete!<CR>', 'Delete Buffer')
       vim.api.nvim_create_autocmd('VimEnter', {
-        desc = "Delete Empty Buffer at startup",
+        desc = 'Delete Empty Buffer at startup',
         pattern = '*',
         callback = function()
           if vim.api.nvim_buf_get_name(0) == '' then
-            vim.cmd('Bdelete!')
+            vim.cmd 'Bdelete!'
           end
         end,
       })

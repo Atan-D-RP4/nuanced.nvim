@@ -37,6 +37,6 @@ return {
   {
     'chrisgrieser/nvim-spider',
     lazy = true,
-    keys = mapper({ 'w', 'e', 'b' }),
+    keys = mapper { 'w', 'e', 'b' },
   },
 }

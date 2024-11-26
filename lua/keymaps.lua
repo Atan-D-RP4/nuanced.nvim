@@ -9,7 +9,7 @@ local vmap = require('utils').vmap
 
 -- Better Escape
 nmap('<Esc>', '<C-c><C-c>')
-imap('<Esc>', '<Esc><Esc><Right>', {  desc = 'Better Escape' })
+imap('<Esc>', '<Esc><Esc><Right>', { desc = 'Better Escape' })
 -- Clear highlights on search when pressing <Esc> in normal mode
 
 --  See `:help hlsearch`

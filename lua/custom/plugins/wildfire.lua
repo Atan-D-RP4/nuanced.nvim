@@ -1,10 +1,10 @@
 -- Smart Selective Indentation
 return {
-  "sustech-data/wildfire.nvim",
+  'sustech-data/wildfire.nvim',
   enabled = false,
-  event = "VeryLazy",
-  dependencies = { "nvim-treesitter/nvim-treesitter" },
+  event = 'VeryLazy',
+  dependencies = { 'nvim-treesitter/nvim-treesitter' },
   config = function()
-    require("wildfire").setup()
+    require('wildfire').setup()
   end,
 }
