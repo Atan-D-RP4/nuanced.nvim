@@ -5,14 +5,22 @@
 
 local opt = vim.opt
 
-vim.opt.gcr = {
+opt.cmdheight = 0
+
+if vim.fn.executable('/bin/fish') == 1 then
+  opt.shell = '/bin/fish'
+else
+  opt.shell = '/bin/bash'
+end
+
+opt.gcr = {
   'i-c-ci-ve:-block-TermCursor',
   'n-v:block-Curosr/lCursor',
   'o:hor50-Curosr/lCursor',
   'r-cr:hor20-Curosr/lCursor',
 }
 
-vim.opt.termguicolors = true -- set term gui colors (most terminals support this)
+opt.termguicolors = true -- set term gui colors (most terminals support this)
 
 -- disable nvim intro
 opt.shortmess:append 'sI'
