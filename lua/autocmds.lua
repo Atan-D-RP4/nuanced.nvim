@@ -20,6 +20,17 @@ vim.api.nvim_create_autocmd('VimResized', {
   end,
 })
 
+-- Clear trailing whitespace on save
+vim.api.nvim_create_autocmd('BufWritePre', {
+  desc = 'Clear trailing whitespace on save',
+  group = vim.api.nvim_create_augroup('kickstart-clear-trailing-whitespace', { clear = true }),
+  callback = function()
+    local save = vim.fn.winsaveview()
+    vim.cmd [[keeppatterns %s/\s\+$//e]]
+    vim.fn.winrestview(save)
+  end,
+})
+
 -- toggle relative number on the basis of mode
 -- local augroup = vim.api.nvim_create_augroup("numbertoggle", {})
 --

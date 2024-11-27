@@ -5,6 +5,17 @@ return {
     event = { 'BufWritePre' },
     cmd = { 'ConformInfo' },
 
+    keys = {
+      {
+        '<leader>cf',
+        function()
+          require('conform').format { async = false, lsp_format = 'fallback' }
+        end,
+        mode = '',
+        desc = '[F]ormat buffer',
+      },
+    },
+
     opts = {
       notify_on_error = false,
 
@@ -35,17 +46,6 @@ return {
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
-      },
-    },
-
-    keys = {
-      {
-        '<leader>cf',
-        function()
-          require('conform').format { async = false, lsp_format = 'fallback' }
-        end,
-        mode = '',
-        desc = '[F]ormat buffer',
       },
     },
   },

@@ -42,34 +42,6 @@ vim.o.laststatus = 0
 -- Show Tabline
 opt.showtabline = 2
 
--- Sync clipboard between OS and Neovim.
---  Schedule the setting after `UiEnter` because it can increase startup-time.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
-vim.schedule(function()
-  if vim.fn.has 'clipboard' == 0 then
-    return
-  end
-
-  if vim.loop.os_uname().sysname == 'Windows_NT' then
-    opt.clipboard = 'unnamedplus'
-    vim.g.clipboard = {
-      name = 'clip.exe (WSL)',
-      copy = {
-        ['+'] = 'clip.exe',
-        ['*'] = 'clip.exe',
-      },
-      paste = {
-        ['+'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-        ['*'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-      },
-      cache_enabled = 0,
-    }
-    return
-  end
-  opt.clipboard = 'unnamedplus,unnamed'
-end)
-
 -- Enable break indent
 opt.breakindent = true
 opt.breakindentopt = 'shift:4,min:20'
@@ -156,6 +128,34 @@ opt.autoread = true
 vim.fn.mkdir(vim.fn.expand '~/.vim/undo.nvim', 'p')
 vim.fn.mkdir(vim.fn.expand '~/.vim/backup.nvim', 'p')
 vim.fn.mkdir(vim.fn.expand '~/.vim/swap.nvim', 'p')
+
+-- Sync clipboard between OS and Neovim.
+--  Schedule the setting after `UiEnter` because it can increase startup-time.
+--  Remove this option if you want your OS clipboard to remain independent.
+--  See `:help 'clipboard'`
+vim.schedule(function()
+  if vim.fn.has 'clipboard' == 0 then
+    return
+  end
+
+  if vim.loop.os_uname().sysname == 'Windows_NT' then
+    opt.clipboard = 'unnamedplus'
+    vim.g.clipboard = {
+      name = 'clip.exe (WSL)',
+      copy = {
+        ['+'] = 'clip.exe',
+        ['*'] = 'clip.exe',
+      },
+      paste = {
+        ['+'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+        ['*'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+      },
+      cache_enabled = 0,
+    }
+    return
+  end
+  opt.clipboard = 'unnamedplus,unnamed'
+end)
 
 local clip = '/mnt/c/Windows/System32/clip.exe'
 if vim.fn.executable(clip) == 1 then

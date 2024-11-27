@@ -1,7 +1,7 @@
 return {
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
-    event = { 'InsertEnter' },
+    event = { 'InsertEnter', 'CmdlineEnter' },
     dependencies = {
       -- Snippet Engine & its associated nvim-cmp source
       {
@@ -49,6 +49,11 @@ return {
           expand = function(args)
             luasnip.lsp_expand(args.body)
           end,
+        },
+
+        window = {
+          completion = cmp.config.window.bordered(),
+          documentation = cmp.config.window.bordered(),
         },
 
         completion = { completeopt = 'menu,menuone,noinsert' },
