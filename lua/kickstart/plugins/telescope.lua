@@ -198,7 +198,7 @@ return {
 
       -- See `:help telescope.builtin`
       local cmd = "<cmd>lua require('telescope.builtin').%s<CR>"
-      nmap = require('utils').nmap
+      nmap = require('core.utils').nmap
 
       nmap(prefix .. 'h', cmd:format 'help_tags()', { desc = '[F]ind [H]elp' })
       nmap(prefix .. 'k', cmd:format 'keymaps()', { desc = '[F]ind [K]eymaps' })

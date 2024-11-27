@@ -1,30 +1,9 @@
 return {
   'nvim-treesitter/nvim-treesitter-textobjects',
-  event = 'VeryLazy',
+  event = { 'VeryLazy', 'BufRead', 'BufNewFile' },
 
   dependencies = { 'nvim-treesitter/nvim-treesitter' },
   main = 'nvim-treesitter.configs',
-
-  init = function()
-    local move = require 'nvim-treesitter.textobjects.move' ---@type table<string,fun(...)>
-    local configs = require 'nvim-treesitter.configs'
-    for name, fn in pairs(move) do
-      if name:find 'goto' == 1 then
-        move[name] = function(q, ...)
-          if vim.wo.diff then
-            local config = configs.get_module('textobjects.move')[name] ---@type table<string,string>
-            for key, query in pairs(config or {}) do
-              if q == query and key:find '[%]%[][cC]' then
-                vim.cmd('normal! ' .. key)
-                return
-              end
-            end
-          end
-          return fn(q, ...)
-        end
-      end
-    end
-  end,
 
   opts = {
     textobjects = {
@@ -64,15 +43,15 @@ return {
           ['ic'] = { query = '@class.inner', desc = 'Select inner part of a class' },
 
           ['a/'] = { query = '@comment.outer', desc = 'Select outer part of a comment' },
-          ['i/'] = { query = '@comment.inner', desc = 'Select inner part of a comment' },
         },
       },
+
       swap = {
         enable = true,
         swap_next = {
-          ['<leader>na'] = '@parameter.inner', -- swap parameters/argument with next
-          ['<leader>n:'] = '@property.outer', -- swap object property with next
-          ['<leader>nm'] = '@function.outer', -- swap function with next
+          ['<leader>na'] = { query = '@parameter.inner', desc = 'swap parameters/argument with next' },
+          ['<leader>n:'] = { query = '@property.outer', desc = 'swap object property with next' },
+          ['<leader>nm'] = { query = '@function.outer', desc = 'swap function with next' },
         },
         swap_previous = {
           ['<leader>pa'] = '@parameter.inner', -- swap parameters/argument with prev
@@ -80,26 +59,65 @@ return {
           ['<leader>pm'] = '@function.outer', -- swap function with previous
         },
       },
-      move = {
-        enable = true,
-        set_jumps = true,
-        goto_next_start = {
-          [']m'] = '@function.outer',
-          [']]'] = '@class.outer',
-        },
-        goto_next_end = {
-          [']M'] = '@function.outer',
-          [']['] = '@class.outer',
-        },
-        goto_previous_start = {
-          ['[m'] = '@function.outer',
-          ['[['] = '@class.outer',
-        },
-        goto_previous_end = {
-          ['[M'] = '@function.outer',
-          ['[]'] = '@class.outer',
-        },
-      },
     },
   },
+
+  init = function()
+    local configs = require 'nvim-treesitter.configs'
+
+    local move = require 'nvim-treesitter.textobjects.move' ---@type table<string,fun(...)>
+    local select = require 'nvim-treesitter.textobjects.select' ---@type table<string,fun(...)>
+    local swap = require 'nvim-treesitter.textobjects.swap' ---@type table<string,fun(...)>
+
+    for name, fn in pairs(move) do
+      if name:find 'goto' == 1 then
+        move[name] = function(q, ...)
+          if vim.wo.diff then
+            local config = configs.get_module('textobjects.move')[name] ---@type table<string,string>
+            for key, query in pairs(config or {}) do
+              if q == query and key:find '[%]%[][cC]' then
+                vim.cmd('normal! ' .. key)
+                return
+              end
+            end
+          end
+          return fn(q, ...)
+        end
+      end
+    end
+
+    for name, fn in pairs(select) do
+      if name:find 'goto' == 1 then
+        select[name] = function(q, ...)
+          if vim.wo.diff then
+            local config = configs.get_module('textobjects.select')[name] ---@type table<string,string>
+            for key, query in pairs(config or {}) do
+              if q == query and key:find '[%]%[][cC]' then
+                vim.cmd('normal! ' .. key)
+                return
+              end
+            end
+          end
+          return fn(q, ...)
+        end
+      end
+    end
+
+    for name, fn in pairs(swap) do
+      if name:find 'goto' == 1 then
+        swap[name] = function(q, ...)
+          if vim.wo.diff then
+            local config = configs.get_module('textobjects.swap')[name] ---@type table<string,string>
+            for key, query in pairs(config or {}) do
+              if q == query and key:find '[%]%[][cC]' then
+                vim.cmd('normal! ' .. key)
+                return
+              end
+            end
+          end
+          return fn(q, ...)
+        end
+      end
+    end
+  end,
 }

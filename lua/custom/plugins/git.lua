@@ -4,7 +4,7 @@ return {
     cmd = { 'Git', 'Gstatus', 'Gblame', 'Gpush', 'Gpull', 'Gcommit', 'Gdiff' },
     init = function()
       vim.cmd [[
-     " Any options I may want to add 
+     " Any options I may want to add
       ]]
       vim.keymap.set('n', '<leader>gs', '<cmd>Git status<CR>', { desc = '[G]it [S]tatus' })
       vim.keymap.set('n', '<leader>gg', '<cmd>Git<CR>', { desc = '[G]it' })
@@ -72,21 +72,5 @@ return {
         map('n', '<leader>tD', gitsigns.toggle_deleted, { desc = '[T]oggle git show [D]eleted' })
       end,
     },
-  },
-
-  {
-    'ThePrimeagen/git-worktree.nvim',
-    dependencies = { 'nvim-lua/plenary.nvim' },
-    event = 'VeryLazy',
-
-    config = function()
-      require('git-worktree').setup()
-
-      require('fzf-lua.utils').io_system { 'git', 'worktree', 'list' }
-      local worktree = require 'git-worktree'
-      -- Create a new worktree
-
-      -- Switch to a worktree
-    end,
   },
 }

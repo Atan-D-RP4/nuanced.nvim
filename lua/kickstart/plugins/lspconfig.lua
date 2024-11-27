@@ -41,8 +41,6 @@ return {
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       -- { 'j-hui/fidget.nvim', opts = {} },
 
-      -- Allows extra capabilities provided by nvim-cmp
-      { 'hrsh7th/cmp-nvim-lsp', event = 'VeryLazy' },
     },
 
     config = function()
@@ -54,7 +52,7 @@ return {
           --
           -- In this case, we create a function that lets us more easily define mappings specific
           -- for LSP related items. It sets the mode, buffer and description for us each time.
-          local map = require('utils').nmap
+          local map = require('core.utils').nmap
 
           local has_fzf, _ = pcall(require, 'fzf-lua')
           if has_fzf then
@@ -78,7 +76,7 @@ return {
 
           -- Execute a code action, usually your cursor needs to be on top of an error
           -- or a suggestion from your LSP for this to activate.
-          require('utils').map({ 'n', 'x' }, '<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+          require('core.utils').map({ 'n', 'x' }, '<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
           -- Rename the variable under your cursor.
           --  Most Language Servers support renaming across files, etc.

@@ -1,11 +1,11 @@
 -- [[ Basic Keymaps ]]
 --  See `:helpvim.keymap.set()`
 
-local map = require('utils').map
-local nmap = require('utils').nmap
-local tmap = require('utils').tmap
-local imap = require('utils').imap
-local vmap = require('utils').vmap
+local map  = require('core.utils').map
+local nmap = require('core.utils').nmap
+local tmap = require('core.utils').tmap
+local imap = require('core.utils').imap
+local vmap = require('core.utils').vmap
 
 -- Better Escape
 nmap('<Esc>', '<C-c><C-c>')

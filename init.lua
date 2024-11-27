@@ -96,16 +96,21 @@ vim.g.have_nerd_font = true
 vim.loader.enable()
 
 -- [[ Setting options ]]
-require 'options'
+-- require 'core.options'
 
 -- [[ Basic Keymaps ]]
-require 'keymaps'
+-- require 'core.keymaps'
 
 -- [[ Autocmds ]]
-require 'autocmds'
+-- require 'core.autocmds'
 
 -- [[ Utility functions ]]
-require 'utils'
+-- require 'core.utils'
+
+-- [[ Clipboard Config]]
+-- require 'core.clipboard'
+
+require('core')
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 require 'lazy-bootstrap'

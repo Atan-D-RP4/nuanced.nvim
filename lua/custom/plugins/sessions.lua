@@ -107,7 +107,7 @@
 -- end
 --
 -- function M.init()
---   local utils = require 'utils'
+--   local utils = require 'core.utils'
 --   local nmap = utils.nmap
 --
 --   nmap('<leader>ss', M.sessionSave, { desc = '[S]ession [S]ave' })
@@ -130,7 +130,7 @@ return {
   config = function()
     local session_prefix = '<leader>a'
     local session_cmd = '<cmd>lua require("nvim-possession").%s()<CR>'
-    local nmap = require('utils').nmap
+    local nmap = require('core.utils').nmap
 
     -- Check if session dir exists and if not create it
     if vim.fn.isdirectory(require('nvim-possession.config').sessions.sessions_path) == 0 then

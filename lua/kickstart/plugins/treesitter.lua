@@ -3,7 +3,7 @@ return {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
-    event = { 'BufReadPre', 'BufNewFile' },
+    event = { 'VeryLazy', 'BufReadPre', 'BufNewFile' },
 
     main = 'nvim-treesitter.configs',
 
@@ -55,7 +55,7 @@ return {
 
   {
     'nvim-treesitter/nvim-treesitter-context',
-    event = 'VeryLazy',
+    event = { 'VeryLazy', 'BufRead', 'BufNewFile' },
 
     dependencies = {
       'nvim-treesitter/nvim-treesitter',

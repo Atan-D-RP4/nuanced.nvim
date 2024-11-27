@@ -4,13 +4,26 @@
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
 --  See `:help vim.highlight.on_yank()`
-vim.api.nvim_create_autocmd('TextYankPost', {
-  desc = 'Highlight when yanking (copying) text',
-  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
-  callback = function()
-    vim.hl.on_yank()
-  end,
-})
+local clip = '/mnt/c/Windows/System32/clip.exe'
+if vim.fn.executable(clip) == 1 then
+  vim.api.nvim_create_autocmd('TextYankPost', {
+    desc = 'Highlight when yanking (copying) text',
+    group = vim.api.nvim_create_augroup('Highlight-on-Yank', { clear = true }),
+    callback = function()
+      if vim.v.event.operator == 'y' then
+        vim.fn.system(clip, vim.fn.getreg '0')
+      end
+    end,
+  })
+else
+  vim.api.nvim_create_autocmd('TextYankPost', {
+    desc = 'Highlight when yanking (copying) text',
+    group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
+    callback = function()
+      vim.hl.on_yank()
+    end,
+  })
+end
 
 vim.api.nvim_create_autocmd('VimResized', {
   desc = 'Resize splits when resizing the window',

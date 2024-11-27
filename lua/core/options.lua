@@ -129,46 +129,6 @@ vim.fn.mkdir(vim.fn.expand '~/.vim/undo.nvim', 'p')
 vim.fn.mkdir(vim.fn.expand '~/.vim/backup.nvim', 'p')
 vim.fn.mkdir(vim.fn.expand '~/.vim/swap.nvim', 'p')
 
--- Sync clipboard between OS and Neovim.
---  Schedule the setting after `UiEnter` because it can increase startup-time.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
-vim.schedule(function()
-  if vim.fn.has 'clipboard' == 0 then
-    return
-  end
-
-  if vim.loop.os_uname().sysname == 'Windows_NT' then
-    opt.clipboard = 'unnamedplus'
-    vim.g.clipboard = {
-      name = 'clip.exe (WSL)',
-      copy = {
-        ['+'] = 'clip.exe',
-        ['*'] = 'clip.exe',
-      },
-      paste = {
-        ['+'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-        ['*'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-      },
-      cache_enabled = 0,
-    }
-    return
-  end
-  opt.clipboard = 'unnamedplus,unnamed'
-end)
-
-local clip = '/mnt/c/Windows/System32/clip.exe'
-if vim.fn.executable(clip) == 1 then
-  vim.api.nvim_create_autocmd('TextYankPost', {
-    group = vim.api.nvim_create_augroup('WSLYank', { clear = true }),
-    callback = function()
-      if vim.v.event.operator == 'y' then
-        vim.fn.system(clip, vim.fn.getreg '0')
-      end
-    end,
-  })
-end
-
 -- add binaries installed by mason.nvim to path
 local is_windows = vim.fn.has 'win32' ~= 0
 local sep = is_windows and '\\' or '/'

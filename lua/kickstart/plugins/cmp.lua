@@ -6,6 +6,7 @@ return {
       -- Snippet Engine & its associated nvim-cmp source
       {
         'L3MON4D3/LuaSnip',
+        event = { 'InsertEnter' },
         build = (function()
           -- Build Step is needed for regex support in snippets.
           -- This step is not supported in many windows environments.
@@ -27,22 +28,31 @@ return {
           -- },
         },
       },
-      'saadparwaiz1/cmp_luasnip',
 
-      -- Adds other completion capabilities.
-      --  nvim-cmp does not ship with all sources by default. They are split
-      --  into multiple repos for maintenance purposes.
+      { 'saadparwaiz1/cmp_luasnip', event = { 'InsertEnter' } },
+
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
       'lukas-reineke/cmp-rg',
-      -- 'uga-rosa/cmp-dictionary',
       'hrsh7th/cmp-cmdline',
+
+      -- Allows extra capabilities provided by nvim-cmp
+      { 'hrsh7th/cmp-nvim-lsp', event = 'VeryLazy' },
+
+      -- 'uga-rosa/cmp-dictionary',
     },
     config = function()
       -- See `:help cmp`
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
       luasnip.config.setup {}
+
+      -- LSP servers and clients are able to communicate to each other what features they support.
+      --  By default, Neovim doesn't support everything that is in the LSP specification.
+      --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
+      --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
+      local capabilities = vim.lsp.protocol.make_client_capabilities()
+      capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
       cmp.setup {
         snippet = {

@@ -2,7 +2,7 @@ return {
   {
     'moll/vim-bbye',
     config = function()
-      require('utils').nmap('<leader>dd', ':Bdelete!<CR>', 'Delete Buffer')
+      require('core.utils').nmap('<leader>dd', ':Bdelete!<CR>', 'Delete Buffer')
       -- vim.api.nvim_create_autocmd('VimEnter', {
       --   desc = 'Delete Empty Buffer at startup',
       --   pattern = '*',

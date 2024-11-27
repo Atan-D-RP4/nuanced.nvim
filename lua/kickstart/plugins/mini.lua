@@ -14,23 +14,23 @@ return {
     end,
   },
 
-  {
-    'echasnovski/mini.ai',
-    event = 'VeryLazy',
-    -- Better Around/Inside textobjects
-    --
-    -- Examples:
-    --  - va)  - [V]isually select [A]round [)]paren
-    --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
-    --  - ci'  - [C]hange [I]nside [']quote
-    config = function()
-      require('mini.ai').setup { n_lines = 500 }
-    end,
-  },
-
+  -- {
+  --   'echasnovski/mini.ai',
+  --   event = { 'VeryLazy', 'BufRead', 'BufNewFile' },
+  --   -- Better Around/Inside textobjects
+  --   --
+  --   -- Examples:
+  --   --  - va)  - [V]isually select [A]round [)]paren
+  --   --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
+  --   --  - ci'  - [C]hange [I]nside [']quote
+  --   config = function()
+  --     require('mini.ai').setup { n_lines = 500 }
+  --   end,
+  -- },
+  --
   {
     'echasnovski/mini.surround',
-    event = 'VeryLazy',
+    event = { 'VeryLazy', 'BufRead', 'BufNewFile' },
 
     config = function()
       -- Add/delete/replace surroundings (brackets, quotes, etc.)
