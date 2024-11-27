@@ -18,6 +18,7 @@ return {
         ensure_installed = {
           'bash',
           'c',
+          'rust',
           'diff',
           'html',
           'lua',
@@ -33,6 +34,20 @@ return {
         highlight = {
           enable = true,
           additional_vim_regex_highlighting = { 'ruby' },
+
+          -- disable = function(_, buf)
+          --   local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+          --   local max_treesitter_filesize = 300 * 1024
+          --
+          --   if not ok then
+          --     vim.notify('Cannot get stats for ' + vim.api.nvim_buf_get_name(buf), vim.log.levels.DEBUG)
+          --     return true
+          --   end
+          --
+          --   if stats and stats.size > max_treesitter_filesize then
+          --     return true
+          --   end
+          -- end,
         },
 
         indent = {

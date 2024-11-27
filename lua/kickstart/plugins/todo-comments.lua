@@ -3,7 +3,7 @@ return {
   {
     'folke/todo-comments.nvim',
     lazy = true,
-    event = { 'VeryLazy', 'BufRead' },
+    event = { 'BufRead' },
     dependencies = { 'nvim-lua/plenary.nvim' },
     opts = { signs = false },
   },
