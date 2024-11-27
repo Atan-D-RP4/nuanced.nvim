@@ -4,26 +4,19 @@
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
 --  See `:help vim.highlight.on_yank()`
-local clip = '/mnt/c/Windows/System32/clip.exe'
-if vim.fn.executable(clip) == 1 then
-  vim.api.nvim_create_autocmd('TextYankPost', {
-    desc = 'Highlight when yanking (copying) text',
-    group = vim.api.nvim_create_augroup('Highlight-on-Yank', { clear = true }),
-    callback = function()
+vim.api.nvim_create_autocmd('TextYankPost', {
+  desc = 'Highlight when yanking (copying) text',
+  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
+  callback = function()
+    local clip = '/mnt/c/Windows/System32/clip.exe'
+    if vim.fn.executable(clip) == 1 then
       if vim.v.event.operator == 'y' then
         vim.fn.system(clip, vim.fn.getreg '0')
       end
-    end,
-  })
-else
-  vim.api.nvim_create_autocmd('TextYankPost', {
-    desc = 'Highlight when yanking (copying) text',
-    group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
-    callback = function()
-      vim.hl.on_yank()
-    end,
-  })
-end
+    end
+    vim.hl.on_yank()
+  end,
+})
 
 vim.api.nvim_create_autocmd('VimResized', {
   desc = 'Resize splits when resizing the window',
@@ -44,35 +37,61 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   end,
 })
 
--- toggle relative number on the basis of mode
--- local augroup = vim.api.nvim_create_augroup("numbertoggle", {})
---
--- vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave", "CmdlineLeave", "WinEnter" }, {
---   pattern = "*",
---   group = augroup,
---   callback = function()
---     if vim.o.nu and vim.api.nvim_get_mode().mode ~= "i" then
---       vim.opt.relativenumber = true
---       vim.opt.number = true
---       vim.cmd("redraw")
---     end
---   end,
--- })
---
--- vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter", "CmdlineEnter", "WinLeave" }, {
---   pattern = "*",
---   group = augroup,
---   callback = function()
---     if vim.o.nu then
---       vim.opt.relativenumber = false
---       vim.opt.number = false
---       vim.cmd("redraw")
---     end
---   end,
--- })
+-- Close buffer if the terminal is closed
+vim.api.nvim_create_autocmd('TermClose', {
+  pattern = '*',
+  callback = function()
+    vim.schedule(function()
+      if (vim.bo.buftype == 'terminal' or vim.bo.filetype == 'lua') and vim.v.shell_error == 0 then
+        vim.cmd('bdelete! ' .. vim.fn.expand '<abuf>')
+      end
+    end)
+  end,
+})
+
+vim.api.nvim_create_autocmd('TermOpen', {
+  pattern = '*',
+  callback = function()
+    vim.cmd [[
+      setlocal nonumber norelativenumber
+      setlocal nospell
+    ]]
+  end,
+})
 
 -- don't auto comment new line
 vim.api.nvim_create_autocmd('BufEnter', { command = [[set formatoptions-=cro]] })
+
+-- Toggle relative number on the basis of mode
+-- local augroup = vim.api.nvim_create_augroup('ToggleNumber', { clear = true })
+--
+-- vim.api.nvim_create_autocmd({ 'BufEnter', 'FocusGained', 'InsertLeave', 'CmdlineLeave', 'WinEnter' }, {
+--   pattern = '*',
+--   group = augroup,
+--   callback = function()
+--     if vim.o.number and vim.api.nvim_get_mode().mode ~= 'i' then
+--       vim.cmd [[
+--         setlocal relativenumber
+--         setlocal number
+--       ]]
+--       vim.cmd 'redraw'
+--     end
+--   end,
+-- })
+--
+-- vim.api.nvim_create_autocmd({ 'BufLeave', 'FocusLost', 'InsertEnter', 'CmdlineEnter', 'WinLeave' }, {
+--   pattern = '*',
+--   group = augroup,
+--   callback = function()
+--     if vim.o.number then
+--       vim.cmd [[
+--         setlocal norelativenumber
+--         setlocal nonumber
+--       ]]
+--       vim.cmd 'redraw'
+--     end
+--   end,
+-- })
 
 -- NOTE: Originally tried to put this in FileType event autocmd but it is apparently
 -- too early for `set modifiable` to take effect

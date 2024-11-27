@@ -43,11 +43,13 @@ nmap('<C-k>', '<C-w><C-k>', 'Move focus to the upper window')
 
 -- My Keybinds
 imap('<C-U>', '<C-G>u<C-U>')
-nmap("<leader>'", ':terminal fish<CR>', 'Open Terminal Buffer')
+nmap("<leader>'", ':terminal<CR>', 'Open Terminal Buffer')
 
 -- Buffer Management
 -- nmap('<leader>dd', ':bdelete! %<CR>', {  desc = 'Delete Buffer' })
 nmap('<leader>du', ':update! <CR>', 'Refresh Buffer')
+nmap('<Tab>', ':bnext<CR>', 'Next Buffer')
+nmap('<S-Tab>', ':bprevious<CR>', 'Previous Buffer')
 
 -- CTRL+S for Save
 map({ 'n', 'v', 'i' }, '<C-S>', '<ESC>:update<CR>', 'Better Save')
@@ -98,11 +100,13 @@ imap('<C-v>', '<C-r>+', {})
 
 nmap('J', 'mzJ`z', 'Join line without moving the cursor')
 
--- Replace all instances of highlighted words-- nmap( ":", "q:", { noremap = true })
-nmap('<leader>rv', '"hy:%s/<C-r>h//g<left><left>', 'Replace Highlighted Text')
+-- nmap( ":", "q:", { noremap = true })
+
+-- Replace all instances of highlighted words
+vmap('<leader>rv', '"hy:%s/<C-r>h//g<left><left>', 'Replace Highlighted Text')
 
 -- Search for visually selected text
 -- Better to use the <leader>fv keybind from fzf.lua
-nmap('<leader>v', 'y/<C-r>=escape(@", "/")<CR><CR>', 'Search Visual Selection')
+vmap('<leader>v', 'y/<C-r>=escape(@", "/")<CR><CR>', 'Search Visual Selection')
 
 -- vim: ts=2 sts=2 sw=2 et
