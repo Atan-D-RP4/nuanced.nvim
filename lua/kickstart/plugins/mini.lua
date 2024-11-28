@@ -5,6 +5,20 @@ return {
   --     require('mini.icons').setup()
   --   end
   -- },
+  {
+    'echasnovski/mini.files',
+    event = 'VimEnter',
+    config = function()
+      require('core.utils').nmap('<leader>o', '<cmd>lua require("mini.files").open()<CR>')
+
+      require('mini.files').setup {
+        windows = {
+          -- Whether to show preview of file/directory under cursor
+          preview = true,
+        },
+      }
+    end,
+  },
 
   {
     'echasnovski/mini.notify',

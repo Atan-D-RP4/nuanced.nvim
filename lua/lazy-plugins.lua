@@ -83,7 +83,7 @@ require('lazy').setup({
   -- you can continue same window with `<space>sr` which resumes last telescope search
 
   -- custom plugins
-  require 'custom/plugins/oil',
+  -- require 'custom/plugins/oil',
   require 'custom/plugins/treesitter-textobjects',
   require 'custom/plugins/motion',
   require 'custom/plugins/trouble',
