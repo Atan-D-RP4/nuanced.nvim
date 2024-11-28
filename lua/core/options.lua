@@ -5,7 +5,7 @@
 
 local opt = vim.opt
 
-opt.cmdheight = 0
+opt.cmdheight = 1
 
 if vim.fn.executable('/bin/fish') == 1 then
   opt.shell = '/bin/fish'
