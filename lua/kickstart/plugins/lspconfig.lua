@@ -29,7 +29,20 @@ return {
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
-    event = 'VeryLazy',
+    ft = {
+      'typescript',
+      'javascript',
+      'html',
+      'css',
+      'lua',
+      'python',
+      'rust',
+      'c',
+      'cpp',
+      'sh',
+      'vim',
+    },
+    cmd = { 'LspStart', 'LspStatus', 'LspInstall', 'LspUninstall' },
 
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
@@ -37,54 +50,66 @@ return {
       { 'williamboman/mason-lspconfig.nvim', event = 'VeryLazy' },
       { 'WhoIsSethDaniel/mason-tool-installer.nvim', event = 'VeryLazy' },
 
-      -- Useful status updates for LSP.
-      -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      -- { 'j-hui/fidget.nvim', opts = {} },
-
+      -- Completion Dependencies
+      {
+        -- Allows extra LSP capabilities provided by nvim-cmp
+        'hrsh7th/cmp-nvim-lsp',
+        event = 'LspAttach',
+        dependencies = { 'hrsh7th/nvim-cmp' },
+        config = function()
+          -- LSP servers and clients are able to communicate to each other what features they support.
+          -- By default, Neovim doesn't support everything that is in the LSP specification.
+          -- When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
+          -- So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
+          local capabilities = vim.lsp.protocol.make_client_capabilities()
+          capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+        end,
+      },
     },
 
     config = function()
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
+        -- NOTE: Remember that Lua is a real programming language, and as such it is possible
+        -- to define small helper and utility functions so you don't have to repeat yourself.
+        --
+        -- In this case, we create a function that lets us more easily define mappings specific
+        -- for LSP related items. It sets the mode, buffer and description for us each time.
         callback = function(event)
-          -- NOTE: Remember that Lua is a real programming language, and as such it is possible
-          -- to define small helper and utility functions so you don't have to repeat yourself.
-          --
-          -- In this case, we create a function that lets us more easily define mappings specific
-          -- for LSP related items. It sets the mode, buffer and description for us each time.
-          local map = require('core.utils').nmap
+          local nmap = require('core.utils').nmap
 
           local has_fzf, _ = pcall(require, 'fzf-lua')
           if has_fzf then
             local fzf = require 'fzf-lua'
 
-            map('gd', fzf.lsp_definitions, '[G]oto [D]efinition')
-            map('gI', fzf.lsp_implementations, '[G]oto [I]mplementation')
-            map('<leader>D', fzf.lsp_typedefs, 'Type [D]efinition')
-            map('<leader>ds', fzf.lsp_document_symbols, '[D]ocument [S]ymbols')
-            map('<leader>ws', fzf.lsp_live_workspace_symbols, '[W]orkspace [S]ymbols')
+            nmap('gd', fzf.lsp_definitions, 'Lsp [G]oto [D]efinition')
+            nmap('grr', fzf.lsp_references, 'Lsp [G]oto [R]eferences') -- override `grr` mapping
+            nmap('gri', fzf.lsp_implementations, 'Lsp [G]oto [I]mplementation') -- override `gri` mapping
+            nmap('<leader>D', fzf.lsp_typedefs, 'Lsp Type [D]efinition')
+            nmap('<leader>ds', fzf.lsp_document_symbols, 'Lsp [D]ocument [S]ymbols')
+            nmap('<leader>ws', fzf.lsp_live_workspace_symbols, 'Lsp [W]orkspace [S]ymbols')
           else
             local fzf = require 'telescope.builtin'
 
-            map('gd', fzf.lsp_definitions, '[G]oto [D]efinition')
-            map('gr', fzf.lsp_references, '[G]oto [R]eferences')
-            map('gI', fzf.lsp_implementations, '[G]oto [I]mplementation')
-            map('<leader>D', fzf.lsp_type_definitions, 'Type [D]efinition')
-            map('<leader>ds', fzf.lsp_document_symbols, '[D]ocument [S]ymbols')
-            map('<leader>ws', fzf.lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+            nmap('gd', fzf.lsp_definitions, 'Lsp [G]oto [D]efinition')
+            nmap('grr', fzf.lsp_references, 'Lsp [G]oto [R]eferences')
+            nmap('gri', fzf.lsp_implementations, 'Lsp [G]oto [I]mplementation')
+            nmap('<leader>D', fzf.lsp_type_definitions, 'Lsp Type [D]efinition')
+            nmap('<leader>ds', fzf.lsp_document_symbols, 'Lsp [D]ocument [S]ymbols')
+            nmap('<leader>ws', fzf.lsp_dynamic_workspace_symbols, 'Lsp [W]orkspace [S]ymbols')
           end
 
           -- Execute a code action, usually your cursor needs to be on top of an error
           -- or a suggestion from your LSP for this to activate.
-          require('core.utils').map({ 'n', 'x' }, '<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+          -- require('core.utils').map({ 'n', 'x' }, '<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
           -- Rename the variable under your cursor.
           --  Most Language Servers support renaming across files, etc.
-          map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
+          -- map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame') -- Already exist with `grn`
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
-          map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+          nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
@@ -120,7 +145,7 @@ return {
           --
           -- This may be unwanted, since they displace some of your code
           if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
-            map('<leader>th', function()
+            nmap('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
           end
