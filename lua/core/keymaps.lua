@@ -1,7 +1,7 @@
 -- [[ Basic Keymaps ]]
 --  See `:helpvim.keymap.set()`
 
-local map  = require('core.utils').map
+local map = require('core.utils').map
 local nmap = require('core.utils').nmap
 local tmap = require('core.utils').tmap
 local imap = require('core.utils').imap
@@ -83,12 +83,15 @@ nmap('<C-u>', '<C-u>zz')
 nmap('<C-f>', '<C-f>zz')
 nmap('<C-b>', '<C-b>zz')
 
+-- Continuation
 nmap('{', '{zz')
 nmap('}', '}zz')
 
+-- Continuation
 nmap('n', 'nzz')
 nmap('N', 'Nzz')
 
+-- Continuation
 nmap('[c', '[czz')
 nmap(']c', ']czz')
 nmap('[m', '[mzz')
@@ -100,13 +103,17 @@ imap('<C-v>', '<C-r>+', {})
 
 nmap('J', 'mzJ`z', 'Join line without moving the cursor')
 
--- nmap( ":", "q:", { noremap = true })
+vmap('K', ":m '<-2<CR>gv=gv", 'Move selected lines up')
+vmap('J', ":m '>+1<CR>gv=gv", 'Move selected lines down')
 
--- Replace all instances of highlighted words
-vmap('<leader>rv', '"hy:%s/<C-r>h//g<left><left>', 'Replace Highlighted Text')
+nmap('<leader>gwr', ':%s/\\<<C-r><C-w>\\>//g<Left><Left>', '[G]lobal Current [W]ord [R]eplace')
+nmap('<leader>gsr', ':%s//g<left><left>', '[G]lobal [S]earch and [R]eplace')
 
 -- Search for visually selected text
 -- Better to use the <leader>fv keybind from fzf.lua
-vmap('<leader>v', 'y/<C-r>=escape(@", "/")<CR><CR>', 'Search Visual Selection')
+vmap('<leader>vr', '"hy:%s/<C-r>h//g<left><left>', '[R]eplace [V]isual selection')
+vmap('<leader>vs', 'y/<C-r>=escape(@", "/")<CR><CR>', 'Search Visual Selection')
+
+map('x', '<leader>P', '"_dP', 'Paste without yanking')
 
 -- vim: ts=2 sts=2 sw=2 et

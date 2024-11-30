@@ -7,11 +7,21 @@ return {
   -- },
   {
     'echasnovski/mini.files',
-    event = 'VimEnter',
+    keys = {
+      -- Open file explorer
+      {
+        '<leader>o',
+        '<cmd>lua require("mini.files").open()<CR>',
+        desc = 'Open Mini\'s File Explorer',
+      },
+    },
     config = function()
       require('core.utils').nmap('<leader>o', '<cmd>lua require("mini.files").open()<CR>')
 
       require('mini.files').setup {
+        options = {
+          use_as_default_explorer = false,
+        },
         windows = {
           -- Whether to show preview of file/directory under cursor
           preview = true,

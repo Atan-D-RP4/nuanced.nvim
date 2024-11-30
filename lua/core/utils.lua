@@ -69,4 +69,21 @@ function utils.ternary(cond, T, F, ...)
   end
 end
 
+function utils.netrw_setup()
+  vim.g.netrw_banner = 0
+  vim.g.netrw_fastbrowse = 1
+  vim.g.netrw_keepdir = 1
+  vim.g.netrw_silent = 1
+  vim.g.netrw_special_syntax = 1
+  vim.g.netrw_bufsettings = 'noma nomod nonu nowrap ro nobl relativenumber'
+  vim.g.netrw_liststyle = 3
+  vim.g.netrw_browse_split = 4
+  vim.cmd [[
+    let g:netrw_list_hide = netrw_gitignore#Hide()
+    let g:netrw_list_hide.=',\(^\|\s\s\)\zs\.\S\+'
+  ]]
+  -- vim.g.EasyMotion_startofline = 0
+  -- vim.g.EasyMotion_smartcase = 1
+end
+
 return utils

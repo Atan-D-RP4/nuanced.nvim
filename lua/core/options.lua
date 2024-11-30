@@ -5,6 +5,10 @@
 
 local opt = vim.opt
 
+opt.scrolloff = 8
+
+opt.isfname:append('@-@')
+
 opt.cmdheight = 1
 
 if vim.fn.executable('/bin/fish') == 1 then
@@ -74,11 +78,14 @@ opt.backupdir = '/tmp/.vim/backup.nvim'
 opt.ignorecase = true
 opt.smartcase = true
 
--- Tab and Indent Settings
+-- Tab Settings
 opt.smarttab = true
 opt.tabstop = 4
+opt.softtabstop = 4
 opt.shiftwidth = 4
 opt.expandtab = false
+
+-- Enable auto-indenting
 opt.smartindent = true
 opt.autoindent = true
 
@@ -143,4 +150,5 @@ local sep = is_windows and '\\' or '/'
 local delim = is_windows and ';' or ':'
 vim.env.PATH = table.concat({ vim.fn.stdpath 'data', 'mason', 'bin' }, sep) .. delim .. vim.env.PATH
 
+require('core.utils').netrw_setup()
 -- vim: ts=2 sts=2 sw=2 et
