@@ -69,6 +69,32 @@ function utils.ternary(cond, T, F, ...)
   end
 end
 
+-- Implement a zero-indexed table
+utils.zeroIndexedTable = setmetatable({}, {
+  __call = function(self, _t)
+    return setmetatable({
+      _internal = _t,
+    }, {
+      __index = function(self, k)
+        return self._internal[k + 1]
+      end,
+      __newindex = function(self, k, v)
+        self._internal[k + 1] = v
+      end,
+    })
+  end,
+})
+
+-- Usage Example for the zero-indexed table
+function utils.test()
+  local table = { 1, 2, 3, 4 }
+  local test = utils.zeroIndexedTable(table)
+  vim.print(test[0])
+  vim.print(test[1])
+  vim.print(test[2])
+  vim.print(test[3])
+end
+
 function utils.netrw_setup()
   vim.g.netrw_banner = 0
   vim.g.netrw_fastbrowse = 1

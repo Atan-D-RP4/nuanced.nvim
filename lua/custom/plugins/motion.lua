@@ -39,4 +39,15 @@ return {
     lazy = true,
     keys = mapper { 'w', 'e', 'b' },
   },
+
+  {
+    'm4xshen/hardtime.nvim',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+    },
+    cmd = 'Hardtime',
+    config = function()
+      require('hardtime').setup()
+    end,
+  },
 }
