@@ -114,6 +114,8 @@ nmap('<leader>gsr', ':%s//g<left><left>', '[G]lobal [S]earch and [R]eplace')
 vmap('<leader>vr', '"hy:%s/<C-r>h//g<left><left>', '[R]eplace [V]isual selection')
 vmap('<leader>vs', 'y/<C-r>=escape(@", "/")<CR><CR>', 'Search Visual Selection')
 
-map('x', '<leader>P', '"_dP', 'Paste without yanking')
+-- map('x', '<leader>P', '"_dP', 'Paste without yanking')
+
+nmap('-', '^', 'Move to the first non-blank character of the line')
 
 -- vim: ts=2 sts=2 sw=2 et

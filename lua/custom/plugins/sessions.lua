@@ -116,33 +116,24 @@
 
 return {
   'gennaro-tedesco/nvim-possession',
+
   dependencies = {
     'nvim-lua/plenary.nvim',
     'ibhagwan/fzf-lua',
   },
+
   keys = {
-    '<leader>al',
-    '<leader>an',
-    '<leader>as',
-    '<leader>ad',
+    { '<leader>al', '<cmd>lua require("nvim-possession").list()<CR>', desc = '[L]ist' },
+    { '<leader>an', '<cmd>lua require("nvim-possession").new()<CR>', desc = '[N]ew' },
+    { '<leader>as', '<cmd>lua require("nvim-possession").update()<CR>', desc = '[S]ave/Update' },
+    { '<leader>ad', '<cmd>lua require("nvim-possession").delete()<CR>', desc = '[D]elete' },
   },
 
   config = function()
-    local session_prefix = '<leader>a'
-    local session_cmd = '<cmd>lua require("nvim-possession").%s()<CR>'
-    local nmap = require('core.utils').nmap
-
     -- Check if session dir exists and if not create it
     if vim.fn.isdirectory(require('nvim-possession.config').sessions.sessions_path) == 0 then
       vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
     end
-
-    -- Use <Enter> to switch to selected session, <C-x> to delete it
-    nmap(session_prefix .. 'l', session_cmd:format 'list', '[S]ession [L]ist')
-    nmap(session_prefix .. 'n', session_cmd:format 'new', '[S]ession [N]ew')
-    nmap(session_prefix .. 's', session_cmd:format 'update', '[S]ession [S]ave/Update')
-    nmap(session_prefix .. 'd', session_cmd:format 'delete', '[S]ession [D]elete')
-
     require('nvim-possession').setup {
       autoload = false,
 

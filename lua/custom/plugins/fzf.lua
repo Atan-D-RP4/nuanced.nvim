@@ -89,20 +89,20 @@ return {
     -- Fzf command perfix
     local prefix = '<leader>f'
 
-    local nmap = require('core.utils').nmap
+    local map = require('core.utils').map
 
-    nmap(prefix .. 'h', cmd:format 'help_tags()', { desc = '[F]ind [H]elp' })
-    nmap(prefix .. 'k', cmd:format 'keymaps()', { desc = '[F]ind [K]eymaps' })
-    nmap(prefix .. 'f', cmd:format 'files()', { desc = '[F]ind [F]iles' })
-    nmap(prefix .. 'B', cmd:format 'builtin()', { desc = '[F]ind [B]uiltins' })
-    require('core.utils').vmap(prefix .. 'v', cmd:format 'grep_visual()', { desc = '[F]ind [V]isual' })
-    nmap(prefix .. 'g', cmd:format 'live_grep()', { desc = '[F]ind by [G]rep' })
-    nmap(prefix .. 'd', cmd:format 'lsp_document_diagnostics()', { desc = '[F]ind [D]iagnostics' })
-    nmap(prefix .. 'r', cmd:format 'resume()', { desc = '[F]ind [R]esume' })
-    nmap(prefix .. 'o', cmd:format 'oldfiles()', { desc = '[F]ind [O]ld Files' })
-    nmap(prefix .. 'b', cmd:format 'buffers()', { desc = '[F]ind [B]uffers' })
-    nmap(prefix .. 'c', cmd:format 'command_history()', { desc = '[F]ind [C]ommands' })
+    map('n', prefix .. 'h', cmd:format 'help_tags()', { desc = '[F]ind [H]elp' })
+    map('n', prefix .. 'k', cmd:format 'keymaps()', { desc = '[F]ind [K]eymaps' })
+    map('n', prefix .. 'f', cmd:format 'files()', { desc = '[F]ind [F]iles' })
+    map('n', prefix .. 'B', cmd:format 'builtin()', { desc = '[F]ind [B]uiltins' })
+    map('v', prefix .. 'v', cmd:format 'grep_visual()', { desc = '[F]ind [V]isual' })
+    map('n', prefix .. 'g', cmd:format 'live_grep_native()', { desc = '[F]ind by [G]rep' })
+    map('n', prefix .. 'd', cmd:format 'lsp_document_diagnostics()', { desc = '[F]ind [D]iagnostics' })
+    map('n', prefix .. 'r', cmd:format 'resume()', { desc = '[F]ind [R]esume' })
+    map('n', prefix .. 'o', cmd:format 'oldfiles()', { desc = '[F]ind [O]ld Files' })
+    map('n', prefix .. 'b', cmd:format 'buffers()', { desc = '[F]ind [B]uffers' })
+    map('n', prefix .. 'c', cmd:format 'command_history()', { desc = '[F]ind [C]ommands' })
 
-    nmap(prefix .. 'n', cmd:format 'files({ cwd = vim.fn.stdpath "config", follow = true })', { desc = '[F]ind [N]ear' })
+    map('n', prefix .. 'n', cmd:format 'files({ cwd = vim.fn.stdpath "config", follow = true })', { desc = '[F]ind [N]ear' })
   end,
 }
