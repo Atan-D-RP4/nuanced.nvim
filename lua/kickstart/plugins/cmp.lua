@@ -37,6 +37,7 @@ return {
 
       -- 'uga-rosa/cmp-dictionary',
     },
+
     config = function()
       -- See `:help cmp`
       local cmp = require 'cmp'
@@ -55,6 +56,29 @@ return {
           documentation = cmp.config.window.bordered(),
         },
 
+        view = {
+          entries = { name = 'custom', selection_order = 'top_down' },
+        },
+
+        formatting = {
+          fields = { 'abbr', 'menu' },
+          expandable_indicator = false,
+          format = function(entry, vim_item)
+            -- Source
+            vim_item.menu = ({
+              cmdline = '[Cmd]',
+              path = '[Path]',
+              buffer = '[Buffer]',
+              nvim_lsp = '[' .. entry.source.name .. ']',
+              luasnip = '[LuaSnip]',
+              nvim_lua = '[Lua]',
+              latex_symbols = '[LaTeX]',
+              rg = '[Rg]',
+            })[entry.source.name]
+            return vim_item
+          end,
+        },
+
         completion = { completeopt = 'menu,menuone,noinsert' },
 
         -- For an understanding of why these mappings were
@@ -62,36 +86,30 @@ return {
         --
         -- No, but seriously. Please read `:help ins-completion`, it is really good!
         mapping = cmp.mapping.preset.insert {
-          -- Select the [n]ext item
-          ['<C-n>'] = cmp.mapping.select_next_item(),
-          -- Select the [p]revious item
-          ['<C-p>'] = cmp.mapping.select_prev_item(),
+          ['<C-n>'] = cmp.mapping.select_next_item(), -- Select the [n]ext item
+          ['<C-p>'] = cmp.mapping.select_prev_item(), -- Select the [p]revious item
 
-          -- Scroll the documentation window [b]ack / [f]orward
-          ['<C-q>'] = cmp.mapping.scroll_docs(-4),
-          ['<C-f>'] = cmp.mapping.scroll_docs(4),
+          -- This will auto-import if your LSP supports it.
+          -- This will expand snippets if the LSP sent a snippet.
+          ['<C-y>'] = cmp.mapping.confirm { select = true }, -- Accept ([y]es) the completion.
 
-          -- Accept ([y]es) the completion.
-          --  This will auto-import if your LSP supports it.
-          --  This will expand snippets if the LSP sent a snippet.
-          ['<C-y>'] = cmp.mapping.confirm { select = true },
+          ['<C-q>'] = cmp.mapping.scroll_docs(-4), -- Scroll the documentation window [b]ack
+          ['<C-f>'] = cmp.mapping.scroll_docs(4), -- Scroll the documentation window [f]orward
 
-          -- If you prefer more traditional completion keymaps,
-          -- you can uncomment the following lines
-          --['<CR>'] = cmp.mapping.confirm { select = true },
-          --['<Tab>'] = cmp.mapping.select_next_item(),
-          --['<S-Tab>'] = cmp.mapping.select_prev_item(),
+          -- ['<CR>'] = cmp.mapping.confirm { select = true }, -- Accept ([y]es) the completion.
+          -- ['<Tab>'] = cmp.mapping.select_next_item(),       -- Select the [n]ext item
+          -- ['<S-Tab>'] = cmp.mapping.select_prev_item(),     -- Select the [p]revious item
 
           -- Manually trigger a completion from nvim-cmp.
-          --  Generally you don't need this, because nvim-cmp will display
-          --  completions whenever it has completion options available.
+          -- Generally you don't need this, because nvim-cmp will display
+          -- completions whenever it has completion options available.
           ['<C-Space>'] = cmp.mapping.complete {},
 
           -- Think of <c-l> as moving to the right of your snippet expansion.
-          --  So if you have a snippet that's like:
-          --  function $name($args)
-          --    $body
-          --  end
+          -- So if you have a snippet that's like:
+          -- function $name($args)
+          --   $body
+          -- end
           --
           -- <c-l> will move you to the right of each of the expansion locations.
           -- <c-h> is similar, except moving you backwards.
@@ -126,8 +144,7 @@ return {
         sources = {
           {
             name = 'lazydev',
-            -- set group index to 0 to skip loading LuaLS completions as lazydev recommends it
-            group_index = 0,
+            group_index = 0, -- set group index to 0 to skip loading LuaLS completions as lazydev recommends it
           },
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
