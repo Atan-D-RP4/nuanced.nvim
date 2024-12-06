@@ -109,14 +109,6 @@ return {
         return '%2l:%-2v'
       end
 
-      local base_section_filename = statusline.section_filename
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_filename = function(args)
-        local session = require('nvim-possession').status()
-        if session == nil then session = 'None' end
-        return session .. ' ' .. base_section_filename(args)
-      end
-
       ---@diagnostic disable-next-line: duplicate-set-field
       statusline.section_fileinfo = function(args)
         local size_fn = function()

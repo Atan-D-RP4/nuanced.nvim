@@ -134,6 +134,18 @@ return {
     if vim.fn.isdirectory(require('nvim-possession.config').sessions.sessions_path) == 0 then
       vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
     end
+
+    local statusline = require('mini.statusline')
+    local base_section_filename = statusline.section_filename
+    ---@diagnostic disable-next-line: duplicate-set-field
+    statusline.section_filename = function(args)
+      local session = require('nvim-possession').status()
+      if session == nil then
+        session = 'None'
+      end
+      return session .. ' ' .. base_section_filename(args)
+    end
+
     require('nvim-possession').setup {
       autoload = false,
 
