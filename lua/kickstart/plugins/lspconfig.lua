@@ -42,7 +42,7 @@ return {
       'sh',
       'vim',
     },
-    cmd = { 'LspStart', 'LspStatus', 'LspInstall', 'LspUninstall' },
+    cmd = { 'LspStart', 'LspInfo', 'LspInstall', 'LspUninstall' },
 
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
@@ -68,7 +68,6 @@ return {
     },
 
     config = function()
-      vim.lsp.set_log_level(vim.log.levels.OFF)
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         -- NOTE: Remember that Lua is a real programming language, and as such it is possible
@@ -78,6 +77,7 @@ return {
         -- for LSP related items. It sets the mode, buffer and description for us each time.
         callback = function(event)
           local nmap = require('core.utils').nmap
+          vim.lsp.set_log_level(vim.log.levels.OFF)
 
           local has_fzf, _ = pcall(require, 'fzf-lua')
           if has_fzf then
@@ -192,8 +192,6 @@ return {
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
-        --
-
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -207,6 +205,20 @@ return {
               -- diagnostics = { disable = { 'missing-fields' } },
             },
           },
+        },
+
+        harper_ls = {
+          filetypes = { 'markdown', 'text', 'gitcommit', 'html' },
+          settings = {
+            ['harper-ls'] = {
+              userDictPath = vim.fn.stdpath 'config' .. '/user.dict',
+            },
+          },
+        },
+
+
+        clangd = {
+          filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
         },
       }
 
@@ -224,6 +236,8 @@ return {
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'html',
+        'harper-ls', -- Used for English grammar checking
+        'vim-language-server', -- Used for Vimscript
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -240,6 +254,7 @@ return {
         },
       }
     end,
+
   },
 }
 -- vim: ts=2 sts=2 sw=2 et
