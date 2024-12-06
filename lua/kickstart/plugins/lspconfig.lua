@@ -18,7 +18,7 @@ return {
 
   {
     'github/copilot.vim',
-    events = 'VeryLazy',
+    events = 'InsertEnter',
     config = function()
       vim.cmd [[
         let g:copilot_node_command = '/usr/sbin/bun'

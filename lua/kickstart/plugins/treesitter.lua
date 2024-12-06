@@ -3,7 +3,7 @@ return {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
-    event = { 'VeryLazy', 'BufReadPre', 'BufNewFile' },
+    event = { 'BufReadPre', 'BufNewFile' },
 
     main = 'nvim-treesitter.configs',
 
@@ -29,30 +29,30 @@ return {
           'vim',
           'vimdoc',
         },
-        auto_install = true,
+        auto_install = false,
 
         highlight = {
           enable = true,
-          additional_vim_regex_highlighting = { 'ruby' },
+          additional_vim_regex_highlighting = { 'ruby', 'php' },
 
-          -- disable = function(_, buf)
-          --   local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-          --   local max_treesitter_filesize = 300 * 1024
-          --
-          --   if not ok then
-          --     vim.notify('Cannot get stats for ' + vim.api.nvim_buf_get_name(buf), vim.log.levels.DEBUG)
-          --     return true
-          --   end
-          --
-          --   if stats and stats.size > max_treesitter_filesize then
-          --     return true
-          --   end
-          -- end,
+          disable = function(_, buf)
+            local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+            local max_treesitter_filesize = 300 * 1024
+
+            if not ok then
+              vim.notify('Cannot get stats for ' + vim.api.nvim_buf_get_name(buf), vim.log.levels.DEBUG)
+              return true
+            end
+
+            if stats and stats.size > max_treesitter_filesize then
+              return true
+            end
+          end,
         },
 
         indent = {
           enable = true,
-          disable = { 'ruby' },
+          disable = { 'ruby', 'php', },
         },
 
         incremental_selection = {
@@ -70,7 +70,7 @@ return {
 
   {
     'nvim-treesitter/nvim-treesitter-context',
-    event = { 'VeryLazy', 'BufRead', 'BufNewFile' },
+    event = { 'BufRead', 'BufNewFile' },
 
     dependencies = {
       'nvim-treesitter/nvim-treesitter',

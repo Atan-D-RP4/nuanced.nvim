@@ -1,6 +1,6 @@
 return {
   'nvim-treesitter/nvim-treesitter-textobjects',
-  event = { 'VeryLazy', 'BufRead', 'BufNewFile' },
+  event = { 'BufRead', 'BufNewFile' },
 
   dependencies = { 'nvim-treesitter/nvim-treesitter' },
   main = 'nvim-treesitter.configs',
@@ -62,7 +62,7 @@ return {
     },
   },
 
-  init = function()
+  config = function()
     local configs = require 'nvim-treesitter.configs'
 
     local move = require 'nvim-treesitter.textobjects.move' ---@type table<string,fun(...)>

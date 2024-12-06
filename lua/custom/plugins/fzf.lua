@@ -65,12 +65,41 @@
 
 return {
   'ibhagwan/fzf-lua',
-  event = 'VeryLazy',
   branch = 'main',
 
   dependencies = {
     'nvim-lua/plenary.nvim',
   },
+
+  cmd = 'FzfLua',
+
+  keys = vim.tbl_map(function(c)
+    -- Fzf command template
+    local cmd = "<cmd>lua require('fzf-lua').%s()<CR>"
+
+    -- Fzf command perfix
+    local prefix = '<leader>f'
+
+    return {
+      prefix .. c.key,
+      cmd:format(c.cmd),
+      mode = c.mode,
+      desc = c.desc,
+    }
+  end, {
+    { mode = 'n', key = 'h', cmd = 'oldfiles', desc = '[F]ind [O]ld Files' },
+    { mode = 'n', key = 'k', cmd = 'keymaps', desc = '[F]ind [K]eymaps' },
+    { mode = 'n', key = 'f', cmd = 'files', desc = '[F]ind [F]iles' },
+    { mode = 'n', key = 'B', cmd = 'builtin', desc = '[F]ind [B]uiltins' },
+    { mode = 'v', key = 'v', cmd = 'grep_visual', desc = '[F]ind [V]isual' },
+    { mode = 'n', key = 'g', cmd = 'live_grep_native', desc = '[F]ind by [G]rep' },
+    { mode = 'n', key = 'd', cmd = 'lsp_document_diagnostics', desc = '[F]ind [D]iagnostics' },
+    { mode = 'n', key = 'r', cmd = 'resume', desc = '[F]ind [R]esume' },
+    { mode = 'n', key = 'o', cmd = 'oldfiles', desc = '[F]ind [O]ld Files' },
+    { mode = 'n', key = 'b', cmd = 'buffers', desc = '[F]ind [B]uffers' },
+    { mode = 'n', key = 'c', cmd = 'command_history', desc = '[F]ind [C]ommands' },
+    { mode = 'n', key = 'n', cmd = 'files({ cwd = vim.fn.stdpath "config", follow = true },)', desc = '[F]ind [N]ear' },
+  }),
 
   config = function()
     require('fzf-lua').setup {
@@ -82,27 +111,5 @@ return {
     vim.defer_fn(function()
       require('fzf-lua').register_ui_select()
     end, 100)
-
-    -- Fzf command template
-    local cmd = "<cmd>lua require('fzf-lua').%s<CR>"
-
-    -- Fzf command perfix
-    local prefix = '<leader>f'
-
-    local map = require('core.utils').map
-
-    map('n', prefix .. 'h', cmd:format 'help_tags()', { desc = '[F]ind [H]elp' })
-    map('n', prefix .. 'k', cmd:format 'keymaps()', { desc = '[F]ind [K]eymaps' })
-    map('n', prefix .. 'f', cmd:format 'files()', { desc = '[F]ind [F]iles' })
-    map('n', prefix .. 'B', cmd:format 'builtin()', { desc = '[F]ind [B]uiltins' })
-    map('v', prefix .. 'v', cmd:format 'grep_visual()', { desc = '[F]ind [V]isual' })
-    map('n', prefix .. 'g', cmd:format 'live_grep_native()', { desc = '[F]ind by [G]rep' })
-    map('n', prefix .. 'd', cmd:format 'lsp_document_diagnostics()', { desc = '[F]ind [D]iagnostics' })
-    map('n', prefix .. 'r', cmd:format 'resume()', { desc = '[F]ind [R]esume' })
-    map('n', prefix .. 'o', cmd:format 'oldfiles()', { desc = '[F]ind [O]ld Files' })
-    map('n', prefix .. 'b', cmd:format 'buffers()', { desc = '[F]ind [B]uffers' })
-    map('n', prefix .. 'c', cmd:format 'command_history()', { desc = '[F]ind [C]ommands' })
-
-    map('n', prefix .. 'n', cmd:format 'files({ cwd = vim.fn.stdpath "config", follow = true })', { desc = '[F]ind [N]ear' })
   end,
 }
