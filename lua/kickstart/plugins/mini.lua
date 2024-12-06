@@ -12,7 +12,7 @@ return {
       {
         '<leader>o',
         '<cmd>lua require("mini.files").open()<CR>',
-        desc = 'Open Mini\'s File Explorer',
+        desc = "Open Mini's File Explorer",
       },
     },
     config = function()
@@ -109,11 +109,45 @@ return {
         return '%2l:%-2v'
       end
 
-      -- Create a custom section in the statusline for session
-      statusline.section_session = function()
-        local session = require 'mini.sessions'
-        local session_name = session.get_current_session_name()
-        return session_name and 'Session: ' .. session_name or ''
+      local base_section_filename = statusline.section_filename
+      ---@diagnostic disable-next-line: duplicate-set-field
+      statusline.section_filename = function(args)
+        local session = require('nvim-possession').status()
+        if session == nil then session = 'None' end
+        return session .. ' ' .. base_section_filename(args)
+      end
+
+      ---@diagnostic disable-next-line: duplicate-set-field
+      statusline.section_fileinfo = function(args)
+        local size_fn = function()
+          local size = vim.fn.getfsize(vim.fn.getreg '%')
+          if size < 1024 then
+            return string.format('%dB', size)
+          elseif size < 1048576 then
+            return string.format('%.2fKiB', size / 1024)
+          else
+            return string.format('%.2fMiB', size / 1048576)
+          end
+        end
+
+        local filetype = vim.bo.filetype
+
+        -- Don't show anything if there is no filetype
+        if filetype == '' then
+          return ''
+        end
+        -- Construct output string if truncated or buffer is not normal
+        if MiniStatusline.is_truncated(args.trunc_width) or vim.bo.buftype ~= '' then
+          return filetype
+        end
+
+        -- Construct output string with extra file info
+        local encoding = vim.bo.fileencoding or vim.bo.encoding
+        local format = vim.bo.fileformat
+        local word = vim.fn.wordcount()
+        local words = string.format('%d-%d', word.words, word.chars)
+
+        return string.format('%s %s[%s] %s %s', filetype, encoding, format, size_fn(), words)
       end
     end,
   },
