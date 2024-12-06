@@ -62,40 +62,28 @@ vim.api.nvim_create_autocmd('TermOpen', {
 -- don't auto comment new line
 vim.api.nvim_create_autocmd('BufEnter', { command = [[set formatoptions-=cro]] })
 
+-- NOTE: (This works but needs to be improved for Cmdwin)
 -- Toggle relative number on the basis of mode
--- local augroup = vim.api.nvim_create_augroup('ToggleNumber', { clear = true })
---
--- vim.api.nvim_create_autocmd({ 'BufEnter', 'FocusGained', 'InsertLeave', 'CmdlineLeave', 'WinEnter' }, {
+-- local number_toggle_group = vim.api.nvim_create_augroup('NumberToggle', { clear = true })
+-- vim.api.nvim_create_autocmd({ 'BufEnter', 'FocusGained', 'InsertLeave' }, {
 --   pattern = '*',
---   group = augroup,
 --   callback = function()
---     if vim.o.number and vim.api.nvim_get_mode().mode ~= 'i' then
---       vim.cmd [[
---         setlocal relativenumber
---         setlocal number
---       ]]
---       vim.cmd 'redraw'
---     end
+--     vim.wo.relativenumber = true
+--     vim.wo.number = true
 --   end,
+--   group = number_toggle_group,
 -- })
---
--- vim.api.nvim_create_autocmd({ 'BufLeave', 'FocusLost', 'InsertEnter', 'CmdlineEnter', 'WinLeave' }, {
+-- vim.api.nvim_create_autocmd({ 'BufLeave', 'FocusLost', 'InsertEnter' }, {
 --   pattern = '*',
---   group = augroup,
 --   callback = function()
---     if vim.o.number then
---       vim.cmd [[
---         setlocal norelativenumber
---         setlocal nonumber
---       ]]
---       vim.cmd 'redraw'
---     end
+--     vim.wo.relativenumber = false
+--     vim.wo.number = false
 --   end,
+--   group = number_toggle_group,
 -- })
 
 -- NOTE: Originally tried to put this in FileType event autocmd but it is apparently
 -- too early for `set modifiable` to take effect
---
 -- vim.api.nvim_create_autocmd('BufWinEnter', {
 --   group = vim.api.nvim_create_augroup('YOUR_GROUP_HERE', { clear = true }),
 --   desc = 'allow updating quickfix window',
@@ -112,4 +100,5 @@ vim.api.nvim_create_autocmd('BufEnter', { command = [[set formatoptions-=cro]] }
 --     )
 --   end,
 -- })
+
 -- vim: ts=2 sts=2 sw=2 et
