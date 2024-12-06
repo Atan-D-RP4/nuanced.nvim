@@ -136,14 +136,14 @@ return {
     end
 
     local statusline = require('mini.statusline')
-    local base_section_filename = statusline.section_filename
+    local default_section_filename = statusline.section_filename
     ---@diagnostic disable-next-line: duplicate-set-field
     statusline.section_filename = function(args)
       local session = require('nvim-possession').status()
       if session == nil then
         session = 'None'
       end
-      return session .. ' ' .. base_section_filename(args)
+      return session .. ' ' .. default_section_filename(args)
     end
 
     require('nvim-possession').setup {
