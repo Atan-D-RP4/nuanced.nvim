@@ -5,13 +5,13 @@
 
 local opt = vim.opt
 
-opt.scrolloff = 8
+opt.scrolloff = 10
 
-opt.isfname:append('@-@')
+opt.isfname:append '@-@'
 
 opt.cmdheight = 1
 
-if vim.fn.executable('/bin/fish') == 1 then
+if vim.fn.executable '/bin/fish' == 1 then
   opt.shell = '/bin/fish'
 else
   opt.shell = '/bin/bash'
@@ -39,10 +39,6 @@ opt.number = true
 opt.relativenumber = true
 opt.ruler = false
 
--- You can also add relative line numbers, to help with jumping.
---  Experiment for yourself to see if you like it!
--- opt.relativenumber = true
-
 -- Enable mouse mode, can be useful for resizing splits for example!
 opt.mouse = 'a'
 opt.mousehide = true
@@ -63,16 +59,16 @@ opt.showbreak = '↪'
 opt.undofile = true
 opt.undolevels = 1000
 opt.undoreload = 10000
-opt.undodir = '/tmp/.vim/undo.nvim'
+opt.undodir = vim.fn.stdpath 'cache' .. '/undo/'
 
 -- Command-line History
 opt.history = 10000
 
 -- Backup and Swap Files
 opt.swapfile = true
-opt.directory = '/tmp/.vim/swap.nvim'
+opt.directory = vim.fn.stdpath 'cache' .. '/swap/'
 opt.backup = true
-opt.backupdir = '/tmp/.vim/backup.nvim'
+opt.backupdir = vim.fn.stdpath 'cache' .. '/backup/'
 
 -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
 opt.ignorecase = true
@@ -123,13 +119,14 @@ opt.fillchars = { vert = '│', eob = ' ' }
 -- go to previous/next line with h,l,left arrow and right arrow
 -- when cursor reaches end/beginning of line
 opt.whichwrap:append '<>[]hl'
+opt.wrap = true
 
 -- Preview substitutions live, as you type!
 opt.inccommand = 'split'
 
 -- Show which line your cursor is on
 opt.cursorline = true
-opt.cursorlineopt = 'number'
+opt.cursorlineopt = 'both'
 
 -- Minimal number of screen lines to keep above and below the cursor.
 opt.scrolloff = 10
