@@ -37,7 +37,7 @@ opt.foldenable = false
 -- Make line numbers default
 opt.number = true
 opt.relativenumber = true
-opt.ruler = false
+opt.ruler = false -- Because we have statusline
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 opt.mouse = 'a'

@@ -102,14 +102,28 @@ return {
   }),
 
   config = function()
-    require('fzf-lua').setup {
-      'telescope',
-      -- Map tab to add selection
-    }
 
     -- Use fzf-lua as the default ui
     vim.defer_fn(function()
       require('fzf-lua').register_ui_select()
     end, 100)
+
+    require('fzf-lua').setup {
+      'max_perf',
+      keymaps = {
+        builtin = {
+          ["<C-p>"] = 'toggle-preview',
+        },
+        fzf = {
+          ["<C-p>"] = 'toggle-preview',
+        }
+      },
+      winopts = {
+        win_height = 0.85,
+        win_width = 0.80,
+        win_row = 0.30,
+        win_col = 0.50,
+      },
+    }
   end,
 }

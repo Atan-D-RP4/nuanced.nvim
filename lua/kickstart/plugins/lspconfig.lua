@@ -46,7 +46,7 @@ return {
 
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
-      { 'williamboman/mason.nvim', config = true, cmd = { 'Mason', 'MasonLog', } }, -- NOTE: Must be loaded before dependants
+      { 'williamboman/mason.nvim', config = true, cmd = { 'Mason', 'MasonLog' } }, -- NOTE: Must be loaded before dependants
       { 'williamboman/mason-lspconfig.nvim' },
       { 'WhoIsSethDaniel/mason-tool-installer.nvim' },
 
@@ -79,26 +79,22 @@ return {
           local nmap = require('core.utils').nmap
           vim.lsp.set_log_level(vim.log.levels.OFF)
 
+          local fzf
           local has_fzf, _ = pcall(require, 'fzf-lua')
           if has_fzf then
-            local fzf = require 'fzf-lua'
-
-            nmap('gd', fzf.lsp_definitions, 'Lsp [G]oto [D]efinition')
-            nmap('grr', fzf.lsp_references, 'Lsp [G]oto [R]eferences') -- override `grr` mapping
-            nmap('gri', fzf.lsp_implementations, 'Lsp [G]oto [I]mplementation') -- override `gri` mapping
-            nmap('<leader>D', fzf.lsp_typedefs, 'Lsp Type [D]efinition')
-            nmap('<leader>ds', fzf.lsp_document_symbols, 'Lsp [D]ocument [S]ymbols')
-            nmap('<leader>ws', fzf.lsp_live_workspace_symbols, 'Lsp [W]orkspace [S]ymbols')
+            fzf = require 'fzf-lua'
+            nmap('gws', fzf.lsp_live_workspace_symbols, 'Lsp [W]orkspace [S]ymbols')
           else
-            local fzf = require 'telescope.builtin'
+            fzf = require 'telescope.builtin'
 
-            nmap('gd', fzf.lsp_definitions, 'Lsp [G]oto [D]efinition')
-            nmap('grr', fzf.lsp_references, 'Lsp [G]oto [R]eferences')
-            nmap('gri', fzf.lsp_implementations, 'Lsp [G]oto [I]mplementation')
-            nmap('<leader>D', fzf.lsp_type_definitions, 'Lsp Type [D]efinition')
-            nmap('<leader>ds', fzf.lsp_document_symbols, 'Lsp [D]ocument [S]ymbols')
-            nmap('<leader>ws', fzf.lsp_dynamic_workspace_symbols, 'Lsp [W]orkspace [S]ymbols')
+            nmap('gws', fzf.lsp_dynamic_workspace_symbols, 'Lsp [W]orkspace [S]ymbols')
           end
+
+          nmap('gd', fzf.lsp_definitions, 'Lsp [G]oto [D]efinition')
+          nmap('grr', fzf.lsp_references, 'Lsp [G]oto [R]eferences') -- override `grr` mapping
+          nmap('gri', fzf.lsp_implementations, 'Lsp [G]oto [I]mplementation') -- override `gri` mapping
+          nmap('gtd', fzf.lsp_typedefs, 'Lsp [T]ype [D]efinition')
+          nmap('gus', fzf.lsp_document_symbols, 'Lsp [D]ocument [S]ymbols')
 
           -- Execute a code action, usually your cursor needs to be on top of an error
           -- or a suggestion from your LSP for this to activate.
@@ -111,6 +107,7 @@ return {
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
           nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+          nmap('gs', vim.lsp.buf.signature_help, '[G]et [S]ignature Help')
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
@@ -216,7 +213,6 @@ return {
           },
         },
 
-
         clangd = {
           filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
         },
@@ -254,7 +250,6 @@ return {
         },
       }
     end,
-
   },
 }
 -- vim: ts=2 sts=2 sw=2 et
