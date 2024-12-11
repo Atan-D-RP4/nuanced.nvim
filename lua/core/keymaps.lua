@@ -106,9 +106,9 @@ nmap('J', 'mzJ`z', 'Join line without moving the cursor')
 vmap('K', ":m '<-2<CR>gv=gv", 'Move selected lines up')
 vmap('J', ":m '>+1<CR>gv=gv", 'Move selected lines down')
 
-nmap('<leader>gwr', ':%s/\\<<C-r><C-w>\\>//g<Left><Left>', '[G]lobal Current [W]ord [R]eplace')
-nmap('<leader>gsr', ':%s//g<left><left>', '[G]lobal [S]earch and [R]eplace')
-
+-- nmap('<leader>gwr', ':%s/\\<<C-r><C-w>\\>//g<Left><Left>', '[G]lobal Current [W]ord [R]eplace')
+-- nmap('<leader>gsr', ':%s//g<left><left>', '[G]lobal [S]earch and [R]eplace')
+--
 -- Search for visually selected text
 -- Better to use the <leader>fv keybind from fzf.lua
 vmap('<leader>vr', '"hy:%s/<C-r>h//g<left><left>', '[R]eplace [V]isual selection')

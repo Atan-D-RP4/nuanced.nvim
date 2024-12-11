@@ -1,24 +1,8 @@
-local mapper = function(keys)
-  if vim.tbl_isempty(keys) then
-    keys = { 'w', 'e', 'b' }
-  end
-  local final = {}
-
-  for _, key in ipairs(keys) do
-    table.insert(final, {
-      key,
-      string.format("<cmd>lua require('spider').motion('%s')<CR>", key),
-      mode = { 'n', 'o', 'x' },
-      desc = string.format('Spider Motion %s', key),
-    })
-  end
-  return final
-end
-
 return {
   {
     'unblevable/quick-scope',
     -- Load the plugin when fFtT are pressed in normal mode
+    enabled = false,
     keys = { 'f', 'F', 't', 'T' },
     init = function()
       vim.cmd [[
@@ -35,9 +19,63 @@ return {
   },
 
   {
+    'folke/flash.nvim',
+    keys = {
+      {
+        '<leader>l',
+        mode = { 'n', 'x', 'o' },
+        function()
+          require('flash').jump()
+        end,
+        desc = 'Flash',
+      },
+      {
+        '<leader>L',
+        mode = { 'n', 'x', 'o' },
+        function()
+          require('flash').treesitter()
+        end,
+        desc = 'Flash Treesitter',
+      },
+      {
+        '<leader>r',
+        mode = 'o',
+        function()
+          require('flash').remote()
+        end,
+        desc = 'Remote Flash',
+      },
+      {
+        '<leader>R',
+        mode = { 'o', 'x' },
+        function()
+          require('flash').treesitter_search()
+        end,
+        desc = 'Treesitter Search',
+      },
+      {
+        '<c-s>',
+        mode = { 'c' },
+        function()
+          require('flash').toggle()
+        end,
+        desc = 'Toggle Flash Search',
+      },
+    },
+  },
+
+  {
     'chrisgrieser/nvim-spider',
     lazy = true,
-    keys = mapper { 'w', 'e', 'b' },
+    keys = vim.tbl_map(function(key)
+      local cmd = "<cmd>lua require('spider').motion('%s')<CR>"
+      return {
+        key,
+        cmd:format('w'),
+        mode = { 'n', 'o', 'x' },
+        desc = ('Spider %s Motion'):format(key),
+      }
+    end, { 'w', 'e', 'b', }),
   },
 
   {
