@@ -24,28 +24,20 @@ return {
     -- Add your own debuggers here
     'leoluz/nvim-dap-go',
   },
-  cmd = { 'DapContinue', 'DapToggleBreakpoint' },
 
-  keys = function(_, keys)
-    return {
-      -- Basic debugging keymaps, feel free to change to your liking!
-      { '<F5>', require('dap').continue, desc = 'Debug: Start/Continue' },
-      { '<F1>', require('dap').step_into, desc = 'Debug: Step Into' },
-      { '<F2>', require('dap').step_over, desc = 'Debug: Step Over' },
-      { '<F3>', require('dap').step_out, desc = 'Debug: Step Out' },
-      { '<leader>b', require('dap').toggle_breakpoint, desc = 'Debug: Toggle Breakpoint' },
-      {
-        '<leader>B',
-        function()
-          require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ')
-        end,
-        desc = 'Debug: Set Breakpoint',
-      },
-      -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
-      { '<F7>', require('dapui').toggle, desc = 'Debug: See last session result.' },
-      unpack(keys),
-    }
-  end,
+  cmd = { 'DapContinue', 'DapToggleBreakpoint' },
+  keys = {
+    -- Basic debugging keymaps, feel free to change to your liking!
+    { '<F5>', '<cmd>lua require("dap").continue()<CR>', desc = 'Debug: Start/Continue' },
+    { '<F1>', '<cmd>lua require("dap").step_into()<CR>', desc = 'Debug: Step Into' },
+    { '<F2>', '<cmd>lua require("dap").step_over()<CR>', desc = 'Debug: Step Over' },
+    { '<F3>', '<cmd>lua require("dap").step_out()<CR>', desc = 'Debug: Step Out' },
+    { '<leader>b', '<cmd>lua require("dap").toggle_breakpoint()<CR>', desc = 'Debug: Toggle Breakpoint' },
+    { '<leader>B', '<cmd>lua require("dap").set_breakpoint(vim.fn.input "Breakpoint condition: ")<CR>', desc = 'Debug: Set Breakpoint' },
+    -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
+    { '<F7>', '<cmd>lua require("dapui").toggle()<CR>', desc = 'Debug: See last session result.' },
+  },
+
   config = function()
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
@@ -98,8 +90,8 @@ return {
     --   vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
     -- end
 
-    local dap = require('dap')
-    local dapui = require('dapui')
+    local dap = require 'dap'
+    local dapui = require 'dapui'
 
     dap.listeners.after.event_initialized['dapui_config'] = dapui.open
     dap.listeners.before.event_terminated['dapui_config'] = dapui.close
