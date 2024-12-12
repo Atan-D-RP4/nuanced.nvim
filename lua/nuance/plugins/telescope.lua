@@ -70,8 +70,9 @@ local custom = {
 return {
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
-    event = 'VeryLazy',
+    enabled = false,
     branch = '0.1.x',
+
     dependencies = {
       'nvim-lua/plenary.nvim',
       { -- If encountering errors, see telescope-fzf-native README for installation instructions
@@ -90,6 +91,38 @@ return {
       },
       { 'nvim-telescope/telescope-ui-select.nvim', event = 'VeryLazy' },
 
+      keys = {
+        { '<leader>fh', '<cmd>lua require("telescope.builtin").help_tags()<CR>', desc = '[F]ind [H]elp Tags', mode = 'n' },
+        { '<leader>fk', '<cmd>lua require("telescope.builtin").keymaps()<CR>', desc = '[F]ind [K]eymaps', mode = 'n' },
+        { '<leader>ff', '<cmd>lua require("telescope.builtin").files()<CR>', desc = '[F]ind [F]iles', mode = 'n' },
+        { '<leader>fb', '<cmd>lua require("telescope.builtin").builtin()<CR>', desc = '[F]ind [B]uiltin', mode = 'n' },
+        { '<leader>fw', '<cmd>lua require("telescope.builtin").grep_string()<CR>', desc = '[F]ind [W]ord', mode = 'n' },
+        { '<leader>fg', '<cmd>lua require("telescope.builtin").live_grep()<CR>', desc = '[F]ind by [G]rep', mode = 'n' },
+        { '<leader>fd', '<cmd>lua require("telescope.builtin").diagnostics()<CR>', desc = '[F]ind [D]iagnostics', mode = 'n' },
+        { '<leader>fr', '<cmd>lua require("telescope.builtin").resume()<CR>', desc = '[F]ind [R]esume', mode = 'n' },
+        { '<leader>fo', '<cmd>lua require("telescope.builtin").oldfiles()<CR>', desc = '[F]ind [O]ld Files', mode = 'n' },
+        { '<leader>fb', '<cmd>lua require("telescope.builtin").buffers()<CR>', desc = '[F]ind [B]uffers', mode = 'n' },
+        { '<leader>fc', '<cmd>lua require("telescope.builtin").command_history()<CR>', desc = '[F]ind [C]ommands', mode = 'n' },
+
+        {
+          '<leader>fn',
+          '<cmd>lua require("telescope.builtin").find_files({ cwd = vim.fn.stdpath("config"), follow = true })<CR>',
+          desc = '[F]ind [N]vim files',
+          mode = 'n',
+        },
+        {
+          '<leader>/?',
+          '<cmd>lua require("telescope.builtin").current_buffer_fuzzy_find(require("telescope.themes").get_dropdown { winblend = 10, previewer = false })<CR>',
+          desc = '[/] Fuzzily search in current buffer',
+          mode = 'n',
+        },
+        {
+          '<leader>?',
+          '<cmd>lua require("telescope.builtin").live_grep(require("telescope.themes").get_dropdown { winblend = 10, previewer = false })<CR>',
+          desc = '[S]earch [/] in Open Files',
+          mode = 'n',
+        },
+      },
       -- Useful for getting pretty icons, but requires a Nerd Font.
       -- { 'echasnovski/mini.icons', event = 'VeryLazy', enabled = vim.g.have_nerd_font },
     },
@@ -192,44 +225,6 @@ return {
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
-
-      -- Telescope command prefix
-      local prefix = '<leader>f'
-
-      -- See `:help telescope.builtin`
-      local cmd = "<cmd>lua require('telescope.builtin').%s<CR>"
-      nmap = require('core.utils').nmap
-
-      nmap(prefix .. 'h', cmd:format 'help_tags()', { desc = '[F]ind [H]elp' })
-      nmap(prefix .. 'k', cmd:format 'keymaps()', { desc = '[F]ind [K]eymaps' })
-      nmap(prefix .. 'f', cmd:format 'find_files()', { desc = '[F]ind [F]iles' })
-      nmap(prefix .. 'B', cmd:format 'builtin()', { desc = '[F]ind [B]uiltins' })
-      nmap(prefix .. 'w', cmd:format 'grep_string()', { desc = '[F]ind current [W]ord' })
-      nmap(prefix .. 'g', cmd:format 'live_grep()', { desc = '[F]ind by [G]rep' })
-      nmap(prefix .. 'd', cmd:format 'diagnostics()', { desc = '[F]ind [D]iagnostics' })
-      nmap(prefix .. 'r', cmd:format 'resume()', { desc = '[F]ind [R]esume' })
-      nmap(prefix .. 'o', cmd:format 'oldfiles()', { desc = '[F]ind [O]ld Files' })
-      nmap(prefix .. 'b', cmd:format 'buffers()', { desc = '[F]ind [B]uffers' })
-      nmap(prefix .. 'c', cmd:format 'command_history()', { desc = '[F]ind [C]ommands' })
-
-      -- Slightly advanced example of overriding default behavior and theme
-      -- You can pass additional configuration to Telescope to change the theme, layout, etc.
-      nmap(
-        prefix .. '/',
-        cmd:format "current_buffer_fuzzy_find(require('telescope.themes').get_dropdown { winblend = 10, previewer = false })",
-        { desc = '[/] Fuzzily search in current buffer' }
-      )
-
-      -- It's also possible to pass additional configuration options.
-      --  See `:help telescope.builtin.live_grep()` for information about particular keys
-      nmap(
-        prefix .. '?',
-        cmd:format "live_grep(require('telescope.themes').get_dropdown { winblend = 10, previewer = false })",
-        { desc = '[S]earch [/] in Open Files' }
-      )
-
-      -- Shortcut for searching your Neovim configuration files
-      nmap(prefix .. 'n', cmd:format "find_files { cwd = vim.fn.stdpath 'config', follow = true }", { desc = '[S]earch [N]eovim files' })
     end,
   },
 }

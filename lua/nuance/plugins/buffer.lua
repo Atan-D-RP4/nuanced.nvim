@@ -76,17 +76,17 @@ return {
     },
   },
 
-  -- {
-  --   -- find/replace across multiple files
-  --   'nvim-pack/nvim-spectre',
-  --   enabled = false,
-  --   keys = {
-  --     { 'g/', '<cmd>Spectre<cr>', mode = { 'n' } },
-  --   },
-  --   config = function()
-  --     require('spectre').setup { is_block_ui_break = true }
-  --   end,
-  -- }
+  {
+    -- find/replace across multiple files
+    'nvim-pack/nvim-spectre',
+    enabled = false,
+    keys = {
+      { 'g/', '<cmd>Spectre<cr>', mode = { 'n' } },
+    },
+    config = function()
+      require('spectre').setup { is_block_ui_break = true }
+    end,
+  },
 
   {
     "OXY2DEV/markview.nvim",

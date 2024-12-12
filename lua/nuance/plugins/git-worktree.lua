@@ -1,6 +1,7 @@
 return {
   {
     'ThePrimeagen/git-worktree.nvim',
+    enabled = false,
     event = 'VeryLazy',
 
     dependencies = {
@@ -19,7 +20,7 @@ return {
 
       -- Helper function to parse git worktree list
       local function parse_worktree_list()
-          local output = utils.io_system({"git", "orktree", "list"})
+          local output = utils.io_system({"git", "worktree", "list"})
           if not output then return {} end
 
           local results = {}

@@ -21,46 +21,11 @@ return {
   {
     'folke/flash.nvim',
     keys = {
-      {
-        '<leader>l',
-        mode = { 'n', 'x', 'o' },
-        function()
-          require('flash').jump()
-        end,
-        desc = 'Flash',
-      },
-      {
-        '<leader>L',
-        mode = { 'n', 'x', 'o' },
-        function()
-          require('flash').treesitter()
-        end,
-        desc = 'Flash Treesitter',
-      },
-      {
-        '<leader>r',
-        mode = 'o',
-        function()
-          require('flash').remote()
-        end,
-        desc = 'Remote Flash',
-      },
-      {
-        '<leader>R',
-        mode = { 'o', 'x' },
-        function()
-          require('flash').treesitter_search()
-        end,
-        desc = 'Treesitter Search',
-      },
-      {
-        '<c-s>',
-        mode = { 'c' },
-        function()
-          require('flash').toggle()
-        end,
-        desc = 'Toggle Flash Search',
-      },
+      { '<leader>l', '<cmd>lua require("flash").jump()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash' },
+      { '<leader>L', '<cmd>lua require("flash").treesitter()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash Treesitter' },
+      { '<leader>r', '<cmd>lua require("flash").remote()<CR>', mode = 'o', desc = 'Remote Flash' },
+      { '<leader>R', '<cmd>lua require("flash").treesitter_search()<CR>', mode = { 'o', 'x' }, desc = 'Treesitter Search' },
+      { '<leader>tf', '<cmd>lua require("flash").toggle()<CR>', mode = { 'n' }, desc = '[T]oggle [F]lash Search' },
     },
   },
 
@@ -71,11 +36,11 @@ return {
       local cmd = "<cmd>lua require('spider').motion('%s')<CR>"
       return {
         key,
-        cmd:format('w'),
+        cmd:format 'w',
         mode = { 'n', 'o', 'x' },
         desc = ('Spider %s Motion'):format(key),
       }
-    end, { 'w', 'e', 'b', }),
+    end, { 'w', 'e', 'b' }),
   },
 
   {

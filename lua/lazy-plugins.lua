@@ -53,23 +53,12 @@ require('lazy').setup({
       },
     },
   },
+
+  -- NOTE:
   -- modular approach: using `require 'path/name'` will
   -- include a plugin definition from file lua/path/name.lua
-  require 'kickstart/plugins/which-key',
-  require 'kickstart/plugins/lspconfig',
-  require 'kickstart/plugins/conform',
-  require 'kickstart/plugins/todo-comments',
-  require 'kickstart/plugins/mini',
-  require 'kickstart/plugins/treesitter',
-  require 'kickstart/plugins/idl',
-  require 'kickstart/plugins/cmp',
+  -- require 'nuance.plugins'
 
-  -- require 'kickstart/plugins/telescope',
-  -- require 'kickstart/plugins/debug' ,
-  -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
-  --
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
@@ -80,20 +69,11 @@ require('lazy').setup({
   -- Or use telescope!
   -- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
   -- you can continue same window with `<space>sr` which resumes last telescope search
+  spec = {
+    { import = 'nuance.plugins' }
+  },
 
-  -- custom plugins
-  -- require 'custom/plugins/oil',
-  require 'custom/plugins/treesitter-textobjects',
-  require 'custom/plugins/motion',
-  require 'custom/plugins/trouble',
-  require 'custom/plugins/git',
-  require 'custom/plugins/buffer',
-  require 'custom/plugins/fzf',
-  require 'custom/plugins/sessions',
-  require 'custom/plugins/theme',
-  -- require 'custom/plugins/wilder',
-  -- require 'custom/plugins/image',
-  -- require 'custom/plugins/git-worktree',
+
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the

@@ -1,23 +1,17 @@
 return {
-  -- {
-  --   'refractalize/oil-git-status.nvim',
-  --   event = 'VeryLazy',
-  --   cmd = 'Oil',
-  --
-  --   dependencies = {
-  --     'stevearc/oil.nvim',
-  --   },
-  --
-  --   config = true,
-  -- },
-
   {
     'stevearc/oil.nvim',
+    enabled = false,
     event = 'VeryLazy',
     version = '*',
     cmd = 'Oil',
 
+    dependency = {
+        'refractalize/oil-git-status.nvim',
+    },
+
     init = function()
+      ---@diagnostic disable-next-line: param-type-mismatch
       if vim.fn.argc() == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1 then
         require('lazy').load { plugins = { 'oil.nvim' } }
         vim.cmd 'bd' -- Close the initial buffer
