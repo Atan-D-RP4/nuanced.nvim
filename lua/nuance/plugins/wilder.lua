@@ -1,6 +1,4 @@
 local preset_one = function()
-  local wilder = require 'wilder'
-  --
   -- local gradient = {
   --   '#f4468f',
   --   '#fd4a85',
@@ -26,15 +24,20 @@ local preset_one = function()
   -- for i, fg in ipairs(gradient) do
   --   gradient[i] = wilder.make_hl('WilderGradient' .. i, 'Pmenu', { { a = 1 }, { a = 1 }, { foreground = fg } })
   -- end
-  --
-  wilder.setup {
-    modes = { '/', '?', ':' },
-    pipeline = {
+
+  local wilder = require 'wilder'
+  wilder.setup { modes = { '/', '?', ':' } }
+
+  wilder.set_option('pipeline', {
+    wilder.branch(
       wilder.cmdline_pipeline {
-        fuzzy = 2,
+        fuzzy = 1,
       },
-    },
-  }
+      wilder.vim_search_pipeline {
+        fuzzy = 1,
+      }
+    ),
+  })
 
   -- Disable Python remote plugin
   wilder.set_option('use_python_remote_plugin', 0)
@@ -51,8 +54,7 @@ local preset_one = function()
     })
   )
 
-  wilder.set_option(
-    'renderer',
+  wilder.set_option('renderer',
     wilder.renderer_mux {
       [':'] = wilder.popupmenu_renderer(wilder.popupmenu_border_theme {
         highlighter = wilder.highlighter_with_gradient {
@@ -63,7 +65,7 @@ local preset_one = function()
           accent = wilder.make_hl('WilderAccent', 'Pmenu', { { a = 1 }, { a = 1 }, { foreground = '#5FF1FF' } }),
           -- gradient = gradient,
         },
-        border = 'Normal',
+        border = 'rounded',
         pumblend = 0,
         max_height = 10,
       }),

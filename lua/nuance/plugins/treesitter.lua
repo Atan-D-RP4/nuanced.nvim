@@ -71,6 +71,7 @@ return {
   {
     'nvim-treesitter/nvim-treesitter-context',
     event = { 'BufRead', 'BufNewFile' },
+    key = { '<leader>tc', '<cmd>lua require("treesitter-context").toggle()<CR>' },
 
     dependencies = {
       'nvim-treesitter/nvim-treesitter',

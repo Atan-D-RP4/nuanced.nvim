@@ -77,7 +77,7 @@ return {
         -- for LSP related items. It sets the mode, buffer and description for us each time.
         callback = function(event)
           local nmap = require('core.utils').nmap
-          vim.lsp.set_log_level(vim.log.levels.OFF)
+          vim.lsp.set_log_level(vim.log.levels.DEBUG)
 
           local fzf
           local has_fzf, _ = pcall(require, 'fzf-lua')
@@ -115,6 +115,7 @@ return {
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
+          ---@diagnostic disable-next-line: param-type-mismatch
           if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
@@ -142,6 +143,7 @@ return {
           -- code, if the language server you are using supports them
           --
           -- This may be unwanted, since they displace some of your code
+          ---@diagnostic disable-next-line: param-type-mismatch
           if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
             nmap('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
@@ -205,6 +207,13 @@ return {
           },
         },
 
+        rust_analyzer = {
+          check = {
+            command = 'clippy',
+            features = 'all',
+          },
+        },
+
         harper_ls = {
           filetypes = { 'markdown', 'text', 'gitcommit', 'html' },
           settings = {
@@ -230,6 +239,7 @@ return {
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
+
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'html',
@@ -238,17 +248,33 @@ return {
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
-      require('mason-lspconfig').setup {
+      local default_handlers = {
+        ['textDocument/hover'] = vim.lsp.buf.hover { border = 'rounded' },
+        ['textDocument/signatureHelp'] = vim.lsp.buf.signature_help { border = 'rounded' },
+      }
+      for name, config in pairs(servers) do
+        require('lspconfig')[name].setup {
+          autostart = config.autostart,
+          cmd = config.cmd,
+          capabilities = capabilities,
+          filetypes = config.filetypes,
+          handlers = vim.tbl_deep_extend('force', {}, default_handlers, config.handlers or {}),
+          settings = config.settings,
+          root_dir = config.root_dir,
+        }
+      end
+
+      require('mason-lspconfig').setup{
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+            server.capabilities = vim.tbl_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
-          end,
-        },
+          end
+        }
       }
     end,
   },

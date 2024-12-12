@@ -7,7 +7,7 @@ return {
       -- Snippet Engine & its associated nvim-cmp source
       {
         'L3MON4D3/LuaSnip',
-        event = {  'InsertEnter' },
+        event = { 'InsertEnter' },
         build = (function()
           -- Build Step is needed for regex support in snippets.
           -- This step is not supported in many windows environments.
@@ -31,7 +31,6 @@ return {
       },
 
       { 'saadparwaiz1/cmp_luasnip', event = { 'InsertEnter' } },
-      { 'hrsh7th/cmp-path', event = { 'InsertEnter', 'CmdlineEnter' } },
       { 'lukas-reineke/cmp-rg' },
       { 'hrsh7th/cmp-cmdline', event = { 'CmdlineEnter' } },
 
@@ -69,7 +68,7 @@ return {
               cmdline = '[Cmd]',
               path = '[Path]',
               buffer = '[Buffer]',
-              nvim_lsp = '[' .. entry.source.name .. ']',
+              nvim_lsp = '[LSP]',
               luasnip = '[LuaSnip]',
               nvim_lua = '[Lua]',
               latex_symbols = '[LaTeX]',
@@ -86,19 +85,37 @@ return {
         --
         -- No, but seriously. Please read `:help ins-completion`, it is really good!
         mapping = cmp.mapping.preset.insert {
-          ['<C-n>'] = cmp.mapping.select_next_item(), -- Select the [n]ext item
-          ['<C-p>'] = cmp.mapping.select_prev_item(), -- Select the [p]revious item
+          -- ['<C-n>'] = cmp.mapping.select_next_item(), -- Select the [n]ext item
+          -- ['<C-p>'] = cmp.mapping.select_prev_item(), -- Select the [p]revious item
 
           -- This will auto-import if your LSP supports it.
           -- This will expand snippets if the LSP sent a snippet.
-          ['<C-y>'] = cmp.mapping.confirm { select = true }, -- Accept ([y]es) the completion.
+          -- ['<C-y>'] = cmp.mapping.confirm { select = true }, -- Accept ([y]es) the completion.
 
           ['<C-q>'] = cmp.mapping.scroll_docs(-4), -- Scroll the documentation window [b]ack
           ['<C-f>'] = cmp.mapping.scroll_docs(4), -- Scroll the documentation window [f]orward
 
-          -- ['<CR>'] = cmp.mapping.confirm { select = true }, -- Accept ([y]es) the completion.
-          -- ['<Tab>'] = cmp.mapping.select_next_item(),       -- Select the [n]ext item
-          -- ['<S-Tab>'] = cmp.mapping.select_prev_item(),     -- Select the [p]revious item
+          ['<CR>'] = cmp.mapping.confirm { select = true }, -- Accept ([y]es) the completion.
+          -- Select the [n]ext item
+          ['<Tab>'] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_next_item()
+            elseif luasnip.expand_or_jumpable() then
+              luasnip.expand_or_jump()
+            else
+              fallback()
+            end
+          end, { 'i', 's' }),
+          -- Select the [p]revious item
+          ['<S-Tab>'] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_prev_item()
+            elseif luasnip.jumpable(-1) then
+              luasnip.jump(-1)
+            else
+              fallback()
+            end
+          end, { 'i', 's' }),
 
           -- Manually trigger a completion from nvim-cmp.
           -- Generally you don't need this, because nvim-cmp will display
@@ -131,14 +148,12 @@ return {
         cmp.setup.cmdline(':', {
           completion = { completeopt = 'menu,menuone,noselect' },
           mapping = cmp.mapping.preset.cmdline(),
-          sources = cmp.config.sources({
-            { name = 'path' },
-          }, {
+          sources = cmp.config.sources {
             {
               name = 'cmdline',
               option = { ignore_cmds = { 'Man', '!' } },
             },
-          }),
+          },
         }),
 
         sources = {
@@ -148,7 +163,6 @@ return {
           },
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
-          { name = 'path' },
           { name = 'rg' },
           -- { name = 'dictionary', keyword_length = 2 },
         },
