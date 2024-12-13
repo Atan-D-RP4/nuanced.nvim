@@ -1,5 +1,6 @@
+-- Autocompletion
 return {
-  { -- Autocompletion
+  {
     'hrsh7th/nvim-cmp',
     event = { 'InsertEnter', 'CmdlineEnter' },
 
@@ -85,19 +86,18 @@ return {
         --
         -- No, but seriously. Please read `:help ins-completion`, it is really good!
         mapping = cmp.mapping.preset.insert {
-          -- ['<C-n>'] = cmp.mapping.select_next_item(), -- Select the [n]ext item
-          -- ['<C-p>'] = cmp.mapping.select_prev_item(), -- Select the [p]revious item
-
           -- This will auto-import if your LSP supports it.
           -- This will expand snippets if the LSP sent a snippet.
-          -- ['<C-y>'] = cmp.mapping.confirm { select = true }, -- Accept ([y]es) the completion.
 
           ['<C-q>'] = cmp.mapping.scroll_docs(-4), -- Scroll the documentation window [b]ack
           ['<C-f>'] = cmp.mapping.scroll_docs(4), -- Scroll the documentation window [f]orward
 
-          ['<CR>'] = cmp.mapping.confirm { select = true }, -- Accept ([y]es) the completion.
+           -- Accept ([y]es) the completion.
+          ['C-y>'] = cmp.mapping.confirm { select = true },
+          ['<CR>'] = cmp.mapping.confirm { select = true },
+
           -- Select the [n]ext item
-          ['<Tab>'] = cmp.mapping(function(fallback)
+          ['<C-n>'] = cmp.mapping(function(fallback)
             if cmp.visible() then
               cmp.select_next_item()
             elseif luasnip.expand_or_jumpable() then
@@ -107,7 +107,7 @@ return {
             end
           end, { 'i', 's' }),
           -- Select the [p]revious item
-          ['<S-Tab>'] = cmp.mapping(function(fallback)
+          ['<C-p>'] = cmp.mapping(function(fallback)
             if cmp.visible() then
               cmp.select_prev_item()
             elseif luasnip.jumpable(-1) then

@@ -29,6 +29,13 @@ return {
 
     require('fzf-lua').setup {
       'max_pref',
+      -- Toggle preview with `Ctrl-p`
+      -- keymap = {
+      --   fzf = {
+      --     ['ctrl-q'] = "jump-accept",
+      --   },
+      -- },
+
       winopts = {
         preview = {
           hidden = 'hidden',

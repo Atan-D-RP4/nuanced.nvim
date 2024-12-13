@@ -52,7 +52,7 @@ return {
 
         indent = {
           enable = true,
-          disable = { 'ruby', 'php', },
+          disable = { 'ruby', 'php' },
         },
 
         incremental_selection = {
@@ -71,8 +71,14 @@ return {
   {
     'nvim-treesitter/nvim-treesitter-context',
     event = { 'BufRead', 'BufNewFile' },
-    key = { '<leader>tc', '<cmd>lua require("treesitter-context").toggle()<CR>' },
-
+    keys = {
+      {
+        '<leader>tc',
+        '<cmd>lua require("treesitter-context").toggle()<CR>',
+        desc = '[T]oggle Treesitter [C]ontext',
+        mode = 'n',
+      },
+    },
     dependencies = {
       'nvim-treesitter/nvim-treesitter',
     },

@@ -79,22 +79,22 @@ return {
           local nmap = require('core.utils').nmap
           vim.lsp.set_log_level(vim.log.levels.DEBUG)
 
-          local fzf
+          local cmd
           local has_fzf, _ = pcall(require, 'fzf-lua')
           if has_fzf then
-            fzf = require 'fzf-lua'
-            nmap('gws', fzf.lsp_live_workspace_symbols, 'Lsp [W]orkspace [S]ymbols')
+            cmd = '<cmd>lua require("fzf-lua").%s<CR>'
+            nmap('gws', cmd:format 'lsp_live_workspace_symbols()', 'Lsp [W]orkspace [S]ymbols')
           else
-            fzf = require 'telescope.builtin'
+            cmd = '<cmd>lua require("telescope.builtin").%s<CR>'
 
-            nmap('gws', fzf.lsp_dynamic_workspace_symbols, 'Lsp [W]orkspace [S]ymbols')
+            nmap('gws', cmd:format 'lsp_dynamic_workspace_symbols()', 'Lsp [W]orkspace [S]ymbols')
           end
 
-          nmap('gd', fzf.lsp_definitions, 'Lsp [G]oto [D]efinition')
-          nmap('grr', fzf.lsp_references, 'Lsp [G]oto [R]eferences') -- override `grr` mapping
-          nmap('gri', fzf.lsp_implementations, 'Lsp [G]oto [I]mplementation') -- override `gri` mapping
-          nmap('gtd', fzf.lsp_typedefs, 'Lsp [T]ype [D]efinition')
-          nmap('gus', fzf.lsp_document_symbols, 'Lsp [D]ocument [S]ymbols')
+          nmap('gd', cmd:format 'lsp_definitions()', 'Lsp [G]oto [D]efinition')
+          nmap('grr', cmd:format 'lsp_references()', 'Lsp [G]oto [R]eferences') -- override `grr` mapping
+          nmap('gri', cmd:format 'lsp_implementations()', 'Lsp [G]oto [I]mplementation') -- override `gri` mapping
+          nmap('gtd', cmd:format 'lsp_typedefs()', 'Lsp [T]ype [D]efinition')
+          nmap('gus', cmd:format 'lsp_document_symbols()', 'Lsp [D]ocument [S]ymbols')
 
           -- Execute a code action, usually your cursor needs to be on top of an error
           -- or a suggestion from your LSP for this to activate.
@@ -106,8 +106,8 @@ return {
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
-          nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
-          nmap('gs', vim.lsp.buf.signature_help, '[G]et [S]ignature Help')
+          nmap('gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', '[G]oto [D]eclaration')
+          nmap('gs', '<cmd>lua vim.lsp.buf.signature_help()<CR>', '[G]et [S]ignature Help')
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
@@ -248,6 +248,19 @@ return {
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
+      require('mason-lspconfig').setup {
+        handlers = {
+          function(server_name)
+            local server = servers[server_name] or {}
+            -- This handles overriding only values explicitly passed
+            -- by the server configuration above. Useful when disabling
+            -- certain features of an LSP (for example, turning off formatting for ts_ls)
+            server.capabilities = vim.tbl_extend('force', {}, capabilities, server.capabilities or {})
+            require('lspconfig')[server_name].setup(server)
+          end,
+        },
+      }
+
       local default_handlers = {
         ['textDocument/hover'] = vim.lsp.buf.hover { border = 'rounded' },
         ['textDocument/signatureHelp'] = vim.lsp.buf.signature_help { border = 'rounded' },
@@ -263,19 +276,6 @@ return {
           root_dir = config.root_dir,
         }
       end
-
-      require('mason-lspconfig').setup{
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end
-        }
-      }
     end,
   },
 }

@@ -20,12 +20,23 @@ return {
 
   {
     'folke/flash.nvim',
+    ---@type Flash.Config
+    opts = {
+      modes = {
+        char = {
+          jump_labels = true,
+          highlight = { backdrop = false },
+        },
+      },
+    },
+
     keys = {
+      'f', 'F', 't', 'T', ';', ',',
       { '<leader>l', '<cmd>lua require("flash").jump()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash' },
       { '<leader>L', '<cmd>lua require("flash").treesitter()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash Treesitter' },
       { '<leader>r', '<cmd>lua require("flash").remote()<CR>', mode = 'o', desc = 'Remote Flash' },
       { '<leader>R', '<cmd>lua require("flash").treesitter_search()<CR>', mode = { 'o', 'x' }, desc = 'Treesitter Search' },
-      { '<leader>tf', '<cmd>lua require("flash").toggle()<CR>', mode = { 'n' }, desc = '[T]oggle [F]lash Search' },
+      { '<c-s>', mode = { 'c' }, '<cmd>lua require("flash").toggle()<CR>', desc = 'Toggle Flash Search' },
     },
   },
 
@@ -54,3 +65,4 @@ return {
     end,
   },
 }
+

@@ -62,7 +62,7 @@ vmap('>', '>gv', 'Re-Select Visual Selection on Re-Indent')
 map({ 'n', 'v' }, 'j', "v:count ? (v:count > 5 ? 'm' . v:count : '') . 'j' : 'gj'", { expr = true, desc = 'Smarter J to Line movements' })
 map({ 'n', 'v' }, 'k', "v:count ? (v:count > 5 ? 'm' . v:count : '') . 'k' : 'gk'", { expr = true, desc = 'Smarter K to Line movements' })
 
-map({ 'n', 'v' }, '<C-q>', '<C-b>')
+map({ 'n', 'v' }, '<C-q>', '<C-u>')
 
 map({ 'n', 'v' }, '<S-w>', 'b')
 
