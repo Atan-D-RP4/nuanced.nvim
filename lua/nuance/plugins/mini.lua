@@ -16,7 +16,7 @@ return {
       },
     },
     config = function()
-      require('core.utils').nmap('<leader>o', '<cmd>lua require("mini.files").open()<CR>')
+      require('nuance.core.utils').nmap('<leader>o', '<cmd>lua require("mini.files").open()<CR>')
 
       require('mini.files').setup {
         options = {

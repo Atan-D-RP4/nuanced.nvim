@@ -1,11 +1,11 @@
 -- [[ Basic Keymaps ]]
 --  See `:helpvim.keymap.set()`
 
-local map = require('core.utils').map
-local nmap = require('core.utils').nmap
-local tmap = require('core.utils').tmap
-local imap = require('core.utils').imap
-local vmap = require('core.utils').vmap
+local map = require('nuance.core.utils').map
+local nmap = require('nuance.core.utils').nmap
+local tmap = require('nuance.core.utils').tmap
+local imap = require('nuance.core.utils').imap
+local vmap = require('nuance.core.utils').vmap
 
 -- Better Escape
 nmap('<Esc>', '<C-c><C-c>')
@@ -36,10 +36,16 @@ nmap('<down>', '<cmd>echo "Use j to move!!"<CR>')
 --  Use CTRL+<hjkl> to switch between windows
 --
 --  See `:help wincmd` for a list of all window commands
-nmap('<C-h>', '<C-w><C-h>', 'Move focus to the left window')
-nmap('<C-l>', '<C-w><C-l>', 'Move focus to the right window')
-nmap('<C-j>', '<C-w><C-j>', 'Move focus to the lower window')
-nmap('<C-k>', '<C-w><C-k>', 'Move focus to the upper window')
+nmap('<M-h>', '<C-w><C-h>', 'Move focus to the left window')
+nmap('<M-l>', '<C-w><C-l>', 'Move focus to the right window')
+nmap('<M-j>', '<C-w><C-j>', 'Move focus to the lower window')
+nmap('<M-k>', '<C-w><C-k>', 'Move focus to the upper window')
+
+-- Keybinds to resize windows
+nmap('<M-S-h>', '<C-w>3<', 'Decrease width of window')
+nmap('<M-S-l>', '<C-w>3>', 'Increase width of window')
+nmap('<M-S-j>', '<C-w>-', 'Decrease height of window')
+nmap('<M-S-k>', '<C-w>+', 'Increase height of window')
 
 -- My Keybinds
 imap('<C-U>', '<C-G>u<C-U>')
@@ -116,6 +122,6 @@ vmap('<leader>vs', 'y/<C-r>=escape(@", "/")<CR><CR>', 'Search Visual Selection')
 
 -- map('x', '<leader>P', '"_dP', 'Paste without yanking')
 
-nmap('-', '^', 'Move to the first non-blank character of the line')
+nmap('-', 'g$', 'Move to the first non-blank character of the line')
 
 -- vim: ts=2 sts=2 sw=2 et

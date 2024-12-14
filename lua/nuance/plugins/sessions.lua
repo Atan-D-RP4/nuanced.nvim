@@ -107,7 +107,7 @@
 -- end
 --
 -- function M.init()
---   local utils = require 'core.utils'
+--   local utils = require 'nuance.core.utils'
 --   local nmap = utils.nmap
 --
 --   nmap('<leader>ss', M.sessionSave, { desc = '[S]ession [S]ave' })

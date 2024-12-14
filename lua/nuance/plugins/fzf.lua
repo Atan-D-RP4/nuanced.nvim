@@ -15,10 +15,11 @@ return {
     { '<leader>fv', '<cmd>lua require("fzf-lua").grep_visual()<CR>', desc = '[F]zf [V]isual', mode = 'v' },
     { '<leader>ff', '<cmd>lua require("fzf-lua").files()<CR>', desc = '[F]zf [Y] files', mode = 'n' },
     { '<leader>fg', '<cmd>lua require("fzf-lua").live_grep_native()<CR>', desc = '[F]zf [G]rep files', mode = 'n' },
-    -- { '<leader>fd', '<cmd>lua require("fzf-lua").lsp_document_diagnostics()<CR>', desc = '[F]zf [D]iagnostics', mode = 'n' },
+    { '<leader>fn', '<cmd>lua require("fzf-lua").files({ cwd = vim.fn.stdpath "config", follow = true })<CR>', desc = '[F]zf [N]ear', mode = 'n' },
     -- { '<leader>fe', '<cmd>lua require("fzf-lua").buffers()<CR>', desc = '[F]zf [B]uffers', mode = 'n' },
     -- { '<leader>fc', '<cmd>lua require("fzf-lua").command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
-    { '<leader>fn', '<cmd>lua require("fzf-lua").files({ cwd = vim.fn.stdpath "config", follow = true })<CR>', desc = '[F]zf [N]ear', mode = 'n' },
+    -- { '<leader>fd', '<cmd>lua require("fzf-lua").lsp_document_diagnostics()<CR>', desc = '[F]zf [D]iagnostics', mode = 'n' },
+    { '<leader>fs', '<cmd>lua require("fzf-lua").lsp_document_symbols()<CR>', desc = '[F]zf [D]iagnostics', mode = 'n' },
   },
 
   config = function()

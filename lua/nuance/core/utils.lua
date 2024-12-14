@@ -69,6 +69,12 @@ function utils.ternary(cond, T, F, ...)
   end
 end
 
+function utils.lazy_require(module)
+  return function()
+    require(module)
+  end
+end
+
 -- Implement a zero-indexed table
 utils.zeroIndexedTable = setmetatable({}, {
   __call = function(self, _t)

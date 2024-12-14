@@ -76,7 +76,7 @@ return {
         -- In this case, we create a function that lets us more easily define mappings specific
         -- for LSP related items. It sets the mode, buffer and description for us each time.
         callback = function(event)
-          local nmap = require('core.utils').nmap
+          local nmap = require('nuance.core.utils').nmap
           vim.lsp.set_log_level(vim.log.levels.DEBUG)
 
           local cmd
@@ -98,7 +98,7 @@ return {
 
           -- Execute a code action, usually your cursor needs to be on top of an error
           -- or a suggestion from your LSP for this to activate.
-          -- require('core.utils').map({ 'n', 'x' }, '<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+          -- require('nuance.core.utils').map({ 'n', 'x' }, '<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
           -- Rename the variable under your cursor.
           --  Most Language Servers support renaming across files, etc.

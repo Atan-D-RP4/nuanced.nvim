@@ -2,7 +2,7 @@ return {
   {
     'moll/vim-bbye',
     config = function()
-      require('core.utils').nmap('<leader>dd', ':Bdelete!<CR>', 'Delete Buffer')
+      require('nuance.core.utils').nmap('<leader>dd', ':Bdelete!<CR>', 'Delete Buffer')
       -- NOTE: Commented out since it breaks nvim-possession for now
       -- vim.api.nvim_create_autocmd('VimEnter', {
       --   desc = 'Delete Empty Buffer at startup',
