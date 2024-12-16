@@ -24,7 +24,7 @@ nmap('<leader>q', vim.diagnostic.setloclist, 'Open diagnostic [Q]uickfix list')
 --
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
-tmap('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode')
+tmap('<Esc>', '<C-\\><C-n>', 'Exit terminal mode')
 
 -- NOTE: Disable arrow keys in normal mode
 nmap('<left>', '<cmd>echo "Use h to move!!"<CR>')
@@ -49,7 +49,7 @@ nmap('<M-S-k>', '<C-w>+', 'Increase height of window')
 
 -- My Keybinds
 imap('<C-U>', '<C-G>u<C-U>')
-nmap("<leader>'", ':terminal<CR>', 'Open Terminal Buffer')
+nmap("<leader>tt", require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal')
 
 -- Buffer Management
 -- nmap('<leader>dd', ':bdelete! %<CR>', {  desc = 'Delete Buffer' })
