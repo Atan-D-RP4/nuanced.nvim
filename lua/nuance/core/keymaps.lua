@@ -49,7 +49,7 @@ nmap('<M-S-k>', '<C-w>+', 'Increase height of window')
 
 -- My Keybinds
 imap('<C-U>', '<C-G>u<C-U>')
-nmap("<leader>tt", require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal')
+nmap('<leader>tt', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal')
 
 -- Buffer Management
 -- nmap('<leader>dd', ':bdelete! %<CR>', {  desc = 'Delete Buffer' })
@@ -123,5 +123,48 @@ vmap('<leader>vs', 'y/<C-r>=escape(@", "/")<CR><CR>', 'Search Visual Selection')
 -- map('x', '<leader>P', '"_dP', 'Paste without yanking')
 
 nmap('-', 'g$', 'Move to the first non-blank character of the line')
+
+vim.tbl_map(
+  function(keys)
+    nmap(keys.cmd, keys.callback, keys.desc)
+  end,
+  vim.tbl_map(function(i)
+    return {
+      desc = string.format('Jump to buffer %d', i),
+      cmd = string.format('<leader>e%d', i),
+      callback = function()
+        local cmd = 'ls'
+        local bufs_out = vim.api.nvim_exec2(cmd, { output = true }).output
+        local bufs = vim.split(bufs_out, '\n', { trimempty = true })
+        local items = vim.tbl_map(function(s)
+          local o = {
+            id = 0,
+            name = '',
+            classifiers = '     ', -- see :help ls for more info
+          }
+          o = setmetatable({}, o)
+
+          o.id = tonumber(vim.split(s, ' ', { trimempty = true })[1])
+          o.classifiers = s:sub(4, 8)
+
+          local ss = s:find '"'
+          local se = #s - s:reverse():find '"'
+
+          o.name = s:sub(ss + 1, se)
+
+          return o
+        end, bufs)
+
+        if i > #items or i == 0 then
+          vim.notify('Buffer index out of range', vim.log.levels.ERROR)
+          return
+        end
+
+        -- Jump to the nth buffer
+        vim.api.nvim_set_current_buf(items[i].id)
+      end,
+    }
+  end, { 1, 2, 3, 4, 5, 6, 7, 8, 9 })
+)
 
 -- vim: ts=2 sts=2 sw=2 et

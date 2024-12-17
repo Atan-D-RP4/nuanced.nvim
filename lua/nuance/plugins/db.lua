@@ -2,10 +2,12 @@ return {
   {
     'tpope/vim-dadbod',
     enabled = false,
+
     dependencies = {
       'kristijanhusak/vim-dadbod-ui',
       'kristijanhusak/vim-dadbod-completion',
     },
+
     keys = {
       { '<leader>du', ':DBUIToggle<cr>', desc = 'Toggle DB UI' },
       { '<leader>db', ':DBUIFindBuffer<cr>', desc = 'DB Find buffer' },
@@ -16,9 +18,19 @@ return {
       },
       { '<leader>dl', ':DBUILastQueryInfo<cr>', desc = 'DB Last query' },
     },
+
+    cmd = {
+      'DBUIToggle',
+      'DBUI',
+      'DBUIAddConnection',
+      'DBUIFindBuffer',
+      'DBUIRenameBuffer',
+      'DBUILastQueryInfo',
+    },
+
     config = function()
       local function db_completion()
-        require('plugins.completion.cmp').setup.buffer {
+        require('cmp').setup.buffer {
           sources = { { name = 'vim-dadbod-completion' } },
         }
       end
@@ -43,13 +55,5 @@ return {
         end,
       })
     end,
-    cmd = {
-      'DBUIToggle',
-      'DBUI',
-      'DBUIAddConnection',
-      'DBUIFindBuffer',
-      'DBUIRenameBuffer',
-      'DBUILastQueryInfo',
-    },
   },
 }

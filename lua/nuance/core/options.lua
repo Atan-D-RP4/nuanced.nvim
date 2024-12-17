@@ -124,6 +124,10 @@ opt.wrap = true
 -- Preview substitutions live, as you type!
 opt.inccommand = 'split'
 
+-- Undercurl
+vim.cmd([[let &t_Cs = "\e[4:3m"]])
+vim.cmd([[let &t_Ce = "\e[4:0m"]])
+
 -- Show which line your cursor is on
 opt.cursorline = true
 opt.cursorlineopt = 'both'
@@ -133,6 +137,7 @@ opt.scrolloff = 10
 
 opt.hidden = true
 opt.encoding = 'utf-8'
+opt.fileencoding = 'utf-8'
 opt.path:append '**'
 opt.autoread = true
 

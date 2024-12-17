@@ -19,7 +19,11 @@ return {
           return 'make install_jsregexp'
         end)(),
 
-        config = function() end,
+        main = 'luasnip.config',
+        opts = {
+          history = true,
+          updateevents = 'TextChanged,TextChangedI',
+        },
       },
 
       { 'saadparwaiz1/cmp_luasnip', event = { 'InsertEnter' } },
@@ -31,18 +35,12 @@ return {
     config = function()
       -- See `:help cmp`
       local cmp = require 'cmp'
-      local luasnip = require 'luasnip'
-
-      luasnip.config.setup {
-        history = true,
-        updateevents = 'TextChanged,TextChangedI',
-      }
       require 'nuance.core.luasnips'
 
       cmp.setup {
         snippet = {
           expand = function(args)
-            luasnip.lsp_expand(args.body)
+            require('luasnip').lsp_expand(args.body)
           end,
         },
 

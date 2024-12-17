@@ -15,28 +15,19 @@ return {
         desc = "Open Mini's File Explorer",
       },
     },
-    config = function()
-      require('nuance.core.utils').nmap('<leader>o', '<cmd>lua require("mini.files").open()<CR>')
 
-      require('mini.files').setup {
-        options = {
-          use_as_default_explorer = false,
-        },
-        windows = {
-          -- Whether to show preview of file/directory under cursor
-          preview = true,
-        },
-      }
-    end,
+    opts = {
+      options = {
+        use_as_default_explorer = false,
+      },
+      windows = {
+        -- Whether to show preview of file/directory under cursor
+        preview = true,
+      },
+    },
   },
 
-  {
-    'echasnovski/mini.notify',
-    event = 'VeryLazy',
-    config = function()
-      require('mini.notify').setup()
-    end,
-  },
+  { 'echasnovski/mini.notify', event = 'VeryLazy' },
 
   -- {
   --   'echasnovski/mini.ai',
@@ -56,28 +47,18 @@ return {
     'echasnovski/mini.surround',
     event = { 'VeryLazy', 'BufRead', 'BufNewFile' },
 
-    config = function()
-      -- Add/delete/replace surroundings (brackets, quotes, etc.)
-      --
-      -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
-      -- - sd'   - [S]urround [D]elete [']quotes
-      -- - sr)'  - [S]urround [R]eplace [)] [']
-      local surroud_prefix = '<leader>s'
-      require('mini.surround').setup {
-        mappings = {
-          add = surroud_prefix .. 'a', -- Add surrounding in Normal and Visual modes
-          delete = surroud_prefix .. 'd', -- Delete surrounding
-          find = surroud_prefix .. 'f', -- Find surrounding (to the right)
-          find_left = surroud_prefix .. 'F', -- Find surrounding (to the left)
-          highlight = surroud_prefix .. 'h', -- Highlight surrounding
-          replace = surroud_prefix .. 'r', -- Replace surrounding
-          update_n_lines = surroud_prefix .. 'n', -- Update `n_lines`
-
-          suffix_last = 'l', -- Suffix to search with "prev" method
-          suffix_next = 'n', -- Suffix to search with "next" method
-        },
-      }
-    end,
+    opts = {
+      mappings = {
+        add = '<leader>sa',
+        delete = '<leader>sd',
+        find = '<leader>sf',
+        find_left = '<leader>sF',
+        highlight = '<leader>sh',
+        replace = '<leader>sr',
+        suffix_last = 'l',
+        suffix_next = 'n',
+      },
+    },
   },
 
   {
@@ -92,10 +73,10 @@ return {
     'echasnovski/mini.statusline',
     event = 'VimEnter',
 
+    -- Simple and easy statusline.
+    --  You could remove this setup call if you don't like it,
+    --  and try some other statusline plugin
     config = function()
-      -- Simple and easy statusline.
-      --  You could remove this setup call if you don't like it,
-      --  and try some other statusline plugin
       local statusline = require 'mini.statusline'
 
       -- set use_icons to true if you have a Nerd Font
