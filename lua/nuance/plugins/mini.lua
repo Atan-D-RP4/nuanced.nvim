@@ -27,7 +27,7 @@ return {
     },
   },
 
-  { 'echasnovski/mini.notify', event = 'VeryLazy' },
+  { 'echasnovski/mini.notify', event = 'VimEnter' },
 
   -- {
   --   'echasnovski/mini.ai',
@@ -45,7 +45,7 @@ return {
   --
   {
     'echasnovski/mini.surround',
-    event = { 'VeryLazy', 'BufRead', 'BufNewFile' },
+    event = { 'BufRead', 'BufNewFile' },
 
     opts = {
       mappings = {
@@ -64,8 +64,8 @@ return {
   {
     'echasnovski/mini.tabline',
     event = 'VimEnter',
-    config = function()
-      require('mini.tabline').setup()
+    init = function()
+      require('mini.tabline').setup {}
     end,
   },
 

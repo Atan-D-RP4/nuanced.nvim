@@ -2,7 +2,8 @@
 return {
   {
     'hrsh7th/nvim-cmp',
-    event = { 'InsertEnter', 'CmdlineEnter' },
+    enabled = false,
+    event = { 'InsertEnter', 'CmdlineEnter', 'LspAttach' },
 
     dependencies = {
       -- Snippet Engine & its associated nvim-cmp source
@@ -28,6 +29,10 @@ return {
 
       { 'saadparwaiz1/cmp_luasnip', event = { 'InsertEnter' } },
       { 'hrsh7th/cmp-cmdline', event = { 'CmdlineEnter' } },
+
+      -- Completion Dependencies
+      -- Allows extra LSP capabilities provided by nvim-cmp
+      { 'hrsh7th/cmp-nvim-lsp' },
       -- { 'lukas-reineke/cmp-rg' },
       -- 'uga-rosa/cmp-dictionary',
     },
@@ -35,6 +40,7 @@ return {
     config = function()
       -- See `:help cmp`
       local cmp = require 'cmp'
+      local luasnip = require 'luasnip'
       require 'nuance.core.luasnips'
 
       cmp.setup {
@@ -84,10 +90,10 @@ return {
 
           ['<C-q>'] = cmp.mapping.scroll_docs(-4), -- Scroll the documentation window [b]ack
           ['<C-f>'] = cmp.mapping.scroll_docs(4), -- Scroll the documentation window [f]orward
+          -- ['<CR>'] = cmp.mapping.confirm { select = true },
 
           -- Accept ([y]es) the completion.
           ['C-y>'] = cmp.mapping.confirm { select = true },
-          ['<CR>'] = cmp.mapping.confirm { select = true },
 
           -- Select the [n]ext item
           ['<C-n>'] = cmp.mapping(function(fallback)

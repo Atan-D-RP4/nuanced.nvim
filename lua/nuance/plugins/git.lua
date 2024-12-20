@@ -2,12 +2,9 @@ return {
   {
     'tpope/vim-fugitive',
     cmd = { 'Git', 'Gstatus', 'Gblame', 'Gpush', 'Gpull', 'Gcommit', 'Gdiff' },
-    init = function()
-      vim.cmd [[
-     " Any options I may want to add
-      ]]
-      vim.keymap.set('n', '<leader>gg', '<cmd>Git<CR>', { desc = '[G]it' })
-    end,
+    keys = {
+      { '<leader>gg', '<cmd>Git<CR>', desc = '[G]it', mode = 'n' },
+    },
   },
 
   { -- Adds git related signs to the gutter, as well as utilities for managing changes

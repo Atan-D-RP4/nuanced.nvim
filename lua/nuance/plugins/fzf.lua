@@ -1,22 +1,25 @@
 return {
   'ibhagwan/fzf-lua',
-  branch = 'main',
+  event = 'VeryLazy',
 
+  branch = 'main',
   dependencies = {
     'nvim-lua/plenary.nvim',
   },
 
   cmd = 'FzfLua',
   keys = {
-    { '<leader>gc', '<cmd>lua require("fzf-lua").git_commits()<CR>', desc = '[F]zf [G]it commit', mode = 'n' },
+    { '<leader>ef', '<cmd>lua require("fzf-lua").buffers()<CR>', desc = '[E]xisting Buffers [F]zf', mode = 'n' },
+
+    { '<leader>gc', '<cmd>lua require("fzf-lua").git_commits()<CR>', desc = '[G]it commit [F]zf ', mode = 'n' },
+    { '<leader>gs', '<cmd>lua require("fzf-lua").git_statusCR>', desc = '[G]it commit [F]zf ', mode = 'n' },
+
     { '<leader>fh', '<cmd>lua require("fzf-lua").help_tags()<CR>', desc = '[F]zf [H]elp tags', mode = 'n' },
     { '<leader>fk', '<cmd>lua require("fzf-lua").keymaps()<CR>', desc = '[F]zf [K]eymaps', mode = 'n' },
     { '<leader>fo', '<cmd>lua require("fzf-lua").oldfiles()<CR>', desc = '[F]zf [O]ld files', mode = 'n' },
-    { '<leader>fv', '<cmd>lua require("fzf-lua").grep_visual()<CR>', desc = '[F]zf [V]isual', mode = 'v' },
-    { '<leader>ff', '<cmd>lua require("fzf-lua").files()<CR>', desc = '[F]zf [F] files', mode = 'n' },
     { '<leader>fg', '<cmd>lua require("fzf-lua").live_grep_native()<CR>', desc = '[F]zf [G]rep files', mode = 'n' },
-    { '<leader>fn', '<cmd>lua require("fzf-lua").files({ cwd = vim.fn.stdpath "config", follow = true })<CR>', desc = '[F]zf [N]ear', mode = 'n' },
-    { '<leader>fe', '<cmd>lua require("fzf-lua").buffers()<CR>', desc = '[F]zf [B]uffers', mode = 'n' },
+    { '<leader>ff', '<cmd>lua require("fzf-lua").files()<CR>', desc = '[F]zf [F] files', mode = 'n' },
+    { '<leader>fn', '<cmd>lua require("fzf-lua").files({ cwd = vim.fn.stdpath "config", follow = true })<CR>', desc = '[F]zf [N]eovim Config', mode = 'n' },
     -- { '<leader>fc', '<cmd>lua require("fzf-lua").command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
     -- { '<leader>fd', '<cmd>lua require("fzf-lua").lsp_document_diagnostics()<CR>', desc = '[F]zf [D]iagnostics', mode = 'n' },
     { '<leader>fs', '<cmd>lua require("fzf-lua").lsp_document_symbols()<CR>', desc = '[F]zf [D]iagnostics', mode = 'n' },

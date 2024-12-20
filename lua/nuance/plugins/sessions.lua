@@ -123,10 +123,10 @@ return {
   },
 
   keys = {
-    { '<leader>al', '<cmd>lua require("nvim-possession").list()<CR>', desc = '[L]ist' },
-    { '<leader>an', '<cmd>lua require("nvim-possession").new()<CR>', desc = '[N]ew' },
-    { '<leader>as', '<cmd>lua require("nvim-possession").update()<CR>', desc = '[S]ave/Update' },
-    { '<leader>ad', '<cmd>lua require("nvim-possession").delete()<CR>', desc = '[D]elete' },
+    { '<leader>al', '<cmd>lua require("nvim-possession").list()<CR>', desc = '[S]essions [L]ist' },
+    { '<leader>an', '<cmd>lua require("nvim-possession").new()<CR>', desc = '[S]essions [N]ew' },
+    { '<leader>as', '<cmd>lua require("nvim-possession").update()<CR>', desc = '[S]essions [S]ave/Update' },
+    { '<leader>ad', '<cmd>lua require("nvim-possession").delete()<CR>', desc = '[S]essions [D]elete' },
   },
 
   config = function()

@@ -6,7 +6,7 @@
 --  See `:help vim.highlight.on_yank()`
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
-  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
+  group = vim.api.nvim_create_augroup('nuance-highlight-yank', { clear = true }),
   callback = function()
     local clip = '/mnt/c/Windows/System32/clip.exe'
     if vim.fn.executable(clip) == 1 then
@@ -20,7 +20,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 
 vim.api.nvim_create_autocmd('VimResized', {
   desc = 'Resize splits when resizing the window',
-  group = vim.api.nvim_create_augroup('kickstart-resize-splits', { clear = true }),
+  group = vim.api.nvim_create_augroup('nuance-resize-splits', { clear = true }),
   callback = function()
     vim.cmd 'wincmd ='
   end,
@@ -29,7 +29,7 @@ vim.api.nvim_create_autocmd('VimResized', {
 -- Clear trailing whitespace on save
 vim.api.nvim_create_autocmd('BufWritePre', {
   desc = 'Clear trailing whitespace on save',
-  group = vim.api.nvim_create_augroup('kickstart-clear-trailing-whitespace', { clear = true }),
+  group = vim.api.nvim_create_augroup('nuance-clear-trailing-whitespace', { clear = true }),
   callback = function()
     local save = vim.fn.winsaveview()
     vim.cmd [[keeppatterns %s/\s\+$//e]]

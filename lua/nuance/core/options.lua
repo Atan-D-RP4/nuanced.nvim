@@ -27,7 +27,7 @@ opt.gcr = {
 opt.termguicolors = true -- set term gui colors (most terminals support this)
 
 -- disable nvim intro
-opt.shortmess:append 'sI'
+opt.shortmess:append 's'
 
 -- separate vim plugins from neovim in case vim still in use
 opt.runtimepath:remove '/usr/share/vim/vimfiles'
