@@ -5,27 +5,32 @@ return {
   --     require('mini.icons').setup()
   --   end
   -- },
-  {
-    'echasnovski/mini.files',
-    keys = {
-      -- Open file explorer
-      {
-        '<leader>o',
-        '<cmd>lua require("mini.files").open()<CR>',
-        desc = "Open Mini's File Explorer",
-      },
-    },
 
-    opts = {
-      options = {
-        use_as_default_explorer = false,
-      },
-      windows = {
-        -- Whether to show preview of file/directory under cursor
-        preview = true,
-      },
-    },
-  },
+  -- {
+  --   'echasnovski/mini.files',
+  --   keys = {
+  --     -- Open file explorer
+  --     {
+  --       '<leader>o',
+  --       function()
+  --         if not require('mini.files').close() then
+  --           require('mini.files').open()
+  --         end
+  --       end,
+  --       desc = "Open Mini's File Explorer",
+  --     },
+  --   },
+  --
+  --   opts = {
+  --     options = {
+  --       use_as_default_explorer = false,
+  --     },
+  --     windows = {
+  --       -- Whether to show preview of file/directory under cursor
+  --       preview = true,
+  --     },
+  --   },
+  -- },
 
   { 'echasnovski/mini.notify', event = 'VimEnter' },
 

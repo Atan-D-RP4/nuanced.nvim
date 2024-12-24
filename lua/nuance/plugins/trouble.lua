@@ -1,37 +1,44 @@
 return {
   'folke/trouble.nvim',
-  opts = {}, -- for default options, refer to the configuration section for custom setup.
   cmd = 'Trouble',
   keys = {
     {
       '<leader>xx',
-      '<cmd>Trouble diagnostics toggle win.position=bottom<cr>',
+      '<cmd>Trouble diagnostics toggle<CR>',
       desc = 'Diagnostics (Trouble)',
     },
     {
-      '<leader>xX',
-      '<cmd>Trouble diagnostics toggle filter.buf=0 win.position=bottom<cr>',
-      desc = 'Buffer Diagnostics (Trouble)',
-    },
-    {
       '<leader>cs',
-      '<cmd>Trouble symbols toggle focus=false win.position=bottom<cr>',
+      '<cmd>Trouble symbols toggle<CR>',
       desc = 'Symbols (Trouble)',
     },
     {
       '<leader>cl',
-      '<cmd>Trouble lsp toggle focus=false win.position=bottom<cr>',
+      '<cmd>Trouble lsp toggle<CR>',
       desc = 'LSP Definitions / references / ... (Trouble)',
     },
     {
-      '<leader>xL',
-      '<cmd>Trouble loclist toggle win.position=bottom<cr>',
+      '<leader>xl',
+      '<cmd>Trouble loclist toggle<CR>',
       desc = 'Location List (Trouble)',
     },
     {
-      '<leader>xQ',
-      '<cmd>Trouble qflist toggle win.position=bottom<cr>',
+      '<leader>xq',
+      '<cmd>Trouble qflist toggle<CR>',
       desc = 'Quickfix List (Trouble)',
+    },
+  },
+
+  opts = {
+    open_no_results = true,
+    focus = true,
+    win = {
+      position = 'right',
+    },
+    modes = {
+      symbols = {
+        focus = true,
+      },
     },
   },
 }

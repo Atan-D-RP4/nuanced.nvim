@@ -37,15 +37,4 @@ return {
       },
     },
   },
-
-  init = function()
-    local map = require('nuance.core.utils').map
-    map('n', 'gl', '<Plug>(neorg.esupports.hop.hop-link)', '[neorg] ')
-    map('n', '<,', '<Plug>(neorg.promo.demote)', '[neorg] ')
-    map('n', '>.', '<Plug>(neorg.promo.promote)', '[neorg] ')
-    map('v', '<', '<Plug>(neorg.promo.demote.range)gv', '[neorg] ')
-    map('v', '>', '<Plug>(neorg.promo.promote.range)gv', '[neorg] ')
-    map('n', '>>', '<Plug>(neorg.promo.promote.nested)', '[neorg] ')
-    map('n', '<<', '<Plug>(neorg.promo.demote.nested)', '[neorg] ')
-  end,
 }

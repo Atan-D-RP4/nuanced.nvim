@@ -7,123 +7,117 @@ local tmap = require('nuance.core.utils').tmap
 local imap = require('nuance.core.utils').imap
 local vmap = require('nuance.core.utils').vmap
 
--- Better Escape
-nmap('<Esc>', '<C-c><C-c>')
-imap('<Esc>', '<Esc><Esc><Right>', { desc = 'Better Escape' })
--- Clear highlights on search when pressing <Esc> in normal mode
+vim.tbl_map(function(maps)
+  map(maps[1], maps[2], maps[3], maps[4] or {})
+end, {
+  -- Better Escape
+  { 'n', '<Esc>', '<C-c><C-c>', 'Better Escape' },
+  { 'i', '<Esc>', '<Esc><Esc><Right>', 'Better Escape' },
 
---  See `:help hlsearch`
-nmap('<Esc>', '<cmd>nohlsearch<CR>', 'Clear highlights on search')
+  -- Clear highlights on search when pressing <Esc> in normal mode
+  --  See `:help hlsearch`
+  { 'n', '<Esc>', '<cmd>nohlsearch<CR>', 'Clear highlights on search' },
 
--- Diagnostic keymaps
-nmap('<leader>q', vim.diagnostic.setloclist, 'Open diagnostic [Q]uickfix list')
+  -- Diagnostic keymaps
+  { 'n', '<leader>q', vim.diagnostic.setloclist, 'Open diagnostic [Q]uickfix list' },
 
--- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
--- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
--- is not what someone will guess without a bit more experience.
---
--- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
--- or just use <C-\><C-n> to exit terminal mode
-tmap('<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode')
-map({'n', 't' }, '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal')
-map({'n', 't' }, '<C-w><C-t>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal')
+  -- NOTE: This won't work in all terminal emulators/tmux/etc. Try other mappings
+  -- or just use <C-\><C-n> to exit terminal mode
+  { 't', '<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode' },
+  { { 'n', 't' }, '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
+  { { 'n', 't' }, '<C-w><C-t>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
 
--- NOTE: Disable arrow keys in normal mode
-nmap('<left>', '<cmd>echo "Use h to move!!"<CR>')
-nmap('<right>', '<cmd>echo "Use l to move!!"<CR>')
-nmap('<up>', '<cmd>echo "Use k to move!!"<CR>')
-nmap('<down>', '<cmd>echo "Use j to move!!"<CR>')
+  -- NOTE: Disable arrow keys in normal mode
+  { 'n', '<left>', '<cmd>echo "Use h to move!!"<CR>' },
+  { 'n', '<right>', '<cmd>echo "Use l to move!!"<CR>' },
+  { 'n', '<up>', '<cmd>echo "Use k to move!!"<CR>' },
+  { 'n', '<down>', '<cmd>echo "Use j to move!!"<CR>' },
 
--- Keybinds to make split navigation easier.
---  Use CTRL+<hjkl> to switch between windows
---
---  See `:help wincmd` for a list of all window commands
-nmap('<M-h>', '<C-w><C-h>', 'Move focus to the left window')
-nmap('<M-l>', '<C-w><C-l>', 'Move focus to the right window')
-nmap('<M-j>', '<C-w><C-j>', 'Move focus to the lower window')
-nmap('<M-k>', '<C-w><C-k>', 'Move focus to the upper window')
+  -- Keybinds to make split navigation easier.
+  --  Use CTRL+<hjkl> to switch between windows
+  --
+  --  See `:help wincmd` for a list of all window commands
+  { 'n', '<M-h>', '<C-w><C-h>', 'Move focus to the left window' },
+  { 'n', '<M-l>', '<C-w><C-l>', 'Move focus to the right window' },
+  { 'n', '<M-j>', '<C-w><C-j>', 'Move focus to the lower window' },
+  { 'n', '<M-k>', '<C-w><C-k>', 'Move focus to the upper window' },
 
--- Keybinds to resize windows
-nmap('<M-S-h>', '<C-w>3<', 'Decrease width of window')
-nmap('<M-S-l>', '<C-w>3>', 'Increase width of window')
-nmap('<M-S-j>', '<C-w>-', 'Decrease height of window')
-nmap('<M-S-k>', '<C-w>+', 'Increase height of window')
+  -- Keybinds to resize windows
+  { 'n', '<M-S-h>', '<C-w>3<', 'Decrease width of window' },
+  { 'n', '<M-S-l>', '<C-w>3>', 'Increase width of window' },
+  { 'n', '<M-S-j>', '<C-w>-', 'Decrease height of window' },
+  { 'n', '<M-S-k>', '<C-w>+', 'Increase height of window' },
 
--- My Keybinds
-imap('<C-U>', '<C-G>u<C-U>')
+  -- My Keybinds
+  { 'i', '<C-U>', '<C-G>u<C-U>' },
 
--- Buffer Management
-nmap('<leader>dd', ':bdelete! %<CR>', {  desc = 'Delete Buffer' })
-nmap('<leader>du', ':update! <CR>', 'Refresh Buffer')
-nmap('<Tab>', ':bnext<CR>', 'Next Buffer')
-nmap('<S-Tab>', ':bprevious<CR>', 'Previous Buffer')
+  -- Buffer Management
+  { 'n', '<leader>dd', ':bdelete! %<CR>', { desc = 'Delete Buffer' } },
+  { 'n', '<leader>du', ':update! <CR>', 'Refresh Buffer' },
+  { 'n', '<Tab>', ':bnext<CR>', 'Next Buffer' },
+  { 'n', '<S-Tab>', ':bprevious<CR>', 'Previous Buffer' },
 
--- CTRL+S for Save
-map({ 'n', 'v', 'i' }, '<C-S>', '<ESC>:update<CR>', 'Better Save')
+  -- CTRL+S for Save
+  { { 'n', 'v', 'i' }, '<C-S>', '<ESC>:update<CR>', 'Better Save' },
 
--- Re-Select Visual Selection on Re-Indent
-vmap('<', '<gv', 'Re-Select Visual Selection on Re-Indent')
-vmap('>', '>gv', 'Re-Select Visual Selection on Re-Indent')
+  -- Re-Select Visual Selection on Re-Indent
+  { 'v', '<', '<gv', 'Re-Select Visual Selection on Re-Indent' },
+  { 'v', '>', '>gv', 'Re-Select Visual Selection on Re-Indent' },
 
--- Even Smarter J/K to Line movements
-map({ 'n', 'v' }, 'j', "v:count ? (v:count > 5 ? 'm' . v:count : '') . 'j' : 'gj'", { expr = true, desc = 'Smarter J to Line movements' })
-map({ 'n', 'v' }, 'k', "v:count ? (v:count > 5 ? 'm' . v:count : '') . 'k' : 'gk'", { expr = true, desc = 'Smarter K to Line movements' })
+  -- Even Smarter J/K to Line movements
+  { { 'n', 'v' }, 'j', "v:count ? (v:count > 5 ? 'm' . v:count : '') . 'j' : 'gj'", { expr = true, desc = 'Smarter J to Line movements' } },
+  { { 'n', 'v' }, 'k', "v:count ? (v:count > 5 ? 'm' . v:count : '') . 'k' : 'gk'", { expr = true, desc = 'Smarter K to Line movements' } },
 
-map({ 'n', 'v' }, '<C-q>', '<C-u>')
+  { { 'n', 'v' }, '<C-q>', '<C-u>' },
 
-map({ 'n', 'v' }, '<S-w>', 'b')
+  { { 'n', 'v' }, '<S-w>', 'b' },
 
-nmap('<leader>.', ':<Up><CR>', 'Repeat Last Ex Command')
+  { 'n', '<leader>.', ':<Up><CR>', 'Repeat Last Ex Command' },
 
--- Smarter Bracket Insertion
-imap('(;', '(<CR>);<Esc>O')
-imap('(,', '(<CR>),<Esc>O')
-imap('{;', '{<CR>};<Esc>O')
-imap('{,', '{<CR>},<Esc>O')
-imap('[;', '[<CR>];<Esc>O')
-imap('[,', '[<CR>],<Esc>O')
-imap('{<CR>', '{<CR>}<Esc>O')
+  -- Smarter Bracket Insertion
+  { 'i', '(;', '(<CR>);<Esc>O' },
+  { 'i', '(,', '(<CR>),<Esc>O' },
+  { 'i', '{;', '{<CR>};<Esc>O' },
+  { 'i', '{,', '{<CR>},<Esc>O' },
+  { 'i', '[;', '[<CR>];<Esc>O' },
+  { 'i', '[,', '[<CR>],<Esc>O' },
+  { 'i', '{<CR>', '{<CR>}<Esc>O' },
 
--- Have Navigation Keys always center the cursor with zz
-nmap('<C-d>', '<C-d>zz')
-nmap('<C-u>', '<C-u>zz')
-nmap('<C-f>', '<C-f>zz')
-nmap('<C-b>', '<C-b>zz')
+  -- Have Navigation Keys always center the cursor with zz
+  { 'n', '<C-d>', '<C-d>zz' },
+  { 'n', '<C-u>', '<C-u>zz' },
+  { 'n', '<C-f>', '<C-f>zz' },
+  { 'n', '<C-b>', '<C-b>zz' },
+  { 'n', '{', '{zz' },
+  { 'n', '}', '}zz' },
+  { 'n', 'n', 'nzz' },
+  { 'n', 'N', 'Nzz' },
+  { 'n', '[c', '[czz' },
+  { 'n', ']c', ']czz' },
+  { 'n', '[m', '[mzz' },
+  { 'n', ']m', ']mzz' },
+  { 'n', '[s', '[szz' },
+  { 'n', ']s', ']szz' },
 
--- Continuation
-nmap('{', '{zz')
-nmap('}', '}zz')
+  -- { 'i', '<C-v>', '<C-r>+', {} },
 
--- Continuation
-nmap('n', 'nzz')
-nmap('N', 'Nzz')
+  { 'n', 'J', 'mzJ`z', 'Join line without moving the cursor' },
 
--- Continuation
-nmap('[c', '[czz')
-nmap(']c', ']czz')
-nmap('[m', '[mzz')
-nmap(']m', ']mzz')
-nmap('[s', '[szz')
-nmap(']s', ']szz')
+  { 'v', 'K', ":m '<-2<CR>gv=gv", 'Move selected lines up' },
+  { 'v', 'J', ":m '>+1<CR>gv=gv", 'Move selected lines down' },
 
-imap('<C-v>', '<C-r>+', {})
+  -- nmap('<leader>gwr', ':%s/\\<<C-r><C-w>\\>//g<Left><Left>', '[G]lobal Current [W]ord [R]eplace')
+  -- nmap('<leader>gsr', ':%s//g<left><left>', '[G]lobal [S]earch and [R]eplace')
+  --
+  -- Search for visually selected text
+  -- Better to use the <leader>fv keybind from fzf.lua
+  { 'v', '<leader>vr', '"hy:%s/<C-r>h//g<left><left>', '[R]eplace [V]isual selection' },
+  { 'v', '<leader>vs', 'y/<C-r>=escape(@", "/")<CR><CR>', 'Search Visual Selection' },
 
-nmap('J', 'mzJ`z', 'Join line without moving the cursor')
+  -- map('x', '<leader>P', '"_dP', 'Paste without yanking')
 
-vmap('K', ":m '<-2<CR>gv=gv", 'Move selected lines up')
-vmap('J', ":m '>+1<CR>gv=gv", 'Move selected lines down')
-
--- nmap('<leader>gwr', ':%s/\\<<C-r><C-w>\\>//g<Left><Left>', '[G]lobal Current [W]ord [R]eplace')
--- nmap('<leader>gsr', ':%s//g<left><left>', '[G]lobal [S]earch and [R]eplace')
---
--- Search for visually selected text
--- Better to use the <leader>fv keybind from fzf.lua
-vmap('<leader>vr', '"hy:%s/<C-r>h//g<left><left>', '[R]eplace [V]isual selection')
-vmap('<leader>vs', 'y/<C-r>=escape(@", "/")<CR><CR>', 'Search Visual Selection')
-
--- map('x', '<leader>P', '"_dP', 'Paste without yanking')
-
-nmap('-', 'g$', 'Move to the first non-blank character of the line')
+  { 'n', '-', 'g$', 'Move to the first non-blank character of the line' },
+})
 
 vim.tbl_map(
   function(keys)

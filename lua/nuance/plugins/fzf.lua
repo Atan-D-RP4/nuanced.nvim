@@ -1,60 +1,61 @@
-return {
+M = {
   'ibhagwan/fzf-lua',
   event = 'VeryLazy',
-
+  cmd = 'FzfLua',
   branch = 'main',
   dependencies = {
     'nvim-lua/plenary.nvim',
   },
-
-  cmd = 'FzfLua',
-  keys = {
-    { '<leader>ef', '<cmd>lua require("fzf-lua").buffers()<CR>', desc = '[E]xisting Buffers [F]zf', mode = 'n' },
-
-    { '<leader>gc', '<cmd>lua require("fzf-lua").git_commits()<CR>', desc = '[G]it commit [F]zf ', mode = 'n' },
-    { '<leader>gs', '<cmd>lua require("fzf-lua").git_statusCR>', desc = '[G]it commit [F]zf ', mode = 'n' },
-
-    { '<leader>fh', '<cmd>lua require("fzf-lua").help_tags()<CR>', desc = '[F]zf [H]elp tags', mode = 'n' },
-    { '<leader>fk', '<cmd>lua require("fzf-lua").keymaps()<CR>', desc = '[F]zf [K]eymaps', mode = 'n' },
-    { '<leader>fo', '<cmd>lua require("fzf-lua").oldfiles()<CR>', desc = '[F]zf [O]ld files', mode = 'n' },
-    { '<leader>fg', '<cmd>lua require("fzf-lua").live_grep_native()<CR>', desc = '[F]zf [G]rep files', mode = 'n' },
-    { '<leader>ff', '<cmd>lua require("fzf-lua").files()<CR>', desc = '[F]zf [F] files', mode = 'n' },
-    { '<leader>fn', '<cmd>lua require("fzf-lua").files({ cwd = vim.fn.stdpath "config", follow = true })<CR>', desc = '[F]zf [N]eovim Config', mode = 'n' },
-    -- { '<leader>fc', '<cmd>lua require("fzf-lua").command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
-    -- { '<leader>fd', '<cmd>lua require("fzf-lua").lsp_document_diagnostics()<CR>', desc = '[F]zf [D]iagnostics', mode = 'n' },
-    { '<leader>fs', '<cmd>lua require("fzf-lua").lsp_document_symbols()<CR>', desc = '[F]zf [D]iagnostics', mode = 'n' },
-  },
-
-  opts = {
-    'max_pref',
-    -- Toggle preview with `Ctrl-p`
-    -- keymap = {
-    --   fzf = {
-    --     ['ctrl-q'] = "jump-accept",
-    --   },
-    -- },
-
-    winopts = {
-      preview = {
-        hidden = 'hidden',
-        default = 'bat_native',
-      },
-      win_height = 0.85,
-      win_width = 0.80,
-      win_row = 0.30,
-      win_col = 0.50,
-    },
-  },
-
-  config = function()
-    -- Use fzf-lua as the default ui
-    vim.defer_fn(function()
-      require('fzf-lua').register_ui_select()
-    end, 100)
-
-    require('fzf-lua').setup {}
-  end,
 }
+
+M.keys = {
+  { '<leader>ef', '<cmd>lua require("fzf-lua").buffers()<CR>', desc = '[E]xisting Buffers [F]zf', mode = 'n' },
+
+  { '<leader>gc', '<cmd>lua require("fzf-lua").git_commits()<CR>', desc = 'Fzf [G]it [c]ommit', mode = 'n' },
+  { '<leader>gs', '<cmd>lua require("fzf-lua").git_status()<CR>', desc = 'Fzf [G]it [s]tatus', mode = 'n' },
+
+  { '<leader>fh', '<cmd>lua require("fzf-lua").help_tags()<CR>', desc = '[F]zf [H]elp tags', mode = 'n' },
+  { '<leader>fk', '<cmd>lua require("fzf-lua").keymaps()<CR>', desc = '[F]zf [K]eymaps', mode = 'n' },
+  { '<leader>fo', '<cmd>lua require("fzf-lua").oldfiles()<CR>', desc = '[F]zf [O]ld files', mode = 'n' },
+  { '<leader>fl', '<cmd>lua require("fzf-lua").live_grep_glob()<CR>', desc = '[F]zf [G]rep files', mode = 'n' },
+  { '<leader>ff', '<cmd>lua require("fzf-lua").files()<CR>', desc = '[F]zf [F] files', mode = 'n' },
+  { '<leader>fn', '<cmd>lua require("fzf-lua").files({ cwd = vim.fn.stdpath "config", follow = true })<CR>', desc = '[F]zf [N]eovim Config', mode = 'n' },
+  -- { '<leader>fc', '<cmd>lua require("fzf-lua").command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
+  -- { '<leader>fd', '<cmd>lua require("fzf-lua").lsp_document_diagnostics()<CR>', desc = '[F]zf [D]iagnostics', mode = 'n' },
+  { '<leader>fs', '<cmd>lua require("fzf-lua").lsp_document_symbols()<CR>', desc = '[F]zf Document [S]ymbols', mode = 'n' },
+}
+
+M.opts = {
+  'max_pref',
+  -- Toggle preview with `Ctrl-p`
+  -- keymap = {
+  --   fzf = {
+  --     ['ctrl-q'] = "jump-accept",
+  --   },
+  -- },
+  grep = {
+    rg_glob = true, -- enable glob parsing
+  },
+  winopts = {
+    preview = {
+      hidden = 'hidden',
+      default = 'bat_native',
+    },
+    win_height = 0.85,
+    win_width = 0.80,
+    win_row = 0.30,
+    win_col = 0.50,
+  },
+}
+
+M.config = function()
+  -- Use fzf-lua as the default ui
+  vim.defer_fn(function()
+    require('fzf-lua').register_ui_select()
+  end, 100)
+end
+
+return M
 
 -- local function get_hash()
 --   -- The get_hash() is utilised to create an independent "store"

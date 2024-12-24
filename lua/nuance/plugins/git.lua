@@ -52,7 +52,7 @@ return {
           gitsigns.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
         end, { desc = 'reset git hunk' })
         -- normal mode
-        map('n', '<leader>gs', gitsigns.stage_hunk, { desc = '[G]it [s]tage hunk' })
+        map('n', '<leader>ga', gitsigns.stage_hunk, { desc = '[G]it [a]dd hunk' })
         map('n', '<leader>gr', gitsigns.reset_hunk, { desc = '[G]it [r]eset hunk' })
         map('n', '<leader>gS', gitsigns.stage_buffer, { desc = '[G]it [S]tage buffer' })
         map('n', '<leader>gu', gitsigns.undo_stage_hunk, { desc = '[G]it [u]ndo stage hunk' })
@@ -70,4 +70,12 @@ return {
       end,
     },
   },
+
+  {
+    'sindrets/diffview.nvim',
+    cmd = 'DiffviewOpen',
+    opts = {
+        use_icons = false,         -- Requires nvim-web-devicons
+    },
+  }
 }

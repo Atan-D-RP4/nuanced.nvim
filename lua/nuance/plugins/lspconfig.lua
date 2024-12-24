@@ -1,22 +1,21 @@
 -- LSP Plugins
-local lspconfig = { 'neovim/nvim-lspconfig' }
-
-lspconfig.ft = {
-  'typescript',
-  'javascript',
-  'html',
-  'css',
-  'vim',
-  'lua',
-  'sh',
-  'python',
-  'rust',
-  'c',
-  'cpp',
+local lspconfig = {
+  'neovim/nvim-lspconfig',
+  cmd = { 'LspStart', 'LspInfo', 'LspInstall', 'LspUninstall' },
+  ft = {
+    'typescript',
+    'javascript',
+    'html',
+    'css',
+    'vim',
+    'lua',
+    'sh',
+    'python',
+    'rust',
+    'c',
+    'cpp',
+  },
 }
-
-lspconfig.cmd = { 'LspStart', 'LspInfo', 'LspInstall', 'LspUninstall' }
-
 lspconfig.dependencies = {
   -- Automatically install LSPs and related tools to stdpath for Neovim
   {
@@ -59,6 +58,7 @@ lspconfig.config = function()
 
       nmap('gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', '[G]oto [D]eclaration')
       nmap('gs', '<cmd>lua vim.lsp.buf.signature_help()<CR>', '[G]et [S]ignature Help')
+      nmap('gca', '<cmd>lua vim.lsp.buf.code_action()<CR>', '[G]et [C]ode [A]ctions')
 
       -- The following two autocommands are used to highlight references of the
       -- word under your cursor when your cursor rests there for a little while.
