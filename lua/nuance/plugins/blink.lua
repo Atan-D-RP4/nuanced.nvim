@@ -44,11 +44,13 @@ M.opts = {
       border = 'rounded',
       draw = {
         treesitter = { 'lsp' },
-        columns = { { 'label', 'label_description', gap = 1 }, { 'kind' } },
+        columns = { { 'label', 'label_description', gap = 1 }, { 'kind', 'kind_icon', gap = 1 } },
       },
     },
     list = {
-      selection = 'auto_insert',
+      selection = function(ctx)
+        return ctx.mode == 'cmdline' and 'auto_insert' or 'preselect'
+      end,
     },
     -- documentation = {
     --   auto_show = true,

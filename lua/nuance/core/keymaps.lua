@@ -1,14 +1,8 @@
 -- [[ Basic Keymaps ]]
 --  See `:helpvim.keymap.set()`
 
-local map = require('nuance.core.utils').map
-local nmap = require('nuance.core.utils').nmap
-local tmap = require('nuance.core.utils').tmap
-local imap = require('nuance.core.utils').imap
-local vmap = require('nuance.core.utils').vmap
-
 vim.tbl_map(function(maps)
-  map(maps[1], maps[2], maps[3], maps[4] or {})
+  require('nuance.core.utils').map(maps[1], maps[2], maps[3], maps[4] or {})
 end, {
   -- Better Escape
   { 'n', '<Esc>', '<C-c><C-c>', 'Better Escape' },
@@ -121,7 +115,7 @@ end, {
 
 vim.tbl_map(
   function(keys)
-    nmap(keys.cmd, keys.callback, keys.desc)
+    require('nuance.core.utils').nmap(keys.cmd, keys.callback, keys.desc)
   end,
   vim.tbl_map(function(i)
     return {

@@ -29,6 +29,12 @@ opt.termguicolors = true -- set term gui colors (most terminals support this)
 -- disable nvim intro
 opt.shortmess:append 's'
 
+-- set messagesopt
+if opt.messagesopt then
+  opt.messagesopt:append 'wait:500'
+  opt.messagesopt:remove 'hit-enter'
+end
+
 -- separate vim plugins from neovim in case vim still in use
 opt.runtimepath:remove '/usr/share/vim/vimfiles'
 
@@ -125,8 +131,8 @@ opt.wrap = true
 opt.inccommand = 'split'
 
 -- Undercurl
-vim.cmd([[let &t_Cs = "\e[4:3m"]])
-vim.cmd([[let &t_Ce = "\e[4:0m"]])
+vim.cmd [[let &t_Cs = "\e[4:3m"]]
+vim.cmd [[let &t_Ce = "\e[4:0m"]]
 
 -- Show which line your cursor is on
 opt.cursorline = true

@@ -1,4 +1,3 @@
-vim.print('neorg.lua')
 local map = require('nuance.core.utils').map
 map('n', 'gl', '<Plug>(neorg.esupports.hop.hop-link)', '[neorg] Jump to Link [c]')
 map('n', '<,', '<Plug>(neorg.promo.demote)', '[neorg] Demote Object (Non-Recursive) [c]')

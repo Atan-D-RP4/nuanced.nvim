@@ -29,7 +29,7 @@ return {
       local cmd = "<cmd>lua require('spider').motion('%s')<CR>"
       return {
         key,
-        cmd:format 'w',
+        cmd:format(key),
         mode = { 'n', 'o', 'x' },
         desc = ('Spider %s Motion'):format(key),
       }
