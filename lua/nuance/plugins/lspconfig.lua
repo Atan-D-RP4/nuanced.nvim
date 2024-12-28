@@ -1,5 +1,64 @@
+-- Enable the following language servers
+--  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
+--
+--  Add any additional override configuration in the following tables. Available keys are:
+--  - cmd (table): Override the default command used to start the server
+--  - filetypes (table): Override the default list of associated filetypes for the server
+--  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
+--  - settings (table): Override the default settings passed when initializing the server.
+--        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
+local mason_servers = {
+  -- gopls = {},
+  -- pyright = {},
+  -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
+  --
+  -- Some languages (like typescript) have entire language plugins that can be useful:
+  --    https://github.com/pmizio/typescript-tools.nvim
+  --
+  -- But for many setups, the LSP (`ts_ls`) will work just fine
+  -- ts_ls = {},
+  lua_ls = {
+    -- cmd = {...},
+    -- filetypes = { ...},
+    -- capabilities = {},
+    settings = {
+      Lua = {
+        telemetry = { enable = false },
+        completion = {
+          callSnippet = 'Replace',
+        },
+        -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
+        -- diagnostics = { disable = { 'missing-fields' } },
+      },
+    },
+  },
+
+  harper_ls = {
+    filetypes = { 'markdown', 'text', 'gitcommit', 'html', 'norg' },
+    settings = {
+      ['harper-ls'] = {
+        userDictPath = vim.fn.stdpath 'config' .. '/user.dict',
+      },
+    },
+  },
+}
+
+local external_servers = {
+  rust_analyzer = {
+    check = {
+      command = 'clippy',
+      features = 'all',
+    },
+  },
+
+  clangd = {
+    filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
+  },
+}
 -- LSP Plugins
-local lspconfig = {
+local M = {}
+
+M.lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspInstall', 'LspUninstall' },
   ft = {
@@ -16,7 +75,7 @@ local lspconfig = {
     'cpp',
   },
 }
-lspconfig.dependencies = {
+M.lspconfig.dependencies = {
   -- Automatically install LSPs and related tools to stdpath for Neovim
   {
     'williamboman/mason.nvim',
@@ -27,7 +86,7 @@ lspconfig.dependencies = {
   'WhoIsSethDaniel/mason-tool-installer.nvim',
 }
 
-lspconfig.config = function()
+M.lspconfig.config = function()
   vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('nuance-lsp-attach', { clear = true }),
     -- NOTE: Remember that Lua is a real programming language, and as such it is possible
@@ -127,64 +186,6 @@ lspconfig.config = function()
     capabilities = vim.tbl_deep_extend('force', capabilities, cmp.default_capabilities())
   end
 
-  -- Enable the following language servers
-  --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
-  --
-  --  Add any additional override configuration in the following tables. Available keys are:
-  --  - cmd (table): Override the default command used to start the server
-  --  - filetypes (table): Override the default list of associated filetypes for the server
-  --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
-  --  - settings (table): Override the default settings passed when initializing the server.
-  --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
-  local mason_servers = {
-    -- gopls = {},
-    -- pyright = {},
-    -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-    --
-    -- Some languages (like typescript) have entire language plugins that can be useful:
-    --    https://github.com/pmizio/typescript-tools.nvim
-    --
-    -- But for many setups, the LSP (`ts_ls`) will work just fine
-    -- ts_ls = {},
-    lua_ls = {
-      -- cmd = {...},
-      -- filetypes = { ...},
-      -- capabilities = {},
-      settings = {
-        Lua = {
-          telemetry = { enable = false },
-          completion = {
-            callSnippet = 'Replace',
-          },
-          -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-          -- diagnostics = { disable = { 'missing-fields' } },
-        },
-      },
-    },
-
-    harper_ls = {
-      filetypes = { 'markdown', 'text', 'gitcommit', 'html', 'norg' },
-      settings = {
-        ['harper-ls'] = {
-          userDictPath = vim.fn.stdpath 'config' .. '/user.dict',
-        },
-      },
-    },
-  }
-
-  local external_servers = {
-    rust_analyzer = {
-      check = {
-        command = 'clippy',
-        features = 'all',
-      },
-    },
-
-    clangd = {
-      filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
-    },
-  }
-
   local servers = vim.tbl_deep_extend('force', mason_servers, external_servers)
 
   -- Ensure the servers and tools above are installed
@@ -240,7 +241,7 @@ lspconfig.config = function()
   end
 end
 
-local lazydev = {
+M.lazydev = {
   -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
   -- used for completion, annotations and signatures of Neovim apis
   'folke/lazydev.nvim',
@@ -257,7 +258,7 @@ local lazydev = {
   },
 }
 
-local copilot = {
+M.copilot = {
   {
     'github/copilot.vim',
     events = 'InsertEnter',
@@ -270,8 +271,8 @@ local copilot = {
 }
 
 return {
-  lazydev,
-  lspconfig,
-  copilot,
+  M.lazydev,
+  M.lspconfig,
+  M.copilot,
 }
 -- vim: ts=2 sts=2 sw=2 et
