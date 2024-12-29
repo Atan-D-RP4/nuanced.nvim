@@ -9,7 +9,7 @@ opt.scrolloff = 10
 
 opt.isfname:append '@-@'
 
-opt.cmdheight = 1
+opt.cmdheight = 0
 
 if vim.fn.executable '/bin/fish' == 1 then
   opt.shell = '/bin/fish'

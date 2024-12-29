@@ -1,7 +1,7 @@
 M = {
   'saghen/blink.cmp',
-  event = 'VeryLazy',
-  -- event = { 'InsertEnter', 'CmdlineEnter', 'LspAttach' },
+  -- event = 'VeryLazy',
+  event = { 'InsertEnter', 'CmdlineEnter', 'LspAttach' },
 
   -- use a release tag to download pre-built binaries
   version = 'v0.*',

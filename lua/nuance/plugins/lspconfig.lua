@@ -115,7 +115,6 @@ M.lspconfig.config = function()
       nmap('gtd', cmd:format 'lsp_typedefs()', 'Lsp [T]ype [D]efinition')
       nmap('gus', cmd:format 'lsp_document_symbols()', 'Lsp [D]ocument [S]ymbols')
 
-      nmap('gra', '<cmd>lua vim.lsp.buf.code_action()<CR>', '[C]ode [A]ctions')
       nmap('gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', '[G]oto [D]eclaration')
       nmap('gs', '<cmd>lua vim.lsp.buf.signature_help()<CR>', '[G]et [S]ignature Help')
       nmap('gca', '<cmd>lua vim.lsp.buf.code_action()<CR>', '[G]et [C]ode [A]ctions')

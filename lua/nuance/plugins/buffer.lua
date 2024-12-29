@@ -19,7 +19,7 @@ return {
   {
     -- find/replace across multiple files
     'nvim-pack/nvim-spectre',
-    enabled = false,
+    enabled = true,
     keys = {
       { 'g/', '<cmd>Spectre<cr>', mode = { 'n' } },
     },

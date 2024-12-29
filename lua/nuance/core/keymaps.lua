@@ -1,9 +1,15 @@
 -- [[ Basic Keymaps ]]
 --  See `:helpvim.keymap.set()`
 
-vim.tbl_map(function(maps)
-  require('nuance.core.utils').map(maps[1], maps[2], maps[3], maps[4] or {})
-end, {
+-- Set <space> as the leader key
+-- See `:help mapleader`
+--  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
+--
+-- vim.g.mapleader = ' '
+vim.g.mapleader = '\r'
+vim.g.maplocalleader = ' '
+
+local maps = {
   -- Better Escape
   { 'n', '<Esc>', '<C-c><C-c>', 'Better Escape' },
   { 'i', '<Esc>', '<Esc><Esc><Right>', 'Better Escape' },
@@ -18,7 +24,8 @@ end, {
   -- NOTE: This won't work in all terminal emulators/tmux/etc. Try other mappings
   -- or just use <C-\><C-n> to exit terminal mode
   { 't', '<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode' },
-  { { 'n', 't' }, '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
+  { 't', '<C-d>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
+  { 'n', '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
   { { 'n', 't' }, '<C-w><C-t>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
 
   -- NOTE: Disable arrow keys in normal mode
@@ -46,7 +53,7 @@ end, {
   { 'i', '<C-U>', '<C-G>u<C-U>' },
 
   -- Buffer Management
-  { 'n', '<leader>dd', ':bdelete! %<CR>', { desc = 'Delete Buffer' } },
+  -- { 'n', '<leader>dd', ':bdelete! %<CR>', { desc = 'Delete Buffer' } },
   { 'n', '<leader>du', ':update! <CR>', 'Refresh Buffer' },
   { 'n', '<Tab>', ':bnext<CR>', 'Next Buffer' },
   { 'n', '<S-Tab>', ':bprevious<CR>', 'Previous Buffer' },
@@ -111,7 +118,22 @@ end, {
   -- map('x', '<leader>P', '"_dP', 'Paste without yanking')
 
   { 'n', '-', 'g$', 'Move to the first non-blank character of the line' },
-})
+
+  {
+    'n',
+    'p',
+    function()
+      local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+      vim.cmd 'put'
+      vim.api.nvim_win_set_cursor(0, { row + 1, col })
+    end,
+    'Better Paste Action',
+  },
+}
+
+vim.tbl_map(function(map)
+  require('nuance.core.utils').map(map[1], map[2], map[3], map[4] or {})
+end, maps)
 
 vim.tbl_map(
   function(keys)

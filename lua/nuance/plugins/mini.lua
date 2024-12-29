@@ -50,7 +50,7 @@ return {
   --
   {
     'echasnovski/mini.surround',
-    event = { 'BufRead', 'BufNewFile' },
+    event = 'VimEnter',
 
     opts = {
       mappings = {
