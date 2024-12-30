@@ -119,7 +119,11 @@ return {
 
   dependencies = {
     'nvim-lua/plenary.nvim',
-    'ibhagwan/fzf-lua',
+    -- 'ibhagwan/fzf-lua',
+    {
+      name = 'fzf-lua-local',
+      dir = '~/Develop/repos/fzf-lua/worktrees/main',
+    },
   },
 
   keys = {
@@ -135,7 +139,7 @@ return {
       vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
     end
 
-    local statusline = require('mini.statusline')
+    local statusline = require 'mini.statusline'
     local default_section_filename = statusline.section_filename
     ---@diagnostic disable-next-line: duplicate-set-field
     statusline.section_filename = function(args)

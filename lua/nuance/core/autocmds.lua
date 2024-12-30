@@ -14,7 +14,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
         vim.fn.system(clip, vim.fn.getreg '0')
       end
     end
-    if vim.hl.on_yank then
+    if vim.hl ~= {} then
       vim.hl.on_yank()
     end
   end,

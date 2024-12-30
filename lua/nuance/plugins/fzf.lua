@@ -1,10 +1,13 @@
 M = {
-  'ibhagwan/fzf-lua',
+  name = 'fzf-lua-local',
+  dir = '~/Develop/repos/fzf-lua/worktrees/main',
+  -- 'ibhagwan/fzf-lua',
+  -- branch = 'main',
   event = 'VeryLazy',
   cmd = 'FzfLua',
-  branch = 'main',
   dependencies = {
     'nvim-lua/plenary.nvim',
+    'ThePrimeagen/git-worktree.nvim',
   },
 }
 

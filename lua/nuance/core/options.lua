@@ -30,7 +30,7 @@ opt.termguicolors = true -- set term gui colors (most terminals support this)
 opt.shortmess:append 's'
 
 -- set messagesopt
-if opt.messagesopt then
+if vim.fn.exists('messagesopt') == 1 then
   opt.messagesopt:append 'wait:500'
   opt.messagesopt:remove 'hit-enter'
 end
