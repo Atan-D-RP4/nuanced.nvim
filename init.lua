@@ -104,7 +104,7 @@ vim.loader.enable()
 -- [[ Clipboard Config]]
 -- require 'core.clipboard'
 
-require('nuance.core')
+require 'nuance.core'
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 require 'lazy-bootstrap'

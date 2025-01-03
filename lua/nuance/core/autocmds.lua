@@ -20,6 +20,41 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- -- Trigger an Autocommand everytime the buffer list changes
+-- vim.api.nvim_create_autocmd({'BufAdd', 'BufDelete'}, {
+--   desc = 'Trigger an Autocommand everytime the buffer list changes',
+--   group = vim.api.nvim_create_augroup('nuance-buffer-list-changes', { clear = true }),
+--   callback = function()
+--     if vim.g.listed_bufs == nil then
+--       vim.g.listed_bufs = {}
+--     else
+--     end
+--     local buffers = vim.api.nvim_list_bufs()
+--     local tab_idx = 1
+--     for _, buf in ipairs(buffers) do
+--       if vim.api.nvim_buf_is_loaded(buf) then
+--         vim.g.listed_bufs[tab_idx] = buf
+--         tab_idx = tab_idx + 1
+--       end
+--     end
+--   end,
+-- })
+
+vim.api.nvim_create_autocmd({ 'RecordingEnter', 'RecordingLeave' }, {
+  callback = function(ev)
+    -- NOTE: The oneliner that follows is equivalent to the if-else block below
+    -- though it is less readable and can't use the `vim.notify` function
+    -- vim.opt.cmdheight = ev.event == "RecordingEnter" and 1 or 0
+    if ev.event == 'RecordingEnter' then
+      vim.notify('Recording macro', vim.log.levels.INFO, { timeout = 500 })
+      vim.opt.cmdheight = 1
+    else
+      vim.notify('Macro recorded', vim.log.levels.INFO, { timeout = 500 })
+      vim.opt.cmdheight = 0
+    end
+  end,
+})
+
 vim.api.nvim_create_autocmd('VimResized', {
   desc = 'Resize splits when resizing the window',
   group = vim.api.nvim_create_augroup('nuance-resize-splits', { clear = true }),
@@ -54,10 +89,9 @@ vim.api.nvim_create_autocmd('TermClose', {
 vim.api.nvim_create_autocmd('TermOpen', {
   pattern = '*',
   callback = function()
-    vim.cmd [[
-      setlocal nonumber norelativenumber
-      setlocal nospell
-    ]]
+    vim.opt.relativenumber = false
+    vim.opt.spell = false
+    vim.opt.number = false
   end,
 })
 
@@ -86,21 +120,21 @@ vim.api.nvim_create_autocmd('BufEnter', { command = [[set formatoptions-=cro]] }
 
 -- NOTE: Originally tried to put this in FileType event autocmd but it is apparently
 -- too early for `set modifiable` to take effect
--- vim.api.nvim_create_autocmd('BufWinEnter', {
---   group = vim.api.nvim_create_augroup('YOUR_GROUP_HERE', { clear = true }),
---   desc = 'allow updating quickfix window',
---   pattern = 'quickfix',
---   callback = function(ctx)
---     vim.bo.modifiable = true
---     -- :vimgrep's quickfix window display format now includes start and end column (in vim and nvim) so adding 2nd format to match that
---     vim.bo.errorformat = '%f|%l col %c| %m,%f|%l col %c-%k| %m'
---     vim.keymap.set(
---     'n',
---     '<C-s>',
---     '<Cmd>cgetbuffer|set nomodified|echo "quickfix/location list updated"<CR>',
---     { buffer = true, desc = 'Update quickfix/location list with changes made in quickfix window' }
---     )
---   end,
--- })
+vim.api.nvim_create_autocmd('BufWinEnter', {
+  group = vim.api.nvim_create_augroup('EditQuickfix', { clear = true }),
+  desc = 'allow updating quickfix window',
+  pattern = 'quickfix',
+  callback = function(ctx)
+    vim.bo.modifiable = true
+    -- :vimgrep's quickfix window display format now includes start and end column (in vim and nvim) so adding 2nd format to match that
+    vim.bo.errorformat = '%f|%l col %c| %m,%f|%l col %c-%k| %m'
+    vim.keymap.set(
+      'n',
+      '<C-s>',
+      '<Cmd>cgetbuffer|set nomodified|echo "quickfix/location list updated"<CR>',
+      { buffer = true, desc = 'Update quickfix/location list with changes made in quickfix window' }
+    )
+  end,
+})
 
 -- vim: ts=2 sts=2 sw=2 et

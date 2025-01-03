@@ -139,74 +139,43 @@ local icons = {
   end,
 }
 
-local files = {
-  'echasnovski/mini.files',
-  keys = {
-    -- Open file explorer
-    {
-      '<leader>o',
-      function()
-        if not require('mini.files').close() then
-          require('mini.files').open()
-        end
-      end,
-      desc = "Open Mini's File Explorer",
-    },
-  },
-
-  opts = {
-    options = {
-      use_as_default_explorer = false,
-    },
-    windows = {
-      -- Whether to show preview of file/directory under cursor
-      preview = true,
-    },
-  },
-}
-
-local notify = {
-  'echasnovski/mini.notify',
-  event = 'VimEnter',
-}
-
-local ai = {
-  'echasnovski/mini.ai',
-  event = { 'VeryLazy', 'BufRead', 'BufNewFile' },
-  -- Better Around/Inside textobjects
-  --
-  -- Examples:
-  --  - va)  - [V]isually select [A]round [)]paren
-  --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
-  --  - ci'  - [C]hange [I]nside [']quote
-  config = function()
-    require('mini.ai').setup { n_lines = 500 }
-  end,
-}
-
-local surround = {
-  'echasnovski/mini.surround',
-  event = 'VimEnter',
-
-  opts = {
-    mappings = {
-      add = '<leader>sa',
-      delete = '<leader>sd',
-      find = '<leader>sf',
-      find_left = '<leader>sF',
-      highlight = '<leader>sh',
-      replace = '<leader>sr',
-      suffix_last = 'l',
-      suffix_next = 'n',
-    },
-  },
-}
-
 local tabline = {
   'echasnovski/mini.tabline',
   event = 'VimEnter',
   init = function()
-    require('mini.tabline').setup {}
+    vim.api.nvim_create_autocmd({ 'BufAdd', 'BufDelete' }, {
+      group = vim.api.nvim_create_augroup('nuance-mini-buftabs', { clear = true }),
+      pattern = '*',
+      callback = function()
+        local bufs = vim.api.nvim_list_bufs()
+        -- Check if vim.g.buftabs exists
+        local loaded = vim.g.bufs or {}
+        for _, bufnr in ipairs(bufs) do
+          if
+            vim.api.nvim_get_option_value('buflisted', { buf = bufnr }) == true
+            -- Check whether the buffer is a scratch buffer
+            and vim.api.nvim_buf_get_name(bufnr):len() > 0
+          then
+            table.insert(loaded, bufnr)
+          end
+        end
+        vim.g.buftabs = loaded
+      end,
+    })
+    require('mini.tabline').setup {
+      format = function(buf_id, label)
+        local tabline = MiniTabline.default_format(buf_id, label)
+        local bufs = vim.g.buftabs
+        for i, item in ipairs(bufs) do
+          if item == buf_id then
+            tabline = tabline .. string.format('[%s] ', i)
+            break
+          end
+        end
+        return tabline
+      end,
+      tabpage_section = 'right',
+    }
   end,
 }
 
@@ -266,17 +235,122 @@ local statusline = {
   end,
 }
 
+-- Snacks.nvim also has a notifications module
+-- So using that instead
+local notify = {
+  'echasnovski/mini.notify',
+  event = 'VimEnter',
+}
+
+local themes = {
+  tokyonight = {
+    'folke/tokyonight.nvim',
+    priority = 1000, -- Make sure to load this before all the other start plugins.
+    init = function()
+      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.hi 'Comment gui=italic'
+    end,
+  },
+
+  shadotheme = {
+    'Shadorain/shadotheme',
+    priority = 1000,
+    init = function()
+      vim.cmd [[
+        colorscheme shado-legacy
+        hi Keyword gui=italic
+        hi WinBar guibg=None
+        hi WinBarNC guibg=None
+        hi Comment gui=italic
+      ]]
+    end,
+  },
+
+  witch = {
+    'sontungexpt/witch',
+    priority = 1000,
+    lazy = false,
+    config = function(_, opts)
+      require('witch').setup(opts)
+    end,
+  },
+
+  kanagawa = {
+    'rebelot/kanagawa.nvim',
+    priority = 1000,
+    opts = {
+      compile = true, -- enable compiling the colorscheme
+      undercurl = true, -- enable undercurls
+      commentStyle = { italic = true },
+      functionStyle = {},
+      keywordStyle = { italic = true },
+      statementStyle = { bold = true },
+      typeStyle = {},
+      transparent = false, -- do not set background color
+      dimInactive = false, -- dim inactive window `:h hl-NormalNC`
+      terminalColors = true, -- define vim.g.terminal_color_{0,17}
+      colors = { -- add/modify theme and palette colors
+        palette = {},
+        theme = { wave = {}, lotus = {}, dragon = {}, all = {} },
+      },
+      overrides = function(colors) -- add/modify highlights
+        return {}
+      end,
+      theme = 'wave', -- Load "wave" theme when 'background' option is not set
+      background = { -- map the value of 'background' option to a theme
+        dark = 'dragon', -- try "dragon" !
+        light = 'lotus',
+      },
+    },
+    init = function()
+      vim.cmd [[
+        colorscheme kanagawa
+        hi Comment gui=italic
+      ]]
+    end,
+  },
+
+  catpuccin = {
+    'catppuccin/nvim',
+    name = 'catppuccin',
+    priority = 1001,
+    init = function()
+      vim.cmd [[
+        colorscheme catppuccin-mocha
+        hi Comment gui=italic
+      ]]
+    end,
+  },
+}
+
+local noice = {
+  'folke/noice.nvim',
+  event = 'VeryLazy',
+  dependencies = {
+    'MunifTanjim/nui.nvim',
+    'echasnovski/mini.notify',
+  },
+  opts = {
+    presets = {
+      command_palette = false,
+    },
+  },
+}
+
+local transparent = {
+  'xiyaowong/nvim-transparent',
+  event = 'VimEnter',
+  config = true,
+}
+
 local M = {
-  -- very_modded_statusline,
-  icons,
-  -- files,
-  -- ai,
-  notify,
-  surround,
-  tabline,
+  themes.witch,
   statusline,
+  tabline,
+  icons,
+  -- noice,
+  -- transparent,
 }
 
 return M
-
 -- vim: ts=2 sts=2 sw=2 et

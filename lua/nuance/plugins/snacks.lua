@@ -1,6 +1,9 @@
 local M = {
   'folke/snacks.nvim',
   lazy = false,
+  dependencies = {
+    'tpope/vim-sleuth', -- For auto-detecting indent settings
+  },
 }
 
 M.keys = {
@@ -48,7 +51,7 @@ M.opts = {
   profiler = { enabled = true },
   bigfile = { enabled = true },
   scope = { enabled = true },
-  indent = { enabled = true },
+  indent = { enabled = false },
   input = { enabled = true },
   dashboard = { enabled = true },
   notifier = {
@@ -58,7 +61,7 @@ M.opts = {
   quickfile = { enabled = true },
   styles = {
     notification = {
-      -- wo = { wrap = true } -- Wrap notifications
+      wo = { wrap = true } -- Wrap notifications
     },
   },
 
@@ -98,8 +101,8 @@ M.init = function()
       Snacks.toggle.line_number():map '<leader>tl'
       Snacks.toggle.treesitter():map '<leader>tT'
       Snacks.toggle.option('background', { off = 'light', on = 'dark', name = 'Dark Background' }):map '<leader>tb'
-      Snacks.toggle.indent():map '<leader>tg'
-      Snacks.toggle.dim():map '<leader>tD'
+      Snacks.toggle.indent():map '<leader>ti'
+      Snacks.toggle.dim():map '<leader>tf'
     end,
   })
 end

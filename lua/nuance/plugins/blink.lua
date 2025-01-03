@@ -90,6 +90,7 @@ M.opts.completion = {
 M.opts.sources = {
   default = {
     'lsp',
+    'lazydev',
     'path',
     'snippets',
     'buffer',
@@ -98,29 +99,30 @@ M.opts.sources = {
   },
   providers = {
     lsp = {
-      min_keyword_length = 2,
-      score_offset = 1000,
+      score_offset = 100,
       async = true,
     },
 
+    lazydev = {
+      name = 'LazyDev',
+      module = 'lazydev.integrations.blink',
+      score_offset = 95,
+    },
+
     path = {
-      min_keyword_length = 0,
-      score_offset = 975,
+      score_offset = 95,
     },
 
     luasnip = {
-      min_keyword_length = 2,
-      score_offset = 950,
+      score_offset = 90,
     },
 
     snippets = {
-      min_keyword_length = 2,
-      score_offset = 900,
+      score_offset = 85,
     },
 
     buffer = {
-      min_keyword_length = 3,
-      score_offset = 800,
+      score_offset = 80,
     },
 
     -- dadbod = {
@@ -131,7 +133,19 @@ M.opts.sources = {
     -- },
   },
   -- optionally disable cmdline completions
-  -- cmdline = {},
+  cmdline = function()
+    local type = vim.fn.getcmdtype()
+    if type == '/' or type == '?' then
+      return { 'buffer' }
+    end
+    if type == ':' then
+      if vim.fn.getcmdline():sub(1, 1) == '!' then
+        return {}
+      end
+      return { 'cmdline' }
+    end
+    return {}
+  end,
 }
 
 M.opts.snippets = {
@@ -157,17 +171,15 @@ M.opts.keymap = {
   ['<CR>'] = { 'accept', 'fallback' }, -- Accept the completion.
   ['<C-y>'] = { 'select_and_accept' }, -- Accept ([y]es) the completion.
 
-  ['<C-n>'] = { 'select_next', 'fallback' }, -- Select the [n]ext item
-  ['<C-p>'] = { 'select_prev', 'fallback' }, -- Select the [p]revious item
+  ['<C-n>'] = { 'select_next', 'snippet_forward', 'fallback' }, -- Select the [n]ext item
+  ['<C-p>'] = { 'select_prev', 'snippet_backward', 'fallback' }, -- Select the [p]revious item
 
   -- Manually Trigger completions and toggle documentation window
   ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
 
-  ['<C-j>'] = { 'snippet_forward', 'fallback' },
-  ['<C-k>'] = { 'snippet_backward', 'fallback' },
-
   cmdline = {
     ['<C-e>'] = { 'hide' },
+    ['<C-space>'] = { 'show' },
     ['<Tab>'] = {
       function(cmp)
         if not cmp.is_visible() then

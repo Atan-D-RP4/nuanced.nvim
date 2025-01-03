@@ -1,7 +1,7 @@
--- [[ Setting options ]]
--- See `:help opt`
--- NOTE: You can change these options as you wish!
---  For more options, you can see `:help option-list`
+-- -- [[ Setting options ]]
+-- -- See `:help opt`
+-- -- NOTE: You can change these options as you wish!
+-- --  For more options, you can see `:help option-list`
 
 local opt = vim.opt
 
@@ -29,15 +29,15 @@ opt.termguicolors = true -- set term gui colors (most terminals support this)
 -- disable nvim intro
 opt.shortmess:append 's'
 
--- set messagesopt
-if vim.fn.exists('messagesopt') == 1 then
-  opt.messagesopt:append 'wait:500'
-  opt.messagesopt:remove 'hit-enter'
-end
-
--- separate vim plugins from neovim in case vim still in use
-opt.runtimepath:remove '/usr/share/vim/vimfiles'
-
+-- -- set messagesopt
+-- if vim.fn.exists('messagesopt') == 1 then
+--   opt.messagesopt:append 'wait:500'
+--   opt.messagesopt:remove 'hit-enter'
+-- end
+--
+-- -- separate vim plugins from neovim in case vim still in use
+-- opt.runtimepath:remove '/usr/share/vim/vimfiles'
+--
 opt.foldenable = false
 
 -- Make line numbers default

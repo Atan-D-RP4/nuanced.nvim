@@ -1,4 +1,4 @@
-return {
+local M = {
   {
     'tpope/vim-fugitive',
     cmd = { 'Git', 'Gstatus', 'Gblame', 'Gpush', 'Gpull', 'Gcommit', 'Gdiff' },
@@ -66,16 +66,28 @@ return {
         -- Toggles
         map('n', '<leader>tb', gitsigns.toggle_current_line_blame, { desc = '[T]oggle git show [b]lame line' })
         map('n', '<leader>tD', gitsigns.toggle_deleted, { desc = '[T]oggle git show [D]eleted' })
-        map('n', '<leader>ts', gitsigns.toggle_signs, { desc = '[T]oggle git [s]igns' })
+        local state = 1
+        map('n', '<leader>tg', function()
+          if state == 1 then
+            vim.notify('Git signs disabled', vim.log.levels.WARN, { title = 'Gitsigns' })
+            state = 0
+          else
+            vim.notify('Git signs enabled', vim.log.levels.INFO, { title = 'Gitsigns' })
+            state = 1
+          end
+          gitsigns.toggle_signs()
+        end, { desc = '[T]oggle [g]it signs' })
       end,
     },
   },
 
   {
     'sindrets/diffview.nvim',
+    enabled = false,
     cmd = 'DiffviewOpen',
     opts = {
-        use_icons = false,         -- Requires nvim-web-devicons
+      use_icons = false, -- Requires nvim-web-devicons
     },
-  }
+  },
 }
+return M

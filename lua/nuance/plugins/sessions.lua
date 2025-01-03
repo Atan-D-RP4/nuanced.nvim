@@ -132,7 +132,6 @@ return {
     { '<leader>as', '<cmd>lua require("nvim-possession").update()<CR>', desc = '[S]essions [S]ave/Update' },
     { '<leader>ad', '<cmd>lua require("nvim-possession").delete()<CR>', desc = '[S]essions [D]elete' },
   },
-
   config = function()
     -- Check if session dir exists and if not create it
     if vim.fn.isdirectory(require('nvim-possession.config').sessions.sessions_path) == 0 then
@@ -149,7 +148,6 @@ return {
       end
       return session .. ' ' .. default_section_filename(args)
     end
-
     require('nvim-possession').setup {
       autoload = false,
 
@@ -163,6 +161,16 @@ return {
         row = 0.5,
         col = 0.5,
       },
+
+      post_hook = function()
+        -- Clear any unnecessary buffers
+        local bufs = vim.api.nvim_list_bufs()
+        for _, bufnr in ipairs(bufs) do
+          if not (vim.api.nvim_get_option_value('buflisted', { buf = bufnr }) == true and vim.api.nvim_buf_get_name(bufnr):len() > 0) then
+            vim.api.nvim_buf_delete(bufnr, { force = true })
+          end
+        end
+      end,
     }
   end,
 }

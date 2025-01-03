@@ -62,17 +62,10 @@ M.lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspInstall', 'LspUninstall' },
   ft = {
-    'typescript',
-    'javascript',
-    'html',
-    'css',
-    'vim',
-    'lua',
-    'sh',
-    'python',
-    'rust',
-    'c',
-    'cpp',
+    'typescript', 'javascript', 'html', 'css', --
+    'vim', 'lua', 'sh',
+    'python', 'rust',
+    'c', 'cpp',
   },
 }
 M.lspconfig.dependencies = {

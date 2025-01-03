@@ -24,7 +24,7 @@ local maps = {
   -- NOTE: This won't work in all terminal emulators/tmux/etc. Try other mappings
   -- or just use <C-\><C-n> to exit terminal mode
   { 't', '<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode' },
-  { 't', '<C-d>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
+  { 't', '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
   { 'n', '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
   { { 'n', 't' }, '<C-w><C-t>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
 
@@ -150,24 +150,24 @@ vim.tbl_map(
         local items = vim.tbl_map(function(s)
           local o = {
             id = 0,
-            name = '',
-            classifiers = '     ', -- see :help ls for more info
+            -- name = '',
+            -- classifiers = '     ', -- see :help ls for more info
           }
           o = setmetatable({}, o)
 
           o.id = tonumber(vim.split(s, ' ', { trimempty = true })[1])
-          o.classifiers = s:sub(4, 8)
-
-          local ss = s:find '"'
-          local se = #s - s:reverse():find '"'
-
-          o.name = s:sub(ss + 1, se)
-
+          -- o.classifiers = s:sub(4, 8)
+          --
+          -- local ss = s:find '"'
+          -- local se = #s - s:reverse():find '"'
+          --
+          -- o.name = s:sub(ss + 1, se)
+          --
           return o
         end, bufs)
 
         if i > #items or i == 0 then
-          vim.notify('Buffer index out of range', vim.log.levels.ERROR)
+          vim.notify('Buffer index out of range', vim.log.levels.DEBUG)
           return
         end
 

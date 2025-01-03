@@ -115,7 +115,7 @@ M.term_conf = {
   },
 }
 
-M.term_send = function(cmd)
+M.term_send_cmd = function(cmd)
   -- Prompt for a command to send to the terminal
   if not cmd then
     cmd = vim.fn.input 'Command: '
@@ -125,6 +125,22 @@ M.term_send = function(cmd)
   -- Send the command
   if vim.bo[M.buf].channel > 0 then
     vim.fn.chansend(M.term_conf.term_id, cmd)
+  end
+end
+
+M.term_send_key = function(key)
+  if not key then
+    return
+  end
+  key= vim.api.nvim_replace_termcodes(key, true, true, true)
+  if vim.bo[M.buf].channel > 0 then
+    vim.fn.chansend(M.term_conf.term_id, key)
+  end
+end
+
+M.term_send_keys = function(keys)
+  for _, key in ipairs(keys) do
+    M.term_send_key(key)
   end
 end
 
@@ -143,7 +159,8 @@ M.toggleterm = function()
     vim.api.nvim_win_set_config(M.win, { hide = false })
     vim.api.nvim_set_current_win(M.win)
     if vim.bo[M.buf].channel <= 0 then
-      vim.fn.termopen(M.term_conf.cmd)
+      vim.fn.jobstart(M.term_conf.cmd, {term = true})
+
       M.term_conf.term_id = vim.bo[M.buf].channel
     end
     vim.cmd 'startinsert'
@@ -152,7 +169,6 @@ M.toggleterm = function()
     vim.api.nvim_set_current_win(vim.fn.win_getid(vim.fn.winnr '#'))
   end
 end
-
 
 M.netrw_setup = function()
   vim.g.netrw_banner = 0
