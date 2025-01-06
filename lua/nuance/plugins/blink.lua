@@ -52,9 +52,9 @@ M.opts = {
 }
 
 M.opts.completion = {
-  trigger = {
-    show_on_insert_on_trigger_character = false,
-  },
+  trigger = { show_on_insert_on_trigger_character = false },
+
+  accept = { auto_brackets = { enabled = false } },
 
   menu = {
     border = 'rounded',
@@ -70,16 +70,16 @@ M.opts.completion = {
 
     draw = {
       treesitter = { 'lsp' },
-      columns = { { 'kind_icon' }, { 'label', 'label_description', gap = 1 }, { 'kind' } },
+      columns = { { 'label', 'label_description', gap = 1 }, { 'kind_icon', 'kind' } },
     },
   },
 
   list = {
-    selection = 'auto_insert',
-    -- selection = function(ctx)
-    --   return ctx.mode == 'cmdline' and 'auto_insert' or 'preselect'
-    -- end,
+    selection = function(ctx)
+      return ctx.mode == 'cmdline' and 'auto_insert' or 'preselect'
+    end,
   },
+
   -- documentation = {
   --   auto_show = true,
   -- },
@@ -95,35 +95,19 @@ M.opts.sources = {
     'snippets',
     'buffer',
     'luasnip',
-    -- 'dadbod',
+    --'dadbod',
   },
   providers = {
-    lsp = {
-      score_offset = 100,
-      async = true,
-    },
-
+    lsp = { score_offset = 100, async = true },
     lazydev = {
       name = 'LazyDev',
       module = 'lazydev.integrations.blink',
       score_offset = 95,
     },
-
-    path = {
-      score_offset = 95,
-    },
-
-    luasnip = {
-      score_offset = 90,
-    },
-
-    snippets = {
-      score_offset = 85,
-    },
-
-    buffer = {
-      score_offset = 80,
-    },
+    path = { score_offset = 95 },
+    luasnip = { score_offset = 90 },
+    snippets = { score_offset = 85 },
+    buffer = { score_offset = 80 },
 
     -- dadbod = {
     --   name = 'Dadbod',
@@ -132,6 +116,7 @@ M.opts.sources = {
     --   score_offset = 700,
     -- },
   },
+
   -- optionally disable cmdline completions
   cmdline = function()
     local type = vim.fn.getcmdtype()
@@ -139,8 +124,8 @@ M.opts.sources = {
       return { 'buffer' }
     end
     if type == ':' then
-      if vim.fn.getcmdline():sub(1, 1) == '!' then
-        return {}
+      if vim.fn.getcmdline():sub(1, 1) == '!' or vim.fn.getcmdline():sub(1, 6) == 'Launch' then
+        return { 'path', 'buffer' }
       end
       return { 'cmdline' }
     end
@@ -168,8 +153,8 @@ M.opts.keymap = {
   ['<C-f>'] = { 'scroll_documentation_down', 'fallback' }, -- Scroll the documentation window [f]orward
 
   ['<C-e>'] = { 'hide' }, -- Hide the completion menu
-  ['<CR>'] = { 'accept', 'fallback' }, -- Accept the completion.
-  ['<C-y>'] = { 'select_and_accept' }, -- Accept ([y]es) the completion.
+  -- ['<CR>'] = { 'select_accept', 'fallback' }, -- Accept the completion.
+  ['<C-y>'] = { 'select_and_accept', 'fallback' }, -- Accept ([y]es) the completion.
 
   ['<C-n>'] = { 'select_next', 'snippet_forward', 'fallback' }, -- Select the [n]ext item
   ['<C-p>'] = { 'select_prev', 'snippet_backward', 'fallback' }, -- Select the [p]revious item

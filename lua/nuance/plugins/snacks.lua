@@ -25,6 +25,7 @@ M.keys = {
     '<leader>N',
     desc = 'Neovim News',
     function()
+      require('snacks').bufdelete()
       Snacks.win {
         file = vim.api.nvim_get_runtime_file('doc/news.txt', false)[1],
         width = 0.6,
@@ -39,6 +40,17 @@ M.keys = {
       }
     end,
   },
+
+  -- Create some toggle mappings
+  { '<leader>ts', "<cmd>lua Snacks.toggle.option('spell', { name = 'Spelling' }):toggle()<CR>" },
+  { '<leader>tw', "<cmd>lua Snacks.toggle.option('wrap', { name = 'Wrap' }):toggle()<CR>" },
+  { '<leader>tL', "<cmd>lua Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):toggle()<CR>" },
+  { '<leader>td', '<cmd>lua Snacks.toggle.diagnostics():toggle()<CR>' },
+  { '<leader>tl', '<cmd>lua Snacks.toggle.line_number():toggle()<CR>' },
+  { '<leader>tT', '<cmd>lua Snacks.toggle.treesitter():toggle()<CR>' },
+  { '<leader>tb', "<cmd>lua Snacks.toggle.option('background', { off = 'light', on = 'dark', name = 'Dark Background' }):toggle()<CR>" },
+  { '<leader>ti', '<cmd>lua Snacks.toggle.indent():toggle()<CR>' },
+  { '<leader>tf', '<cmd>lua Snacks.toggle.dim():toggle()<CR>' },
 }
 
 ---@type snacks.Config
@@ -51,7 +63,7 @@ M.opts = {
   profiler = { enabled = true },
   bigfile = { enabled = true },
   scope = { enabled = true },
-  indent = { enabled = false },
+  indent = { enabled = true },
   input = { enabled = true },
   dashboard = { enabled = true },
   notifier = {
@@ -61,7 +73,7 @@ M.opts = {
   quickfile = { enabled = true },
   styles = {
     notification = {
-      wo = { wrap = true } -- Wrap notifications
+      wo = { wrap = true }, -- Wrap notifications
     },
   },
 
@@ -71,15 +83,15 @@ M.opts = {
 }
 
 M.init = function()
-  if vim.fn.executable 'lazygit' == 1 then
-    vim.tbl_map(function(map)
-      require('nuance.core.utils').map(map[1], map[2], map[3], map[4] or {})
-    end, {
-      { '<leader>gf', '<cmd>lua Snacks.lazygit.log_file()<CR>', 'Lazygit Current File History' },
-      { '<leader>gg', '<cmd>lua Snacks.lazygit()<CR>', 'Lazygit' },
-      { '<leader>gl', '<cmd>lua Snacks.lazygit.log()<CR>', 'Lazygit Log (cwd)' },
-    })
-  end
+  -- if vim.fn.executable 'lazygit' == 1 then
+  --   vim.tbl_map(function(map)
+  --     require('nuance.core.utils').map(map[1], map[2], map[3], map[4] or {})
+  --   end, {
+  --     { '<leader>gf', '<cmd>lua Snacks.lazygit.log_file()<CR>', 'Lazygit Current File History' },
+  --     { '<leader>gg', '<cmd>lua Snacks.lazygit()<CR>', 'Lazygit' },
+  --     { '<leader>gl', '<cmd>lua Snacks.lazygit.log()<CR>', 'Lazygit Log (cwd)' },
+  --   })
+  -- end
 
   vim.api.nvim_create_autocmd('User', {
     pattern = 'VeryLazy',
@@ -92,17 +104,6 @@ M.init = function()
         Snacks.debug.backtrace()
       end
       vim.print = _G.dd -- Override print to use snacks for `:=` command
-
-      -- Create some toggle mappings
-      Snacks.toggle.option('spell', { name = 'Spelling' }):map '<leader>ts'
-      Snacks.toggle.option('wrap', { name = 'Wrap' }):map '<leader>tw'
-      Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):map '<leader>tL'
-      Snacks.toggle.diagnostics():map '<leader>td'
-      Snacks.toggle.line_number():map '<leader>tl'
-      Snacks.toggle.treesitter():map '<leader>tT'
-      Snacks.toggle.option('background', { off = 'light', on = 'dark', name = 'Dark Background' }):map '<leader>tb'
-      Snacks.toggle.indent():map '<leader>ti'
-      Snacks.toggle.dim():map '<leader>tf'
     end,
   })
 end
