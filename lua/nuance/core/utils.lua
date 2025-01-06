@@ -1,5 +1,7 @@
 local M = {}
 
+---@param modes string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
+---@param lhs string           Left-hand side |{lhs}| of the mapping.
 M.is_key_mapped = function(modes, lhs)
   -- Normalize modes to a list if it's a single string
   if type(modes) == 'string' then
@@ -18,6 +20,9 @@ M.is_key_mapped = function(modes, lhs)
   return false
 end
 
+--
+---@param modes string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
+---@param lhs string           Left-hand side |{lhs}| of the mapping.
 M.unmap = function(modes, lhs)
   -- Normalize modes to a list if it's a single string
   if type(modes) == 'string' then
@@ -32,6 +37,11 @@ M.unmap = function(modes, lhs)
   end
 end
 
+--- An abstraction over |nvim_set_keymap()| that unmaps the key before setting it.
+---@param modes string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
+---@param lhs string           Left-hand side |{lhs}| of the mapping.
+---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
+---@param opts? vim.keymap.set.Opts
 M.map = function(modes, lhs, rhs, opts)
   M.unmap(modes, lhs)
   -- Set new mapping
@@ -45,18 +55,30 @@ M.map = function(modes, lhs, rhs, opts)
   vim.keymap.set(modes, lhs, rhs, options)
 end
 
+---@param lhs string           Left-hand side |{lhs}| of the mapping.
+---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
+---@param opts? vim.keymap.set.Opts
 M.nmap = function(lhs, rhs, opts)
   M.map('n', lhs, rhs, opts)
 end
 
+---@param lhs string           Left-hand side |{lhs}| of the mapping.
+---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
+---@param opts? vim.keymap.set.Opts
 M.imap = function(lhs, rhs, opts)
   M.map('i', lhs, rhs, opts)
 end
 
+---@param lhs string           Left-hand side |{lhs}| of the mapping.
+---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
+---@param opts? vim.keymap.set.Opts
 M.tmap = function(lhs, rhs, opts)
   M.map('t', lhs, rhs, opts)
 end
 
+---@param lhs string           Left-hand side |{lhs}| of the mapping.
+---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
+---@param opts? vim.keymap.set.Opts
 M.vmap = function(lhs, rhs, opts)
   M.map('v', lhs, rhs, opts)
 end
@@ -119,7 +141,12 @@ M.term_send_cmd = function(cmd)
   -- Prompt for a command to send to the terminal
   if not cmd then
     cmd = vim.fn.input 'Command: '
-    cmd = cmd .. '\r'
+  end
+  cmd = cmd .. '\r\n'
+
+  if M.term_conf.term_id == nil then
+    vim.fn.jobstart(M.term_conf.cmd, { term = true })
+    M.term_conf.term_id = vim.bo[M.buf].channel
   end
 
   -- Send the command
@@ -128,17 +155,33 @@ M.term_send_cmd = function(cmd)
   end
 end
 
+---@param key string
 M.term_send_key = function(key)
   if not key then
     return
   end
-  key= vim.api.nvim_replace_termcodes(key, true, true, true)
+
+  if M.term_conf.term_id == nil then
+    vim.fn.jobstart(M.term_conf.cmd, { term = true })
+    M.term_conf.term_id = vim.bo[M.buf].channel
+  end
+
+  key = vim.api.nvim_replace_termcodes(key, true, true, true)
   if vim.bo[M.buf].channel > 0 then
     vim.fn.chansend(M.term_conf.term_id, key)
   end
 end
 
+---@param keys string[]|string
 M.term_send_keys = function(keys)
+  if not keys then
+    return
+  end
+
+  if type(keys) == 'string' then
+    keys = { keys }
+  end
+
   for _, key in ipairs(keys) do
     M.term_send_key(key)
   end
@@ -159,7 +202,7 @@ M.toggleterm = function()
     vim.api.nvim_win_set_config(M.win, { hide = false })
     vim.api.nvim_set_current_win(M.win)
     if vim.bo[M.buf].channel <= 0 then
-      vim.fn.jobstart(M.term_conf.cmd, {term = true})
+      vim.fn.jobstart(M.term_conf.cmd, { term = true })
 
       M.term_conf.term_id = vim.bo[M.buf].channel
     end
@@ -185,6 +228,55 @@ M.netrw_setup = function()
   ]]
   -- vim.g.EasyMotion_startofline = 0
   -- vim.g.EasyMotion_smartcase = 1
+end
+
+M.buftab_setup = function()
+  -- NOTE: This does not work since any of the buffer delete operations don't seemd to trigger this autocommand
+  vim.api.nvim_create_autocmd({ 'BufAdd', 'BufDelete', 'BufEnter', 'BufUnload', 'BufHidden', 'BufNewFile', 'BufNew' }, {
+    desc = 'Trigger an Autocommand everytime the buffer list changes',
+    group = vim.api.nvim_create_augroup('nuance-buftabs', { clear = true }),
+    pattern = '*',
+    callback = function()
+      vim.g.nuance_buftabs_count = vim.g.nuance_buftabs_count or 0
+      vim.g.nuance_buftabs_count = vim.g.nuance_buftabs_count + 1
+      vim.schedule(function()
+        vim.g.tab_idx_map = nil
+        local bufs = vim.api.nvim_exec2('buffers', { output = true }).output
+        bufs = vim.split(bufs, '\n', { trimempty = true })
+        bufs = vim.tbl_map(function(s)
+          return tonumber(vim.split(s, ' ', { trimempty = true })[1])
+        end, bufs)
+        local tab_idx_map = {}
+        local idx = 1
+        for _, bufnr in ipairs(bufs) do
+          tab_idx_map[bufnr] = idx
+          idx = idx + 1
+        end
+        vim.g.tab_idx_map = tab_idx_map
+      end)
+    end,
+  })
+end
+
+---@param offset integer
+M.get_relative_line = function(offset)
+  -- Get the current cursor row (1-indexed)
+  local current_row = vim.api.nvim_win_get_cursor(0)[1]
+
+  -- Calculate the target row (0-indexed for API functions)
+  local target_row = current_row + offset
+
+  -- Get the total number of lines in the buffer
+  local line_count = vim.api.nvim_buf_line_count(0)
+
+  -- Ensure the target row is within bounds
+  if target_row < 0 or target_row > line_count then
+    return nil, 'Target row is out of bounds'
+  end
+
+  -- Fetch and return the line
+  local line = vim.api.nvim_buf_get_lines(0, target_row - 1, target_row, false)
+  return line[1] or '', nil -- Return the line as a string
 end
 
 return M
