@@ -124,8 +124,11 @@ local maps = {
     'p',
     function()
       local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-      vim.cmd 'put'
-      vim.api.nvim_win_set_cursor(0, { row + 1, col })
+      vim.cmd 'normal! p'
+      local new_row = vim.api.nvim_win_get_cursor(0)[1]
+      if not (new_row == row) then
+        vim.api.nvim_win_set_cursor(0, { new_row, col })
+      end
     end,
     'Better Paste Action',
   },
