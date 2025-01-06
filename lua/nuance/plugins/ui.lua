@@ -134,6 +134,7 @@ local very_modded_statusline = {
 
 local icons = {
   'echasnovski/mini.icons',
+  event = 'VimEnter',
   config = function()
     require('mini.icons').setup()
   end,
@@ -142,37 +143,17 @@ local icons = {
 local tabline = {
   'echasnovski/mini.tabline',
   event = 'VimEnter',
-  init = function()
-    vim.api.nvim_create_autocmd({ 'BufAdd', 'BufDelete' }, {
-      group = vim.api.nvim_create_augroup('nuance-mini-buftabs', { clear = true }),
-      pattern = '*',
-      callback = function()
-        local bufs = vim.api.nvim_list_bufs()
-        -- Check if vim.g.buftabs exists
-        local loaded = vim.g.bufs or {}
-        for _, bufnr in ipairs(bufs) do
-          if
-            vim.api.nvim_get_option_value('buflisted', { buf = bufnr }) == true
-            -- Check whether the buffer is a scratch buffer
-            and vim.api.nvim_buf_get_name(bufnr):len() > 0
-          then
-            table.insert(loaded, bufnr)
-          end
-        end
-        vim.g.buftabs = loaded
-      end,
-    })
+  config = function()
+    require('nuance.core.utils').buftab_setup()
     require('mini.tabline').setup {
       format = function(buf_id, label)
         local tabline = MiniTabline.default_format(buf_id, label)
-        local bufs = vim.g.buftabs
-        for i, item in ipairs(bufs) do
-          if item == buf_id then
-            tabline = tabline .. string.format('[%s] ', i)
-            break
-          end
+        local tab_idx_map = vim.g.tab_idx_map
+        if tab_idx_map == nil then
+          return tabline
         end
-        return tabline
+        local tab_idx = tab_idx_map[buf_id]
+        return tabline .. string.format('[%s]', tab_idx)
       end,
       tabpage_section = 'right',
     }
@@ -343,11 +324,66 @@ local transparent = {
   config = true,
 }
 
+local which_key = { -- Useful plugin to show you pending keybinds.
+  'folke/which-key.nvim',
+  event = 'VimEnter', -- Sets the loading event to 'VimEnter'
+  opts = {
+    icons = {
+      -- set icon mappings to true if you have a Nerd Font
+      mappings = vim.g.have_nerd_font,
+      -- If you are using a Nerd Font: set icons.keys to an empty table which will use the
+      -- default which-key.nvim defined Nerd Font icons, otherwise define a string table
+      keys = vim.g.have_nerd_font and {} or {
+        Up = '<Up> ',
+        Down = '<Down> ',
+        Left = '<Left> ',
+        Right = '<Right> ',
+        C = '<C-ΓÇª> ',
+        M = '<M-ΓÇª> ',
+        D = '<D-ΓÇª> ',
+        S = '<S-ΓÇª> ',
+        CR = '<CR> ',
+        Esc = '<Esc> ',
+        ScrollWheelDown = '<ScrollWheelDown> ',
+        ScrollWheelUp = '<ScrollWheelUp> ',
+        NL = '<NL> ',
+        BS = '<BS> ',
+        Space = '<Space> ',
+        Tab = '<Tab> ',
+        F1 = '<F1>',
+        F2 = '<F2>',
+        F3 = '<F3>',
+        F4 = '<F4>',
+        F5 = '<F5>',
+        F6 = '<F6>',
+        F7 = '<F7>',
+        F8 = '<F8>',
+        F9 = '<F9>',
+        F10 = '<F10>',
+        F11 = '<F11>',
+        F12 = '<F12>',
+      },
+    },
+
+    -- Document existing key chains
+    spec = {
+      { '<leader>d', group = '[D]ocument' },
+      { '<leader>f', group = '[F]uzzy Find' },
+      { '<leader>t', group = '[T]oggle' },
+      { '<leader>a', group = 'Session', mode = 'n' },
+      { '<leader>s', group = '[S]urround', mode = 'n' },
+      { '<leader>e', group = 'Buffer-Switching', mode = 'n' },
+      { '<leader>g', group = '[G]it', mode = 'n' },
+    },
+  },
+}
+
 local M = {
   themes.witch,
   statusline,
   tabline,
   icons,
+  which_key,
   -- noice,
   -- transparent,
 }
