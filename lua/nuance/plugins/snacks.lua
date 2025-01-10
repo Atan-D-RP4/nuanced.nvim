@@ -1,9 +1,6 @@
 local M = {
   'folke/snacks.nvim',
   lazy = false,
-  dependencies = {
-    'tpope/vim-sleuth', -- For auto-detecting indent settings
-  },
 }
 
 M.keys = {
@@ -106,6 +103,8 @@ M.init = function()
       vim.print = _G.dd -- Override print to use snacks for `:=` command
     end,
   })
+
+  require('snacks').profiler.start()
 end
 
 return M

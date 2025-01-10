@@ -1,4 +1,5 @@
 return {
+  'tpope/vim-sleuth', -- For auto-detecting indent settings
   {
     -- Undotree
     'mbbill/undotree',
@@ -13,7 +14,7 @@ return {
 
     config = function()
       vim.g.undotree_WindowLayout = 4
-    end
+    end,
   },
 
   {
