@@ -119,11 +119,7 @@ return {
 
   dependencies = {
     'nvim-lua/plenary.nvim',
-    -- 'ibhagwan/fzf-lua',
-    {
-      name = 'fzf-lua-local',
-      dir = '~/Develop/repos/fzf-lua/worktrees/main',
-    },
+    'ibhagwan/fzf-lua',
   },
 
   keys = {

@@ -1,13 +1,25 @@
 M = {
-  name = 'fzf-lua-local',
-  dir = '~/Develop/repos/fzf-lua/worktrees/main',
-  -- 'ibhagwan/fzf-lua',
-  -- branch = 'main',
+  'ibhagwan/fzf-lua',
+  branch = 'main',
   event = 'VeryLazy',
   cmd = 'FzfLua',
-  dependencies = {
-    'nvim-lua/plenary.nvim',
-    'ThePrimeagen/git-worktree.nvim',
+}
+
+M.dependencies = {
+  'nvim-lua/plenary.nvim',
+  'ThePrimeagen/git-worktree.nvim',
+  {
+    'junegunn/fzf',
+    optional = true,
+    build = function()
+      vim.fn['fzf#install']()
+    end,
+    init = function()
+      local separator = vim.fn.has 'win32' == 1 and ';' or ':'
+      local fzf_path = vim.fn.stdpath 'data' .. '/lazy/fzf/bin'
+      fzf_path = vim.fs.normalize(fzf_path)
+      vim.env.PATH = vim.env.PATH .. separator .. fzf_path
+    end,
   },
 }
 
@@ -37,7 +49,17 @@ M.opts = {
   --   },
   -- },
   grep = {
+    glob_separator = '  ',
     rg_glob = true, -- enable glob parsing
+    rg_glob_fn = function(query, opts)
+      ---@type string, string
+      local search_query, glob_args = query:match(('(.*)%s(.*)'):format(opts.glob_separator))
+      -- UNCOMMENT TO DEBUG PRINT INTO FZF
+      if glob_args then
+        io.write(('q: %s -> flags: %s, query: %s\n'):format(query, glob_args, search_query))
+      end
+      return search_query, glob_args
+    end,
   },
   winopts = {
     preview = {
