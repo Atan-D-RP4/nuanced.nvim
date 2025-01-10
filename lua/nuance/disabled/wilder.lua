@@ -103,7 +103,6 @@ end
 
 return {
   'gelguy/wilder.nvim',
-  enabled = false,
   events = { 'CmdlineEnter', 'UIEnter' },
 
   config = preset_one,
