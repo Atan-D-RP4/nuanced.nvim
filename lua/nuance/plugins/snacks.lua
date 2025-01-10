@@ -103,8 +103,6 @@ M.init = function()
       vim.print = _G.dd -- Override print to use snacks for `:=` command
     end,
   })
-
-  require('snacks').profiler.start()
 end
 
 return M
