@@ -174,7 +174,7 @@ M.lspconfig.config = function()
   if has_cmp then
     capabilities = vim.tbl_deep_extend('force', capabilities, cmp.get_lsp_capabilities())
   else
-    cmp = require 'cmp'
+    cmp = require 'cmp-nvim-lsp'
     capabilities = vim.tbl_deep_extend('force', capabilities, cmp.default_capabilities())
   end
 
