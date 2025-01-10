@@ -1,6 +1,6 @@
 local surround = {
   'echasnovski/mini.surround',
-  event = 'VimEnter',
+  event = 'VeryLazy',
 
   opts = {
     mappings = {
@@ -17,18 +17,13 @@ local surround = {
 }
 
 local ai = {
+  -- Better Around/Inside textobjects
   'echasnovski/mini.ai',
-  event = { 'VeryLazy', 'BufRead', 'BufNewFile' },
+  event = { 'BufRead', 'BufNewFile' },
   dependencies = {
     'nvim-treesitter/nvim-treesitter',
     'nvim-treesitter/nvim-treesitter-textobjects',
   },
-  -- Better Around/Inside textobjects
-  --
-  -- Examples:
-  --  - va)  - [V]isually select [A]round [)]paren
-  --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
-  --  - ci'  - [C]hange [I]nside [']quote
   config = function()
     require('mini.ai').setup { n_lines = 500 }
   end,
@@ -74,10 +69,26 @@ local flash = {
   },
 }
 
+local matchup = {
+  'andymass/vim-matchup',
+  event = 'VeryLazy',
+  config = function()
+    vim.g.matchup_matchparen_offscreen = { method = 'popup' }
+    require('nvim-treesitter.configs').setup {
+      matchup = {
+        enable = true, -- mandatory, false will disable the whole extension
+        disable = { 'c', 'ruby' }, -- optional, list of language that will be disabled
+      },
+    }
+  end,
+}
+
 local M = {
   surround,
   spider,
+  ai,
   flash,
+  matchup,
 }
 
 return M

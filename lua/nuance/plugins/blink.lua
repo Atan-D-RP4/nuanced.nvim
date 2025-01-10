@@ -4,7 +4,7 @@ M = {
   event = { 'InsertEnter', 'CmdlineEnter', 'LspAttach' },
 
   -- use a release tag to download pre-built binaries
-  version = 'v0.*',
+  version = 'v0.9.*',
   -- OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
   -- build = 'cargo build --release',
   -- If you use nix, you can build from source using latest nightly rust with:
@@ -36,6 +36,8 @@ M.dependencies = {
   },
 }
 
+---@module 'blink.cmp'
+---@type blink.cmp.Config
 M.opts = {
   -- experimental signature help support
   signature = { enabled = true, window = { border = 'rounded' } },
@@ -76,7 +78,11 @@ M.opts.completion = {
 
   list = {
     selection = function(ctx)
-      return ctx.mode == 'cmdline' and 'auto_insert' or 'preselect'
+      if ctx.mode == 'cmdline' then
+        return 'auto_insert'
+      else -- 'normal' or 'insert'
+        return  'preselect'
+      end
     end,
   },
 
