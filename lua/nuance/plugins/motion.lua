@@ -1,6 +1,6 @@
 local surround = {
   'echasnovski/mini.surround',
-  event = 'VeryLazy',
+  event = { 'BufRead', 'BufNewFile' },
 
   opts = {
     mappings = {
@@ -19,14 +19,47 @@ local surround = {
 local ai = {
   -- Better Around/Inside textobjects
   'echasnovski/mini.ai',
+  lazy = true,
   event = { 'BufRead', 'BufNewFile' },
   dependencies = {
     'nvim-treesitter/nvim-treesitter',
     'nvim-treesitter/nvim-treesitter-textobjects',
   },
-  config = function()
-    require('mini.ai').setup { n_lines = 500 }
-  end,
+  opts = {
+    -- Table with textobject id as fields, textobject specification as values.
+    -- Also use this to disable builtin textobjects. See |MiniAi.config|.
+    custom_textobjects = nil,
+
+    -- Module mappings. Use `''` (empty string) to disable one.
+    mappings = {
+      -- Main textobject prefixes
+      around = 'a',
+      inside = 'i',
+
+      -- Next/last textobjects
+      around_next = 'an',
+      inside_next = 'in',
+      around_last = 'al',
+      inside_last = 'il',
+
+      -- Move cursor to corresponding edge of `a` textobject
+      goto_left = '<leader>[',
+      goto_right = '<leader>]',
+    },
+
+    -- Number of lines within which textobject is searched
+    n_lines = 50,
+
+    -- How to search for object (first inside current line, then inside
+    -- neighborhood). One of 'cover', 'cover_or_next', 'cover_or_prev',
+    -- 'cover_or_nearest', 'next', 'prev', 'nearest'.
+    search_method = 'cover_or_next',
+
+    -- Whether to disable showing non-error feedback
+    -- This also affects (purely informational) helper messages shown after
+    -- idle time if user input is required.
+    silent = false,
+  },
 }
 
 local spider = {
@@ -51,12 +84,13 @@ local flash = {
     { '<leader>L', '<cmd>lua require("flash").treesitter()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash Treesitter' },
     { '<leader>r', '<cmd>lua require("flash").remote()<CR>', mode = 'o', desc = 'Remote Flash' },
     { '<leader>R', '<cmd>lua require("flash").treesitter_search()<CR>', mode = { 'o', 'x' }, desc = 'Treesitter Search' },
-    { '<c-s>', mode = { 'c' }, '<cmd>lua require("flash").toggle()<CR>', desc = 'Toggle Flash Search' },
+    { '<c-s>', mode = { 'c' }, '<cmd>lua require("flash").toggle()<CR>', desc = 'Toggle Flash Search in "/" mode' },
   },
 
   ---@type Flash.Config
   opts = {
-    labels = 'asdfghjklqwertyuiopzxcvbnm',
+    -- labels = 'asdfghjklqwertyuiopzxcvbnm',
+    labels = 'dgqftyuzxcvbnm1234567890',
     search = {
       mode = 'search',
     },

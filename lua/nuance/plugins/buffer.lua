@@ -1,5 +1,19 @@
 return {
   'tpope/vim-sleuth', -- For auto-detecting indent settings
+
+  -- The Very Featureful Navigation Bar
+  {
+    'Bekaboo/dropbar.nvim',
+    event = { 'VeryLazy', 'BufRead' },
+    keys = {
+      { '<leader>;', '<cmd>lua require("dropbar.api").pick()<CR>', desc = 'Pick symbols in Dropbar' },
+    },
+    opts = {
+      menu = {
+        win_configs = { border = 'rounded' },
+      },
+    },
+  },
   {
     -- Undotree
     'mbbill/undotree',

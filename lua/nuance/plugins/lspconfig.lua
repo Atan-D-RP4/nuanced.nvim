@@ -41,6 +41,11 @@ local mason_servers = {
       },
     },
   },
+
+  bashls = {},
+  html = {},
+  emmet_language_server = {},
+  vimls = {},
 }
 
 local external_servers = {
@@ -62,24 +67,137 @@ M.lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspInstall', 'LspUninstall' },
   ft = {
-    'typescript', 'javascript', 'html', 'css', --
-    'vim', 'lua', 'sh',
-    'python', 'rust',
-    'c', 'cpp',
+    'typescript',
+    'javascript',
+    'html',
+    'css',
+    'vim',
+    'lua',
+    'sh',
+    'python',
+    'rust',
+    'c',
+    'cpp',
   },
-}
-M.lspconfig.dependencies = {
-  -- Automatically install LSPs and related tools to stdpath for Neovim
-  {
-    'williamboman/mason.nvim',
-    config = true,
-    cmd = { 'Mason', 'MasonLog' },
-  }, -- NOTE: Must be loaded before dependants
-  'williamboman/mason-lspconfig.nvim',
-  'WhoIsSethDaniel/mason-tool-installer.nvim',
+  opts = {},
 }
 
-M.lspconfig.config = function()
+M.lazydev = {
+  -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
+  -- used for completion, annotations and signatures of Neovim apis
+  'folke/lazydev.nvim',
+  ft = 'lua',
+  events = 'VeryLazy',
+  dependencies = {
+    { 'Bilal2453/luvit-meta', lazy = true },
+  },
+  opts = {
+    library = {
+      -- Load luvit types when the `vim.uv` word is found
+      { path = 'luvit-meta/library', words = { 'vim%.uv' } },
+    },
+  },
+}
+
+M.copilot = {
+  {
+    'github/copilot.vim',
+    events = 'InsertEnter',
+    config = function()
+      vim.cmd [[
+        let g:copilot_node_command = '/usr/sbin/bun'
+      ]]
+    end,
+  },
+}
+
+M.lspconfig.dependencies = {
+  -- Automatically install LSPs and related tools to stdpath for Neovim
+  { 'williamboman/mason.nvim', config = true, cmd = { 'Mason', 'MasonLog' } }, -- NOTE: Must be loaded before dependants
+  'williamboman/mason-lspconfig.nvim',
+  'WhoIsSethDaniel/mason-tool-installer.nvim',
+
+  -- NOTE: This requires configuring of on_attach handlers for the
+  -- language servers that are running. See docs.
+  --
+  -- The Minimalist Navigation Bar
+  -- {
+  --   'SmiteshP/nvim-navic',
+  --   opts = {
+  --     click = true,
+  --   },
+  --   config = function(_, opts)
+  --     require('nvim-navic').setup(opts)
+  --     vim.o.winbar = "%{%v:lua.require'nvim-navic'.get_location()%}"
+  --   end,
+  -- },
+}
+
+M.lspconfig.opts.on_attach = function(event)
+  local nmap = require('nuance.core.utils').nmap
+  vim.lsp.set_log_level(vim.log.levels.OFF)
+
+  local cmd
+  local has_fzf, _ = pcall(require, 'fzf-lua')
+  if has_fzf then
+    cmd = '<cmd>lua require("fzf-lua").%s<CR>'
+    nmap('gws', cmd:format 'lsp_live_workspace_symbols()', 'Lsp [W]orkspace [S]ymbols')
+  else
+    cmd = '<cmd>lua require("telescope.builtin").%s<CR>'
+    nmap('gws', cmd:format 'lsp_dynamic_workspace_symbols()', 'Lsp [W]orkspace [S]ymbols')
+  end
+
+  nmap('gd', cmd:format 'lsp_definitions()', 'Lsp [G]oto [D]efinition')
+  nmap('grr', cmd:format 'lsp_references()', 'Lsp [G]oto [R]eferences') -- override `grr` mapping
+  nmap('gri', cmd:format 'lsp_implementations()', 'Lsp [G]oto [I]mplementation') -- override `gri` mapping
+  nmap('gtd', cmd:format 'lsp_typedefs()', 'Lsp [T]ype [D]efinition')
+  nmap('gus', cmd:format 'lsp_document_symbols()', 'Lsp [D]ocument [S]ymbols')
+
+  nmap('gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', '[G]oto [D]eclaration')
+  nmap('gs', '<cmd>lua vim.lsp.buf.signature_help()<CR>', '[G]et [S]ignature Help')
+  nmap('gca', '<cmd>lua vim.lsp.buf.code_action()<CR>', '[G]et [C]ode [A]ctions')
+  nmap('K', '<cmd>lua vim.lsp.buf.hover({ border = "rounded" })<CR>', 'LSP Hover Documentation')
+
+  local client = vim.lsp.get_client_by_id(event.data.client_id)
+
+  ---@diagnostic disable-next-line: param-type-mismatch
+  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+    nmap('<leader>th', function()
+      vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
+    end, '[T]oggle Inlay [H]ints')
+  end
+
+  -- The following two autocommands are used to highlight references of the
+  -- word under your cursor when your cursor rests there for a little while.
+  --    See `:help CursorHold` for information about when this is executed
+  --
+  -- When you move your cursor, the highlights will be cleared (the second autocommand).
+  ---@diagnostic disable-next-line: param-type-mismatch
+  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+    local highlight_augroup = vim.api.nvim_create_augroup('nuance-lsp-highlight', { clear = false })
+    vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+      buffer = event.buf,
+      group = highlight_augroup,
+      callback = vim.lsp.buf.document_highlight,
+    })
+
+    vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+      buffer = event.buf,
+      group = highlight_augroup,
+      callback = vim.lsp.buf.clear_references,
+    })
+
+    vim.api.nvim_create_autocmd('LspDetach', {
+      group = vim.api.nvim_create_augroup('nuance-lsp-detach', { clear = true }),
+      callback = function(event2)
+        vim.lsp.buf.clear_references()
+        vim.api.nvim_clear_autocmds { group = 'nuance-lsp-highlight', buffer = event2.buf }
+      end,
+    })
+  end
+end
+
+M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
   vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('nuance-lsp-attach', { clear = true }),
     -- NOTE: Remember that Lua is a real programming language, and as such it is possible
@@ -88,66 +206,7 @@ M.lspconfig.config = function()
     -- In this case, we create a function that lets us more easily define mappings specific
     -- for LSP related items. It sets the mode, buffer and description for us each time.
     callback = function(event)
-      local nmap = require('nuance.core.utils').nmap
-      vim.lsp.set_log_level(vim.log.levels.OFF)
-
-      local cmd
-      local has_fzf, _ = pcall(require, 'fzf-lua')
-      if has_fzf then
-        cmd = '<cmd>lua require("fzf-lua").%s<CR>'
-        nmap('gws', cmd:format 'lsp_live_workspace_symbols()', 'Lsp [W]orkspace [S]ymbols')
-      else
-        cmd = '<cmd>lua require("telescope.builtin").%s<CR>'
-
-        nmap('gws', cmd:format 'lsp_dynamic_workspace_symbols()', 'Lsp [W]orkspace [S]ymbols')
-      end
-
-      nmap('gd', cmd:format 'lsp_definitions()', 'Lsp [G]oto [D]efinition')
-      nmap('grr', cmd:format 'lsp_references()', 'Lsp [G]oto [R]eferences') -- override `grr` mapping
-      nmap('gri', cmd:format 'lsp_implementations()', 'Lsp [G]oto [I]mplementation') -- override `gri` mapping
-      nmap('gtd', cmd:format 'lsp_typedefs()', 'Lsp [T]ype [D]efinition')
-      nmap('gus', cmd:format 'lsp_document_symbols()', 'Lsp [D]ocument [S]ymbols')
-
-      nmap('gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', '[G]oto [D]eclaration')
-      nmap('gs', '<cmd>lua vim.lsp.buf.signature_help()<CR>', '[G]et [S]ignature Help')
-      nmap('gca', '<cmd>lua vim.lsp.buf.code_action()<CR>', '[G]et [C]ode [A]ctions')
-
-      -- The following two autocommands are used to highlight references of the
-      -- word under your cursor when your cursor rests there for a little while.
-      --    See `:help CursorHold` for information about when this is executed
-      --
-      -- When you move your cursor, the highlights will be cleared (the second autocommand).
-      local client = vim.lsp.get_client_by_id(event.data.client_id)
-      ---@diagnostic disable-next-line: param-type-mismatch
-      if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
-        local highlight_augroup = vim.api.nvim_create_augroup('nuance-lsp-highlight', { clear = false })
-        vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-          buffer = event.buf,
-          group = highlight_augroup,
-          callback = vim.lsp.buf.document_highlight,
-        })
-
-        vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-          buffer = event.buf,
-          group = highlight_augroup,
-          callback = vim.lsp.buf.clear_references,
-        })
-
-        vim.api.nvim_create_autocmd('LspDetach', {
-          group = vim.api.nvim_create_augroup('nuance-lsp-detach', { clear = true }),
-          callback = function(event2)
-            vim.lsp.buf.clear_references()
-            vim.api.nvim_clear_autocmds { group = 'nuance-lsp-highlight', buffer = event2.buf }
-          end,
-        })
-      end
-
-      ---@diagnostic disable-next-line: param-type-mismatch
-      if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
-        nmap('<leader>th', function()
-          vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
-        end, '[T]oggle Inlay [H]ints')
-      end
+      opts.on_attach(event)
     end,
   })
 
@@ -180,12 +239,6 @@ M.lspconfig.config = function()
 
   local servers = vim.tbl_deep_extend('force', mason_servers, external_servers)
 
-  -- Ensure the servers and tools above are installed
-  --  To check the current status of installed tools and/or manually install
-  --  other tools, you can run
-  --    :Mason
-  --
-  --  You can press `g?` for help in this menu.
   require('mason').setup()
 
   -- You can add other tools here that you want Mason to install
@@ -193,37 +246,28 @@ M.lspconfig.config = function()
   local ensure_installed = vim.tbl_keys(mason_servers or {})
 
   vim.list_extend(ensure_installed, {
-    'lua-language-server', -- Used for Lua
     'vim-language-server', -- Used for Vimscript
     'bashls', -- Used for Bash
     'stylua', -- Used to format Lua code
-    'html',
     'harper-ls', -- Used for English grammar checking
-    'emmet-language-server',
+    'emmet-language-server', -- Used for HTML
   })
   require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-
-  require('mason-lspconfig').setup {
-    handlers = {
-      function(server_name)
-        local server = servers[server_name] or {}
-        -- This handles overriding only values explicitly passed
-        -- by the server configuration above. Useful when disabling
-        -- certain features of an LSP (for example, turning off formatting for ts_ls)
-        server.capabilities = vim.tbl_extend('force', {}, capabilities, server.capabilities or {})
-        require('lspconfig')[server_name].setup(server)
-      end,
-    },
-  }
 
   local default_handlers = {
     ['textDocument/hover'] = vim.lsp.buf.hover { border = 'rounded' },
     ['textDocument/signatureHelp'] = vim.lsp.buf.signature_help { border = 'rounded' },
   }
+
   for name, config in pairs(servers) do
     require('lspconfig')[name].setup {
       autostart = config.autostart,
       cmd = config.cmd,
+      -- on_attach = function(client, bufnr)
+      --   if client.server_capabilities.documentSymbolProvider then
+      --     require('nvim-navic').attach(client, bufnr)
+      --   end
+      -- end,
       capabilities = capabilities,
       filetypes = config.filetypes,
       handlers = vim.tbl_deep_extend('force', {}, default_handlers, config.handlers or {}),
@@ -231,36 +275,31 @@ M.lspconfig.config = function()
       root_dir = config.root_dir,
     }
   end
+
+  -- NOTE: This is the mason-lspconfig way of setting up LSPs. Will only setup the LSPs
+  -- that were installed and are managed by mason
+  --
+  -- require('mason-lspconfig').setup {
+  --   handlers = {
+  --     function(server_name)
+  --       vim.print('Setting up LSP:', server_name)
+  --       local server = servers[server_name] or {}
+  --       -- This handles overriding only values explicitly passed
+  --       -- by the server configuration above. Useful when disabling
+  --       -- certain features of an LSP (for example, turning off formatting for ts_ls)
+  --       require('lspconfig')[server_name].setup(vim.tbl_extend('force', server, {
+  --         capabilities = vim.tbl_extend('force', {}, capabilities, server.capabilities or {}),
+  --         autostart = server.autostart or true,
+  --         cmd = server.cmd,
+  --         handlers = vim.tbl_deep_extend('force', {}, default_handlers, server.handlers or {}),
+  --         filetypes = server.filetypes,
+  --         settings = server.settings,
+  --         root_dir = server.root_dir,
+  --       }))
+  --     end,
+  --   },
+  -- }
 end
-
-M.lazydev = {
-  -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
-  -- used for completion, annotations and signatures of Neovim apis
-  'folke/lazydev.nvim',
-  ft = 'lua',
-  events = 'VeryLazy',
-  dependencies = {
-    { 'Bilal2453/luvit-meta', lazy = true },
-  },
-  opts = {
-    library = {
-      -- Load luvit types when the `vim.uv` word is found
-      { path = 'luvit-meta/library', words = { 'vim%.uv' } },
-    },
-  },
-}
-
-M.copilot = {
-  {
-    'github/copilot.vim',
-    events = 'InsertEnter',
-    config = function()
-      vim.cmd [[
-        let g:copilot_node_command = '/usr/sbin/bun'
-      ]]
-    end,
-  },
-}
 
 return {
   M.lazydev,

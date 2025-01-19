@@ -220,7 +220,7 @@ local statusline = {
 -- So using that instead
 local notify = {
   'echasnovski/mini.notify',
-  event = 'VimEnter',
+  event = 'VeryLazy',
 }
 
 local themes = {
@@ -370,10 +370,11 @@ local which_key = { -- Useful plugin to show you pending keybinds.
       { '<leader>d', group = '[D]ocument' },
       { '<leader>f', group = '[F]uzzy Find' },
       { '<leader>t', group = '[T]oggle' },
-      { '<leader>a', group = 'Session', mode = 'n' },
       { '<leader>s', group = '[S]urround', mode = 'n' },
-      { '<leader>e', group = 'Buffer-Switching', mode = 'n' },
       { '<leader>g', group = '[G]it', mode = 'n' },
+      { '<leader>x', group = 'Trouble' },
+      { '<leader>a', group = 'Session', mode = 'n' },
+      { '<leader>e', group = 'Buffer-Switching', mode = 'n' },
     },
   },
 }
@@ -384,7 +385,8 @@ local M = {
   tabline,
   icons,
   which_key,
-  -- noice,
+  -- notify,
+  noice,
   -- transparent,
 }
 

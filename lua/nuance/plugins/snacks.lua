@@ -3,53 +3,6 @@ local M = {
   lazy = false,
 }
 
-M.keys = {
-  { '<leader>z', '<cmd>lua Snacks.zen()<CR>', desc = 'Toggle Zen Mode' },
-  { '<leader>Z', '<cmd>lua Snacks.zen.zoom()<CR>', desc = 'Toggle Zoom' },
-  { '<leader>.', '<cmd>lua Snacks.scratch()<CR>', desc = 'Toggle Scratch Buffer' },
-  { '<leader>S', '<cmd>lua Snacks.scratch.select()<CR>', desc = 'Select Scratch Buffer' },
-  { '<leader>tn', '<cmd>lua Snacks.notifier.show_history()<CR>', desc = 'Notification History' },
-  { '<leader>dn', '<cmd>lua Snacks.notifier.hide()<CR>', desc = 'Dismiss All Notifications' },
-  { '<leader>dd', '<cmd>lua Snacks.bufdelete()<CR>', desc = 'Delete Buffer' },
-  { '<leader>cR', '<cmd>lua Snacks.rename.rename_file()<CR>', desc = 'Rename File' },
-  { '<leader>gB', '<cmd>lua Snacks.gitbrowse()<CR>', desc = 'Git Browse', mode = { 'n', 'v' } },
-  { '<leader>gb', '<cmd>lua Snacks.git.blame_line()<CR>', desc = 'Git Blame Line' },
-  -- { '<c-/>', '<cmd>lua Snacks.terminal()<CR>', desc = 'Toggle Terminal' },
-  -- { '<c-_>', '<cmd>lua Snacks.terminal()<CR>', desc = 'which_key_ignore' },
-  -- { ']]', '<cmd>lua Snacks.words.jump(vim.v.count1)<CR>', desc = 'Next Reference', mode = { 'n', 't' } },
-  -- { '[[', '<cmd>lua Snacks.words.jump(-vim.v.count1)<CR>', desc = 'Prev Reference', mode = { 'n', 't' } },
-  {
-    '<leader>N',
-    desc = 'Neovim News',
-    function()
-      require('snacks').bufdelete()
-      Snacks.win {
-        file = vim.api.nvim_get_runtime_file('doc/news.txt', false)[1],
-        width = 0.6,
-        height = 0.6,
-        wo = {
-          spell = false,
-          wrap = false,
-          signcolumn = 'yes',
-          statuscolumn = ' ',
-          conceallevel = 3,
-        },
-      }
-    end,
-  },
-
-  -- Create some toggle mappings
-  { '<leader>ts', "<cmd>lua Snacks.toggle.option('spell', { name = 'Spelling' }):toggle()<CR>" },
-  { '<leader>tw', "<cmd>lua Snacks.toggle.option('wrap', { name = 'Wrap' }):toggle()<CR>" },
-  { '<leader>tL', "<cmd>lua Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):toggle()<CR>" },
-  { '<leader>td', '<cmd>lua Snacks.toggle.diagnostics():toggle()<CR>' },
-  { '<leader>tl', '<cmd>lua Snacks.toggle.line_number():toggle()<CR>' },
-  { '<leader>tT', '<cmd>lua Snacks.toggle.treesitter():toggle()<CR>' },
-  { '<leader>tb', "<cmd>lua Snacks.toggle.option('background', { off = 'light', on = 'dark', name = 'Dark Background' }):toggle()<CR>" },
-  { '<leader>ti', '<cmd>lua Snacks.toggle.indent():toggle()<CR>' },
-  { '<leader>tf', '<cmd>lua Snacks.toggle.dim():toggle()<CR>' },
-}
-
 ---@type snacks.Config
 M.opts = {
   dim = {
@@ -57,17 +10,17 @@ M.opts = {
     -- or leave it empty to use the default settings
     -- refer to the configuration section below
   },
-  profiler = { enabled = true },
+  profiler = { enabled = false },
   bigfile = { enabled = true },
-  scope = { enabled = true },
+  quickfile = { enabled = true },
+  scope = { enabled = true }, -- tpope/vim-sleuth is just better for this
   indent = { enabled = true },
   input = { enabled = true },
-  dashboard = { enabled = true },
+  dashboard = { enabled = false },
   notifier = {
     enabled = true,
     timeout = 3000,
   },
-  quickfile = { enabled = true },
   styles = {
     notification = {
       wo = { wrap = true }, -- Wrap notifications
@@ -104,5 +57,59 @@ M.init = function()
     end,
   })
 end
+
+M.keys = {
+  { '<leader>z', '<cmd>lua Snacks.zen()<CR>', desc = 'Toggle Zen Mode' },
+  { '<leader>Z', '<cmd>lua Snacks.zen.zoom()<CR>', desc = 'Toggle Zoom' },
+  { '<leader>.', '<cmd>lua Snacks.scratch()<CR>', desc = 'Toggle Scratch Buffer' },
+  { '<leader>S', '<cmd>lua Snacks.scratch.select()<CR>', desc = 'Select Scratch Buffer' },
+  { '<leader>tn', '<cmd>lua Snacks.notifier.show_history()<CR>', desc = 'Notification History' },
+  { '<leader>dn', '<cmd>lua Snacks.notifier.hide()<CR>', desc = 'Dismiss All Notifications' },
+  { '<leader>dd', '<cmd>lua Snacks.bufdelete()<CR>', desc = 'Delete Buffer' },
+  { '<leader>cR', '<cmd>lua Snacks.rename.rename_file()<CR>', desc = 'Rename File' },
+  { '<leader>gB', '<cmd>lua Snacks.gitbrowse()<CR>', desc = 'Git Browse', mode = { 'n', 'v' } },
+
+  -- Create some toggle mappings
+  { '<leader>ts', "<cmd>lua Snacks.toggle.option('spell', { name = 'Spelling' }):toggle()<CR>", desc = '[T]oggle [S]pell' },
+  { '<leader>tw', "<cmd>lua Snacks.toggle.option('wrap', { name = 'Wrap' }):toggle()<CR>", desc = 'Toggle [W]rap' },
+  { '<leader>tL', "<cmd>lua Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):toggle()<CR>", desc = '[T]oggle [R]elative Numbers' },
+  { '<leader>td', '<cmd>lua Snacks.toggle.diagnostics():toggle()<CR>', desc = '[T]oggl [D]iagnosticse' },
+  { '<leader>tl', '<cmd>lua Snacks.toggle.line_number():toggle()<CR>', desc = '[T]oggle [L]ine Numbers' },
+  { '<leader>tT', '<cmd>lua Snacks.toggle.treesitter():toggle()<CR>', desc = '[T]oggle [T]reesitter' },
+  { '<leader>ti', '<cmd>lua Snacks.toggle.indent():toggle()<CR>', desc = '[T]oggle [I]ndent' },
+  { '<leader>tf', '<cmd>lua Snacks.toggle.dim():toggle()<CR>', desc = '[T]oggle [F]ocus' },
+  --
+  -- {
+  --   '<leader>N',
+  --   desc = 'Neovim News',
+  --   function()
+  --     require('snacks').bufdelete()
+  --     Snacks.win {
+  --       file = vim.api.nvim_get_runtime_file('doc/news.txt', false)[1],
+  --       width = 0.6,
+  --       height = 0.6,
+  --       wo = {
+  --         spell = false,
+  --         wrap = false,
+  --         signcolumn = 'yes',
+  --         statuscolumn = ' ',
+  --         conceallevel = 3,
+  --       },
+  --     }
+  --   end,
+  -- },
+  --
+  --
+  -- { '<c-/>', '<cmd>lua Snacks.terminal()<CR>', desc = 'Toggle Terminal' },
+  -- { '<c-_>', '<cmd>lua Snacks.terminal()<CR>', desc = 'which_key_ignore' },
+  -- { ']]', '<cmd>lua Snacks.words.jump(vim.v.count1)<CR>', desc = 'Next Reference', mode = { 'n', 't' } },
+  -- { '[[', '<cmd>lua Snacks.words.jump(-vim.v.count1)<CR>', desc = 'Prev Reference', mode = { 'n', 't' } },
+  --
+  -- {
+  --   '<leader>tb',
+  --   "<cmd>lua Snacks.toggle.option('background', { off = 'light', on = 'dark', name = 'Dark Background' }):toggle()<CR>",
+  --   desc = '[T]oggle [B]ackground',
+  -- },
+}
 
 return M

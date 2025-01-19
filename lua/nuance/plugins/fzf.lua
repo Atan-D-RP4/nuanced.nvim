@@ -7,7 +7,6 @@ M = {
 
 M.dependencies = {
   'nvim-lua/plenary.nvim',
-  'ThePrimeagen/git-worktree.nvim',
   {
     'junegunn/fzf',
     optional = true,
@@ -23,8 +22,16 @@ M.dependencies = {
   },
 }
 
+M.config = function(_, opts)
+  -- Use fzf-lua as the default ui
+  vim.defer_fn(function()
+    require('fzf-lua').register_ui_select()
+  end, 100)
+  require('fzf-lua').setup(opts)
+end
+
 M.keys = {
-  { '<leader>ef', '<cmd>lua require("fzf-lua").buffers()<CR>', desc = '[E]xisting Buffers [F]zf', mode = 'n' },
+  { '<leader>ef', '<cmd>lua require("fzf-lua").buffers({sort_mru=true, sort_lastused=true})<CR>', desc = '[E]xisting Buffers [F]zf', mode = 'n' },
 
   { '<leader>gc', '<cmd>lua require("fzf-lua").git_commits()<CR>', desc = 'Fzf [G]it [c]ommit', mode = 'n' },
   { '<leader>gs', '<cmd>lua require("fzf-lua").git_status()<CR>', desc = 'Fzf [G]it [s]tatus', mode = 'n' },
@@ -36,18 +43,16 @@ M.keys = {
   { '<leader>ff', '<cmd>lua require("fzf-lua").files()<CR>', desc = '[F]zf [F] files', mode = 'n' },
   { '<leader>fs', '<cmd>lua require("fzf-lua").lsp_document_symbols()<CR>', desc = '[F]zf Document [S]ymbols', mode = 'n' },
   { '<leader>fn', '<cmd>lua require("fzf-lua").files({ cwd = vim.fn.stdpath "config", follow = true })<CR>', desc = '[F]zf [N]eovim Config', mode = 'n' },
-  -- { '<leader>fc', '<cmd>lua require("fzf-lua").command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
-  -- { '<leader>fd', '<cmd>lua require("fzf-lua").lsp_document_diagnostics()<CR>', desc = '[F]zf [D]iagnostics', mode = 'n' },
+  { '<leader>f:', '<cmd>lua require("fzf-lua").command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
 }
 
 M.opts = {
-  'max_pref',
-  -- Toggle preview with `Ctrl-p`
-  -- keymap = {
-  --   fzf = {
-  --     ['ctrl-q'] = "jump-accept",
-  --   },
-  -- },
+  'max-perf',
+  keymap = {
+    fzf = {
+      ['ctrl-q'] = 'jump',
+    },
+  },
   grep = {
     glob_separator = '  ',
     rg_glob = true, -- enable glob parsing
@@ -55,30 +60,24 @@ M.opts = {
       ---@type string, string
       local search_query, glob_args = query:match(('(.*)%s(.*)'):format(opts.glob_separator))
       -- UNCOMMENT TO DEBUG PRINT INTO FZF
-      if glob_args then
-        io.write(('q: %s -> flags: %s, query: %s\n'):format(query, glob_args, search_query))
-      end
+      -- if glob_args then
+      --   io.write(('q: %s -> flags: %s, query: %s\n'):format(query, glob_args, search_query))
+      -- end
       return search_query, glob_args
     end,
   },
   winopts = {
     preview = {
+      layout = 'vertical',
       hidden = 'hidden',
       default = 'bat_native',
     },
-    win_height = 0.85,
-    win_width = 0.80,
-    win_row = 0.30,
-    win_col = 0.50,
+    height = 0.85,
+    width = 0.85,
+    row = 0.50,
+    col = 0.50,
   },
 }
-
-M.config = function()
-  -- Use fzf-lua as the default ui
-  vim.defer_fn(function()
-    require('fzf-lua').register_ui_select()
-  end, 100)
-end
 
 return M
 

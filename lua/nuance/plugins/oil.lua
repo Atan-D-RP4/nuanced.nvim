@@ -3,7 +3,7 @@ local M = {
   version = '*',
   cmd = 'Oil',
 
-  keys = { { '<leader>o', '<cmd>lua require("oil").toggle_float()<CR>', mode = 'n', desc = 'Open Oil Window' } },
+  keys = { { '<leader>o', '<cmd>lua require("oil").open()<CR>', mode = 'n', desc = 'Open Oil Window' } },
 
   init = function()
     ---@diagnostic disable-next-line: param-type-mismatch
@@ -51,19 +51,30 @@ M.opts.win_options = {
 M.opts.lsp_file_methods = {
   enabled = true,
   timeout_ms = 1000,
-  autosave_changes = false,
+  autosave_changes = 'unmodified',
 }
 
 M.opts.keymaps = {
-  ['g?'] = 'actions.show_help',
-  ['l'] = 'actions.select',
+  ['<leader>ff'] = {
+    function()
+      require('fzf-lua').files { cwd = require('oil').get_current_dir(), follow = true }
+    end,
+  },
+  ['<CR>'] = {},
+  ['<C-l>'] = 'actions.refresh',
+  ['<C-x>'] = '',
   ['<C-s>'] = { 'actions.select', opts = { vertical = true }, desc = 'Open the entry in a vertical split' },
   ['<C-h>'] = { 'actions.select', opts = { horizontal = true }, desc = 'Open the entry in a horizontal split' },
   ['<C-t>'] = { 'actions.select', opts = { tab = true }, desc = 'Open the entry in new tab' },
   ['<C-p>'] = 'actions.preview',
+  ['<Right>'] = 'actions.select',
+  ['l'] = 'actions.select',
   ['q'] = 'actions.close',
-  ['<C-l>'] = 'actions.refresh',
-  ['<C-x>'] = '',
+  ['='] = {
+    function()
+      vim.cmd 'w'
+    end,
+  }, -- Save the current buffer
   ['-'] = 'actions.parent',
   ['_'] = 'actions.open_cwd',
   ['`'] = 'actions.cd',
@@ -72,7 +83,7 @@ M.opts.keymaps = {
   ['gx'] = 'actions.open_external',
   ['g.'] = 'actions.toggle_hidden',
   ['g\\'] = 'actions.toggle_trash',
-  ['<Right>'] = 'actions.select',
+  ['g?'] = 'actions.show_help',
 }
 
 M.opts.view_options = {
@@ -83,8 +94,8 @@ M.opts.view_options = {
     return vim.startswith(name, '.')
   end,
 
-  is_always_hidden = function(_, _) -- function(name, bufnr)
-    return false
+  is_always_hidden = function(name, _) -- function(name, bufnr)
+    return name == '..' or name == '.git'
   end,
 
   case_insensitive = false,
@@ -107,23 +118,23 @@ M.opts.git = {
   end,
 }
 
-M.opts.float = {
-  padding = 5,
-  max_width = 0,
-  max_height = 0,
-  border = 'rounded',
-
-  win_options = {
-    winblend = 0,
-  },
-
-  get_win_title = nil,
-  preview_split = 'auto',
-
-  override = function(conf)
-    return conf
-  end,
-}
+-- M.opts.float = {
+--   padding = 5,
+--   max_width = 0,
+--   max_height = 0,
+--   border = 'rounded',
+--
+--   win_options = {
+--     winblend = 0,
+--   },
+--
+--   get_win_title = nil,
+--   preview_split = 'auto',
+--
+--   override = function(conf)
+--     return conf
+--   end,
+-- }
 
 ---@class M.opts
 M.opts.preview = {

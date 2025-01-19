@@ -1,6 +1,7 @@
 M = {
   'nvim-treesitter/nvim-treesitter-textobjects',
   event = { 'BufRead', 'BufNewFile' },
+  enabled = true,
 
   dependencies = { 'nvim-treesitter/nvim-treesitter' },
   main = 'nvim-treesitter.configs',
