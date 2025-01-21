@@ -1,6 +1,6 @@
 return {
   'tpope/vim-sleuth', -- For auto-detecting indent settings
-
+  -- { 'wurli/contextindent.nvim', dependencies = { 'nvim-treesitter/nvim-treesitter' } },
   -- The Very Featureful Navigation Bar
   {
     'Bekaboo/dropbar.nvim',

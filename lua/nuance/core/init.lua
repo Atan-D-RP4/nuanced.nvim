@@ -9,5 +9,5 @@ vim.api.nvim_create_autocmd('User', {
 })
 require('nuance.core.clipboard')
 require('nuance.core.keymaps')
-require('nuance.core.options')
 require('nuance.core.utils')
+require('nuance.core.options')

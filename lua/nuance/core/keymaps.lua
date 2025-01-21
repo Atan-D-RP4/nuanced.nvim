@@ -24,6 +24,8 @@ local maps = {
   -- NOTE: This won't work in all terminal emulators/tmux/etc. Try other mappings
   -- or just use <C-\><C-n> to exit terminal mode
   { 't', '<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode' },
+  { 't', '<M-r>', [['<C-\><C-N>"'.nr2char(getchar()).'pi']], { desc = 'Vim Register Select in Terminal Mode', expr = true } },
+
   { 't', '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
   { 'n', '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
   { { 'n', 't' }, '<C-w><C-t>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },

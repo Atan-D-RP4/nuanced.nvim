@@ -22,26 +22,6 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
--- -- Trigger an Autocommand everytime the buffer list changes
--- vim.api.nvim_create_autocmd({'BufAdd', 'BufDelete'}, {
---   desc = 'Trigger an Autocommand everytime the buffer list changes',
---   group = augroup('buffer-list-changes'),
---   callback = function()
---     if vim.g.listed_bufs == nil then
---       vim.g.listed_bufs = {}
---     else
---     end
---     local buffers = vim.api.nvim_list_bufs()
---     local tab_idx = 1
---     for _, buf in ipairs(buffers) do
---       if vim.api.nvim_buf_is_loaded(buf) then
---         vim.g.listed_bufs[tab_idx] = buf
---         tab_idx = tab_idx + 1
---       end
---     end
---   end,
--- })
-
 vim.api.nvim_create_autocmd({ 'RecordingEnter', 'RecordingLeave' }, {
   callback = function(ev)
     -- NOTE: The oneliner that follows is equivalent to the if-else block below
