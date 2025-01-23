@@ -31,10 +31,11 @@ local maps = {
   { { 'n', 't' }, '<C-w><C-t>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
 
   -- NOTE: Disable arrow keys in normal mode
-  { 'n', '<left>', '<cmd>echo "Use h to move!!"<CR>' },
-  { 'n', '<right>', '<cmd>echo "Use l to move!!"<CR>' },
-  { 'n', '<up>', '<cmd>echo "Use k to move!!"<CR>' },
-  { 'n', '<down>', '<cmd>echo "Use j to move!!"<CR>' },
+  --  See `:help nvim-tui-typing`
+  { 'n', '<up>', '<cmd>execute "normal! k" | lua vim.notify("Tip: Use j to move down", vim.log.levels.INFO)<CR>' },
+  { 'n', '<down>', '<cmd>execute "normal! j" | lua vim.notify("Tip: Use k to move up", vim.log.levels.INFO)<CR>' },
+  { 'n', '<left>', '<cmd>execute "normal! h" | lua vim.notify("Tip: Use l to move right", vim.log.levels.INFO)<CR>' },
+  { 'n', '<right>', '<cmd>execute "normal! l" | lua vim.notify("Tip: Use h to move left", vim.log.levels.INFO)<CR>' },
 
   -- Keybinds to make split navigation easier.
   --  Use CTRL+<hjkl> to switch between windows
@@ -75,7 +76,7 @@ local maps = {
 
   { { 'n', 'v' }, '<S-w>', 'b' },
 
-  { 'n', '<leader>.', ':<Up><CR>', 'Repeat Last Ex Command' },
+  { 'n', '<leader>:', ':<Up><CR>', 'Repeat Last Ex Command' },
 
   -- Smarter Bracket Insertion
   { 'i', '(;', '(<CR>);<Esc>O' },
@@ -144,40 +145,33 @@ vim.tbl_map(
   function(keys)
     require('nuance.core.utils').nmap(keys.cmd, keys.callback, keys.desc)
   end,
-  vim.tbl_map(function(i)
+  vim.tbl_map(function(index)
     return {
-      desc = string.format('Jump to buffer %d', i),
-      cmd = string.format('<leader>e%d', i),
+      desc = string.format('Jump to buffer %d', index),
+      cmd = string.format('<leader>e%d', index),
       callback = function()
-        local cmd = 'ls'
-        local bufs_out = vim.api.nvim_exec2(cmd, { output = true }).output
-        local bufs = vim.split(bufs_out, '\n', { trimempty = true })
-        local items = vim.tbl_map(function(s)
-          local o = {
-            id = 0,
-            -- name = '',
-            -- classifiers = '     ', -- see :help ls for more info
-          }
-          o = setmetatable({}, o)
-
-          o.id = tonumber(vim.split(s, ' ', { trimempty = true })[1])
-          -- o.classifiers = s:sub(4, 8)
-          --
-          -- local ss = s:find '"'
-          -- local se = #s - s:reverse():find '"'
-          --
-          -- o.name = s:sub(ss + 1, se)
-          --
-          return o
-        end, bufs)
-
-        if i > #items or i == 0 then
-          vim.notify('Buffer index out of range', vim.log.levels.DEBUG)
+        local ok, bufs = pcall(vim.api.nvim_list_bufs)
+        if not ok then
+          vim.notify('Failed to list buffers', vim.log.levels.ERROR)
           return
         end
 
-        -- Jump to the nth buffer
-        vim.api.nvim_set_current_buf(items[i].id)
+        local valid_bufs = vim.tbl_filter(function(buf)
+          return vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buflisted
+        end, bufs)
+
+        if index > #valid_bufs then
+          vim.notify('Buffer index out of range', vim.log.levels.WARN)
+          return
+        end
+
+        local target_buf = valid_bufs[index]
+        if target_buf then
+          local ok, err = pcall(vim.api.nvim_set_current_buf, target_buf)
+          if not ok then
+            vim.notify('Failed to switch buffer: ' .. err, vim.log.levels.ERROR)
+          end
+        end
       end,
     }
   end, { 1, 2, 3, 4, 5, 6, 7, 8, 9 })

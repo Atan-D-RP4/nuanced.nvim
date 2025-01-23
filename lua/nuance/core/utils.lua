@@ -41,7 +41,7 @@ end
 ---@param modes string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
 ---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
----@param opts? vim.keymap.set.Opts
+---@param opts? vim.keymap.set.Opts|string
 M.map = function(modes, lhs, rhs, opts)
   M.unmap(modes, lhs)
   -- Set new mapping
@@ -57,7 +57,7 @@ end
 
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
 ---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
----@param opts? vim.keymap.set.Opts
+---@param opts? vim.keymap.set.Opts|string
 M.nmap = function(lhs, rhs, opts)
   M.map('n', lhs, rhs, opts)
 end
@@ -211,23 +211,6 @@ M.toggleterm = function()
     vim.api.nvim_win_set_config(M.win, { hide = true })
     vim.api.nvim_set_current_win(vim.fn.win_getid(vim.fn.winnr '#'))
   end
-end
-
-M.netrw_setup = function()
-  vim.g.netrw_banner = 0
-  vim.g.netrw_fastbrowse = 1
-  vim.g.netrw_keepdir = 1
-  vim.g.netrw_silent = 1
-  vim.g.netrw_special_syntax = 1
-  vim.g.netrw_bufsettings = 'noma nomod nonu nowrap ro nobl relativenumber'
-  vim.g.netrw_liststyle = 3
-  vim.g.netrw_browse_split = 4
-  vim.cmd [[
-    let g:netrw_list_hide = netrw_gitignore#Hide()
-    let g:netrw_list_hide.=',\(^\|\s\s\)\zs\.\S\+'
-  ]]
-  -- vim.g.EasyMotion_startofline = 0
-  -- vim.g.EasyMotion_smartcase = 1
 end
 
 M.buftab_setup = function()

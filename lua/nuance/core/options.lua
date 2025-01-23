@@ -11,17 +11,13 @@ opt.isfname:append '@-@'
 
 opt.cmdheight = 0
 
-if vim.fn.executable '/bin/fish' == 1 then
-  opt.shell = '/bin/fish'
-else
-  opt.shell = '/bin/bash'
-end
+opt.shell = vim.fn.executable '/bin/fish' == 1 and '/bin/fish' or '/bin/bash'
 
 opt.gcr = {
   'i-c-ci-ve:-block-TermCursor',
-  'n-v:block-Curosr/lCursor',
-  'o:hor50-Curosr/lCursor',
-  'r-cr:hor20-Curosr/lCursor',
+  'n-v:block-Cursor/lCursor',
+  'o:hor50-Cursor/lCursor',
+  'r-cr:hor20-Cursor/lCursor',
 }
 
 opt.termguicolors = true -- set term gui colors (most terminals support this)
@@ -30,12 +26,12 @@ opt.termguicolors = true -- set term gui colors (most terminals support this)
 -- opt.shortmess:append 's'
 
 -- set messagesopt
-if vim.fn.exists('messagesopt') == 1 then
+if vim.fn.exists 'messagesopt' == 1 then
   opt.messagesopt:append 'wait:500'
   opt.messagesopt:remove 'hit-enter'
 end
 
--- separate vim plugins from neovim in case vim still in use
+-- Separate vim plugins from neovim in case vim still in use
 opt.runtimepath:remove '/usr/share/vim/vimfiles'
 
 opt.foldenable = false
@@ -103,7 +99,7 @@ opt.display = 'truncate'
 opt.signcolumn = 'number'
 
 -- Decrease update time
-opt.updatetime = 250
+opt.updatetime = 300
 
 -- Decrease mapped sequence wait time
 -- Displays which-key popup sooner
@@ -119,8 +115,8 @@ opt.splitbelow = true
 --  See `:help 'list'`
 --  and `:help 'listchars'`
 opt.list = true
-opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
-opt.fillchars = { vert = '│', eob = ' ' }
+opt.listchars = { tab = '» ', trail = '·', nbsp = '␣', extends = '›', precedes = '‹' }
+opt.fillchars = { vert = '│', fold = '·', eob = ' ', diff = '─', msgsep = '‾', foldopen = '▾', foldsep = '│', foldclose = '▸' }
 
 -- go to previous/next line with h,l,left arrow and right arrow
 -- when cursor reaches end/beginning of line
@@ -148,9 +144,32 @@ opt.path:append '**'
 opt.autoread = true
 
 -- Create directories if they don't exist
-vim.fn.mkdir(vim.fn.expand '~/.vim/undo.nvim', 'p')
-vim.fn.mkdir(vim.fn.expand '~/.vim/backup.nvim', 'p')
-vim.fn.mkdir(vim.fn.expand '~/.vim/swap.nvim', 'p')
+local function ensure_directory(path)
+  local ok, err = vim.loop.fs_mkdir(path, 493) -- 0755 in octal
+  if not ok and err ~= 'EEXIST' then
+    return false
+  end
+  return true
+end
+
+local cache_dir = vim.fn.stdpath 'cache'
+local dirs = {
+  cache_dir .. '/undo',
+  cache_dir .. '/backup',
+  cache_dir .. '/swap',
+}
+
+for _, dir in ipairs(dirs) do
+  if ensure_directory(dir) then
+    if dir:match 'undo$' then
+      opt.undodir = dir
+    elseif dir:match 'backup$' then
+      opt.backupdir = dir
+    elseif dir:match 'swap$' then
+      opt.directory = dir
+    end
+  end
+end
 
 -- add binaries installed by mason.nvim to path
 local is_windows = vim.fn.has 'win32' ~= 0
@@ -158,5 +177,17 @@ local sep = is_windows and '\\' or '/'
 local delim = is_windows and ';' or ':'
 vim.env.PATH = table.concat({ vim.fn.stdpath 'data', 'mason', 'bin' }, sep) .. delim .. vim.env.PATH
 
-require('nuance.core.utils').netrw_setup()
+vim.g.netrw_banner = 0
+vim.g.netrw_fastbrowse = 1
+vim.g.netrw_keepdir = 1
+vim.g.netrw_silent = 1
+vim.g.netrw_special_syntax = 1
+vim.g.netrw_bufsettings = 'noma nomod nonu nowrap ro nobl relativenumber'
+vim.g.netrw_liststyle = 3
+vim.g.netrw_browse_split = 4
+vim.cmd [[
+    let g:netrw_list_hide = netrw_gitignore#Hide()
+    let g:netrw_list_hide.=',\(^\|\s\s\)\zs\.\S\+'
+  ]]
+
 -- vim: ts=2 sts=2 sw=2 et
