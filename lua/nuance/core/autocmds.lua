@@ -58,6 +58,8 @@ vim.api.nvim_create_autocmd('BufWritePre', {
 
 -- Close buffer if the terminal is closed
 vim.api.nvim_create_autocmd({ 'TermClose', 'TermOpen' }, {
+  desc = 'Terminal Buffer Management',
+  group = augroup 'term-management',
   pattern = '*',
   callback = function(ev)
     if ev.event == 'TermClose' then
@@ -71,15 +73,6 @@ vim.api.nvim_create_autocmd({ 'TermClose', 'TermOpen' }, {
       vim.opt.spell = false
       vim.opt.number = false
     end
-  end,
-})
-
-vim.api.nvim_create_autocmd('TermOpen', {
-  pattern = '*',
-  callback = function()
-    vim.opt.relativenumber = false
-    vim.opt.spell = false
-    vim.opt.number = false
   end,
 })
 
@@ -139,6 +132,7 @@ vim.api.nvim_create_autocmd('FileType', {
     'neotest-output-panel',
     'neotest-summary',
     'notify',
+    'git',
     'fugitive',
     'qf',
     'spectre_panel',

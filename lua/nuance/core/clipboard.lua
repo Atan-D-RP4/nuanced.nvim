@@ -11,9 +11,9 @@ vim.schedule(function()
   local os_name = vim.loop.os_uname().sysname
 
   -- Platform-specific clipboard configuration
+    vim.opt.clipboard = 'unnamedplus,unnamed'
   if os_name == 'Windows_NT' then
     -- Native Windows configuration
-    vim.opt.clipboard = 'unnamedplus'
     vim.g.clipboard = {
       name = 'Windows Clipboard',
       copy = {
@@ -50,7 +50,7 @@ vim.schedule(function()
     }
   elseif os.getenv("WSL_DISTRO_NAME") then
     -- WSL (Windows Subsystem for Linux) configuration
-    vim.opt.clipboard = 'unnamedplus'
+    vim.opt.clipboard = 'unnamedplus,unnamed'
     vim.g.clipboard = {
       name = 'WslClipboard',
       copy = {
@@ -63,8 +63,5 @@ vim.schedule(function()
       },
       cache_enabled = 0,
     }
-  else
-    -- Default Linux configuration
-    vim.opt.clipboard = 'unnamedplus,unnamed'
   end
 end)
