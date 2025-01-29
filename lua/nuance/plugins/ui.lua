@@ -328,6 +328,9 @@ local which_key = { -- Useful plugin to show you pending keybinds.
   'folke/which-key.nvim',
   event = 'VimEnter', -- Sets the loading event to 'VimEnter'
   opts = {
+    expand = function(node)
+      return not node.desc
+    end,
     icons = {
       -- set icon mappings to true if you have a Nerd Font
       mappings = vim.g.have_nerd_font,
@@ -379,6 +382,16 @@ local which_key = { -- Useful plugin to show you pending keybinds.
   },
 }
 
+local markview = {
+  'OXY2DEV/markview.nvim',
+  lazy = false,
+  ft = { 'markdown', 'typst' },
+  ---@module 'markview.nvim'
+  ---@type mkv.config
+  opts = {
+  },
+}
+
 local M = {
   themes.witch,
   statusline,
@@ -388,6 +401,7 @@ local M = {
   -- notify,
   noice,
   -- transparent,
+  -- markview,
 }
 
 return M

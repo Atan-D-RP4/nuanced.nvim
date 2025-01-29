@@ -40,7 +40,7 @@ M.dependencies = {
 ---@type blink.cmp.Config
 M.opts = {
   -- experimental signature help support
-  signature = { enabled = true, window = { border = 'rounded' } },
+  -- signature = { enabled = true, window = { border = 'rounded' } },
 
   appearance = {
     -- Sets the fallback highlight groups to nvim-cmp's highlight groups
@@ -81,14 +81,15 @@ M.opts.completion = {
       if ctx.mode == 'cmdline' then
         return 'auto_insert'
       else -- 'normal' or 'insert'
-        return  'preselect'
+        return 'preselect'
       end
     end,
   },
 
-  -- documentation = {
-  --   auto_show = true,
-  -- },
+  documentation = {
+    -- auto_show = true,
+    window = { border = 'rounded' },
+  },
 }
 
 -- default list of enabled providers defined so that you can extend it
@@ -130,7 +131,7 @@ M.opts.sources = {
       return { 'buffer' }
     end
     if type == ':' then
-      if vim.fn.getcmdline():sub(1, 1) == '!' or vim.fn.getcmdline():sub(1, 6) == 'Launch' then
+      if vim.fn.getcmdline():match '.*!' ~= nil or vim.fn.getcmdline():sub(1, 6) == 'Launch' then
         return { 'path', 'buffer' }
       end
       return { 'cmdline' }
