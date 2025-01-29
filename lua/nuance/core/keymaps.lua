@@ -135,10 +135,19 @@ local maps = {
     end,
     'Better Paste Action',
   },
+  {
+    { 'n', 'x' },
+    'y',
+    function()
+      vim.g.cur_yank_pre = vim.api.nvim_win_get_cursor(0)
+      vim.api.nvim_feedkeys('y', 'n', true)
+    end,
+    { desc = 'Set Cursor Pos and Yank', expr = true },
+  },
 }
 
 vim.tbl_map(function(map)
-  require('nuance.core.utils').map(map[1], map[2], map[3], map[4] or {})
+  require('nuance.core.utils').map(map[1], map[2], map[3] or '', map[4] or {})
 end, maps)
 
 vim.tbl_map(
@@ -176,5 +185,56 @@ vim.tbl_map(
     }
   end, { 1, 2, 3, 4, 5, 6, 7, 8, 9 })
 )
+
+vim.tbl_map(function(map)
+  local lhs = '<C-w>' .. map[2]
+  local rhs = function()
+    vim.api.nvim_command('wincmd ' .. map[2])
+    vim.api.nvim_input '<C-W>'
+  end
+  require('nuance.core.utils').map(map[1], lhs, rhs or '', map[3] or {})
+end, {
+  { 'n', 'w', 'Window: Go to previous' },
+  { 'n', 'j', 'Window: Go down' },
+  { 'n', 'k', 'Window: Go up' },
+  { 'n', 'h', 'Window: Go left' },
+  { 'n', 'l', 'Window: Go right' },
+  { 'n', 's', 'Window: Split horizontal' },
+  { 'n', 'v', 'Window: Split vertical' },
+  { 'n', 'q', 'Window: Delete' },
+  { 'n', 'o', 'Window: Only (close rest)' },
+  { 'n', '=', 'Balance windows' },
+  -- move
+  { 'n', 'K', 'Window: Move to top' },
+  { 'n', 'J', 'Window: Move to bottom' },
+  { 'n', 'H', 'Window: Move to left' },
+  { 'n', 'L', 'Window: Move to right' },
+})
+
+vim.tbl_map(function(map)
+  local lhs = '<C-w>' .. map[2]
+  local rhs = function()
+    local saved_cmdheight = vim.o.cmdheight
+
+    if map[2] == '+' then
+      vim.api.nvim_command 'resize +5'
+    elseif map[2] == '-' then
+      vim.api.nvim_command 'resize -5'
+    elseif map[2] == '<' then
+      vim.api.nvim_command 'vertical resize -5'
+    elseif map[2] == '>' then
+      vim.api.nvim_command 'vertical resize +5'
+    end
+
+    vim.o.cmdheight = saved_cmdheight
+    vim.api.nvim_input '<C-w>'
+  end
+  require('nuance.core.utils').map(map[1], lhs, rhs, map[4] or {})
+end, {
+  { 'n', '+', 'Window: Grow vertical' },
+  { 'n', '-', 'Window: Shrink vertical' },
+  { 'n', '<', 'Window: Shrink horizontal' },
+  { 'n', '>', 'Window: Grow horizontal' },
+})
 
 -- vim: ts=2 sts=2 sw=2 et
