@@ -1,7 +1,7 @@
--- -- [[ Setting options ]]
--- -- See `:help opt`
--- -- NOTE: You can change these options as you wish!
--- --  For more options, you can see `:help option-list`
+-- [[ Setting options ]]
+-- See `:help opt`
+-- NOTE: You can change these options as you wish!
+--  For more options, you can see `:help option-list`
 
 local opt = vim.opt
 
@@ -25,11 +25,11 @@ opt.termguicolors = true -- set term gui colors (most terminals support this)
 -- disable nvim intro (Snacks takes care of it)
 -- opt.shortmess:append 's'
 
--- set messagesopt
-if vim.fn.exists 'messagesopt' == 1 then
-  opt.messagesopt:append 'wait:500'
-  opt.messagesopt:remove 'hit-enter'
-end
+-- -- set messagesopt
+-- if vim.fn.exists 'messagesopt' == 1 then
+--   opt.messagesopt:append 'wait:500'
+--   opt.messagesopt:remove 'hit-enter'
+-- end
 
 -- Separate vim plugins from neovim in case vim still in use
 opt.runtimepath:remove '/usr/share/vim/vimfiles'
@@ -51,8 +51,8 @@ vim.o.laststatus = 0
 
 -- Show Tabline
 opt.showtabline = 2
+-- -- Enable break indent
 
--- Enable break indent
 opt.breakindent = true
 opt.breakindentopt = 'shift:4,min:20'
 opt.showbreak = '↪'
@@ -65,12 +65,6 @@ opt.undodir = vim.fn.stdpath 'cache' .. '/undo/'
 
 -- Command-line History
 opt.history = 10000
-
--- Backup and Swap Files
-opt.swapfile = true
-opt.directory = vim.fn.stdpath 'cache' .. '/swap/'
-opt.backup = true
-opt.backupdir = vim.fn.stdpath 'cache' .. '/backup/'
 
 -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
 opt.ignorecase = true
@@ -171,23 +165,29 @@ for _, dir in ipairs(dirs) do
   end
 end
 
+-- Backup and Swap Files
+opt.swapfile = true
+opt.directory = vim.fn.stdpath 'cache' .. '/swap/'
+opt.backup = true
+opt.backupdir = vim.fn.stdpath 'cache' .. '/backup/'
+
 -- add binaries installed by mason.nvim to path
 local is_windows = vim.fn.has 'win32' ~= 0
 local sep = is_windows and '\\' or '/'
 local delim = is_windows and ';' or ':'
 vim.env.PATH = table.concat({ vim.fn.stdpath 'data', 'mason', 'bin' }, sep) .. delim .. vim.env.PATH
 
-vim.g.netrw_banner = 0
-vim.g.netrw_fastbrowse = 1
-vim.g.netrw_keepdir = 1
-vim.g.netrw_silent = 1
-vim.g.netrw_special_syntax = 1
-vim.g.netrw_bufsettings = 'noma nomod nonu nowrap ro nobl relativenumber'
-vim.g.netrw_liststyle = 3
-vim.g.netrw_browse_split = 4
-vim.cmd [[
-    let g:netrw_list_hide = netrw_gitignore#Hide()
-    let g:netrw_list_hide.=',\(^\|\s\s\)\zs\.\S\+'
-  ]]
+-- vim.g.netrw_banner = 0
+-- vim.g.netrw_fastbrowse = 1
+-- vim.g.netrw_keepdir = 1
+-- vim.g.netrw_silent = 1
+-- vim.g.netrw_special_syntax = 1
+-- vim.g.netrw_bufsettings = 'noma nomod nonu nowrap ro nobl relativenumber'
+-- vim.g.netrw_liststyle = 3
+-- vim.g.netrw_browse_split = 4
+-- vim.cmd [[
+--     let g:netrw_list_hide = netrw_gitignore#Hide()
+--     let g:netrw_list_hide.=',\(^\|\s\s\)\zs\.\S\+'
+--   ]]
 
 -- vim: ts=2 sts=2 sw=2 et
