@@ -1,4 +1,3 @@
--- require('nuance.core.autocmds')
 require('nuance.core.clipboard')
 require('nuance.core.keymaps')
 require('nuance.core.utils')

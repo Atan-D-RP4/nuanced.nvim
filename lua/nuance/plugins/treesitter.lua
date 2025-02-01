@@ -8,7 +8,7 @@ local treesitter_core = {
 
   opts = function()
     if vim.loop.os_uname().sysname == 'Windows_NT' then
-      print 'On Windows_NT'
+      vim.print 'On Windows_NT'
       require('nvim-treesitter.install').compilers = { 'clang' }
     end
 

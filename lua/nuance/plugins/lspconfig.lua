@@ -282,7 +282,6 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   -- require('mason-lspconfig').setup {
   --   handlers = {
   --     function(server_name)
-  --       vim.print('Setting up LSP:', server_name)
   --       local server = servers[server_name] or {}
   --       -- This handles overriding only values explicitly passed
   --       -- by the server configuration above. Useful when disabling

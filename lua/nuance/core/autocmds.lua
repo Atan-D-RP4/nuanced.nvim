@@ -181,6 +181,7 @@ autocmd('FileType', {
     '',
     'dbout',
     'gitsigns-blame',
+    'query',
     'grug-far',
     'help',
     'lspinfo',
