@@ -233,7 +233,7 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   if has_cmp then
     capabilities = vim.tbl_deep_extend('force', capabilities, cmp.get_lsp_capabilities())
   else
-    cmp = require 'cmp-nvim-lsp'
+    cmp = require 'cmp_nvim_lsp'
     capabilities = vim.tbl_deep_extend('force', capabilities, cmp.default_capabilities())
   end
 

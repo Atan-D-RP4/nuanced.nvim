@@ -12,7 +12,7 @@ vim.g.maplocalleader = ' '
 local maps = {
   -- Better Escape
   { 'n', '<Esc>', '<C-c><C-c>', 'Better Escape' },
-  { 'i', '<Esc>', '<Esc><Esc><Right>', 'Better Escape' },
+  { 'i', '<Esc>', '<Esc><Esc>', 'Better Escape' },
 
   -- Clear highlights on search when pressing <Esc> in normal mode
   --  See `:help hlsearch`
