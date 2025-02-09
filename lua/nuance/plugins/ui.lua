@@ -309,7 +309,7 @@ local noice = {
   event = 'VeryLazy',
   dependencies = {
     'MunifTanjim/nui.nvim',
-    'echasnovski/mini.notify',
+    notify,
   },
   opts = {
     presets = {
@@ -375,9 +375,9 @@ local which_key = { -- Useful plugin to show you pending keybinds.
       { '<leader>t', group = '[T]oggle' },
       { '<leader>s', group = '[S]urround', mode = 'n' },
       { '<leader>g', group = '[G]it', mode = 'n' },
-      { '<leader>x', group = 'Trouble' },
-      { '<leader>a', group = 'Session', mode = 'n' },
-      { '<leader>e', group = 'Buffer-Switching', mode = 'n' },
+      { '<leader>x', group = '[x] Trouble' },
+      { '<leader>a', group = '[a] Session', mode = 'n' },
+      { '<leader>e', group = '[e] Buffer-Switching', mode = 'n' },
     },
   },
 }
@@ -388,8 +388,7 @@ local markview = {
   ft = { 'markdown', 'typst' },
   ---@module 'markview.nvim'
   ---@type mkv.config
-  opts = {
-  },
+  opts = {},
 }
 
 local M = {
@@ -397,9 +396,9 @@ local M = {
   statusline,
   tabline,
   icons,
-  which_key,
-  -- notify,
+  notify,
   noice,
+  -- which_key,
   -- transparent,
   -- markview,
 }

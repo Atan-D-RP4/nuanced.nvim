@@ -46,6 +46,8 @@ M.opts.win_options = {
   list = false,
   conceallevel = 3,
   concealcursor = 'nvic',
+  number = false,
+  relativenumber = false,
 }
 
 M.opts.lsp_file_methods = {
