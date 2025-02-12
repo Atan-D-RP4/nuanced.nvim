@@ -31,13 +31,6 @@ local gitworktree = {
   },
 }
 
-local M = {
-  gitcore,
-  gitsigns,
-  -- gitdiffview,
-  -- gitworktree,
-}
-
 gitsigns.signs = {
   add = { text = '+' },
   change = { text = '~' },
@@ -81,10 +74,9 @@ gitsigns.opts.on_attach = function(bufnr)
     signs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
   end, { desc = 'reset git hunk' })
   -- normal mode
-  map('n', '<leader>ga', signs.stage_hunk, { desc = '[G]it [a]dd hunk' })
+  map('n', '<leader>gs', signs.stage_hunk, { desc = '[G]it [t]oggle hunk stage status' })
   map('n', '<leader>gr', signs.reset_hunk, { desc = '[G]it [r]eset hunk' })
   map('n', '<leader>gS', signs.stage_buffer, { desc = '[G]it [S]tage buffer' })
-  map('n', '<leader>gu', signs.undo_stage_hunk, { desc = '[G]it [u]ndo stage hunk' })
   map('n', '<leader>gR', signs.reset_buffer, { desc = '[G]it [R]eset buffer' })
   map('n', '<leader>gp', signs.preview_hunk, { desc = '[G]it [p]review hunk' })
   map('n', '<leader>gb', signs.blame_line, { desc = '[G]it [b]lame line' })
@@ -94,7 +86,7 @@ gitsigns.opts.on_attach = function(bufnr)
   end, { desc = 'git [D]iff against last commit' })
   -- Toggles
   map('n', '<leader>tb', signs.toggle_current_line_blame, { desc = '[T]oggle git show [b]lame line' })
-  map('n', '<leader>tD', signs.toggle_deleted, { desc = '[T]oggle git show [D]eleted' })
+  map('n', '<leader>tD', signs.preview_hunk_inline, { desc = '[T]oggle git show [D]eleted' })
   local state = 1
   map('n', '<leader>tg', function()
     if state == 1 then
@@ -108,4 +100,9 @@ gitsigns.opts.on_attach = function(bufnr)
   end, { desc = '[T]oggle [g]it signs' })
 end
 
-return M
+return {
+  gitcore,
+  gitsigns,
+  -- gitdiffview,
+  -- gitworktree,
+}

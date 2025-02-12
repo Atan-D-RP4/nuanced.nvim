@@ -120,7 +120,7 @@ local maps = {
 
   -- map('x', '<leader>P', '"_dP', 'Paste without yanking')
 
-  { 'n', '-', 'g$', 'Move to the first non-blank character of the line' },
+  { { 'n', 'v' }, '-', 'g$', 'Move to the first non-blank character of the line' },
 
   {
     'n',

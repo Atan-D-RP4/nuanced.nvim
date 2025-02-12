@@ -5,6 +5,17 @@ local M = {
 
 ---@type snacks.Config
 M.opts = {
+  picker = {
+    sources = {
+      explorer = {
+        auto_close = true,
+        jump = { close = true },
+        layout = { layout = { position = 'right' } },
+        win = { list = { keys = { ['<leader>l'] = require('flash').jump } } },
+      },
+    },
+  },
+
   dim = {
     -- your dim configuration comes here
     -- or leave it empty to use the default settings
@@ -78,7 +89,20 @@ M.keys = {
   { '<leader>tT', '<cmd>lua Snacks.toggle.treesitter():toggle()<CR>', desc = '[T]oggle [T]reesitter' },
   { '<leader>ti', '<cmd>lua Snacks.toggle.indent():toggle()<CR>', desc = '[T]oggle [I]ndent' },
   { '<leader>tf', '<cmd>lua Snacks.toggle.dim():toggle()<CR>', desc = '[T]oggle [F]ocus' },
-  --
+
+  -- Picker maps
+  -- { '<leader>ef', '<cmd>lua Snacks.picker.buffers({sort_lastused=true})<CR>', desc = '[E]xisting Buffers [F]zf', mode = 'n' },
+  -- { '<leader>gc', '<cmd>lua Snacks.picker.git_log()<CR>', desc = 'Fzf [G]it [c]ommit', mode = 'n' },
+  -- { '<leader>gs', '<cmd>lua Snacks.picker.git_status()<CR>', desc = 'Fzf [G]it [s]tatus', mode = 'n' },
+  -- { '<leader>fh', '<cmd>lua Snacks.picker.help()<CR>', desc = '[F]zf [H]elp tags', mode = 'n' },
+  -- { '<leader>fk', '<cmd>lua Snacks.picker.keymaps()<CR>', desc = '[F]zf [K]eymaps', mode = 'n' },
+  -- { '<leader>fo', '<cmd>lua Snacks.picker.recent()<CR>', desc = '[F]zf [O]ld files', mode = 'n' },
+  -- { '<leader>fl', '<cmd>lua Snacks.picker.grep()<CR>', desc = '[F]zf [G]rep files', mode = 'n' },
+  -- { '<leader>ff', '<cmd>lua Snacks.picker.smart()<CR>', desc = '[F]zf [F] files', mode = 'n' },
+  -- { '<leader>fs', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', desc = '[F]zf Document [S]ymbols', mode = 'n' },
+  -- { '<leader>fn', '<cmd>lua Snacks.picker.files({ cwd = vim.fn.stdpath "config", follow = true })<CR>', desc = '[F]zf [N]eovim Config', mode = 'n' },
+  -- { '<leader>f:', '<cmd>lua Snacks.picker.command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
+
   -- {
   --   '<leader>N',
   --   desc = 'Neovim News',

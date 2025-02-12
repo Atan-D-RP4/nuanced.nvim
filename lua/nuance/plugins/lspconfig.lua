@@ -46,13 +46,21 @@ local mason_servers = {
   html = {},
   emmet_language_server = {},
   vimls = {},
+
+  phpactor = {
+    ft = { 'php' },
+    root_dir = function()
+      return vim.fn.getcwd()
+    end,
+  },
 }
 
 local external_servers = {
   rust_analyzer = {
-    check = {
-      command = 'clippy',
-      features = 'all',
+    ['rust-analyzer'] = {
+      checkOnSave = {
+        command = 'clippy',
+      },
     },
   },
 
@@ -101,12 +109,17 @@ M.lazydev = {
 
 M.copilot = {
   {
-    'github/copilot.vim',
-    events = 'InsertEnter',
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
     config = function()
-      vim.cmd [[
-        let g:copilot_node_command = '/usr/sbin/bun'
-      ]]
+      require('copilot').setup {
+        suggestion = {
+          hide_during_completion = false,
+          auto_trigger = true,
+        },
+        copilot_node_command = 'node', -- Node.js version must be > 18.x
+      }
     end,
   },
 }
@@ -210,6 +223,15 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
     end,
   })
 
+  vim.diagnostic.config {
+    underline = true,
+    signs = true,
+    update_in_insert = false,
+    virtual_text = {
+      spacing = 2,
+    },
+  }
+
   -- Change diagnostic symbols in the sign column (gutter)
   -- if vim.g.have_nerd_font then
   --   local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
@@ -233,7 +255,7 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   if has_cmp then
     capabilities = vim.tbl_deep_extend('force', capabilities, cmp.get_lsp_capabilities())
   else
-    cmp = require 'cmp_nvim_lsp'
+    cmp = require 'cmp-nvim-lsp'
     capabilities = vim.tbl_deep_extend('force', capabilities, cmp.default_capabilities())
   end
 
@@ -278,7 +300,7 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
 
   -- NOTE: This is the mason-lspconfig way of setting up LSPs. Will only setup the LSPs
   -- that were installed and are managed by mason
-  --
+
   -- require('mason-lspconfig').setup {
   --   handlers = {
   --     function(server_name)

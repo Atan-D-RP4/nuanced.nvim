@@ -161,13 +161,13 @@ M.opts.keymap = {
 
   ['<C-e>'] = { 'hide' }, -- Hide the completion menu
   -- ['<CR>'] = { 'select_accept', 'fallback' }, -- Accept the completion.
-  ['<C-y>'] = { 'select_and_accept', 'fallback' }, -- Accept ([y]es) the completion.
+  -- ['<C-y>'] = { 'select_and_accept', 'fallback' }, -- Accept ([y]es) the completion.
 
   ['<C-n>'] = { 'select_next', 'snippet_forward', 'fallback' }, -- Select the [n]ext item
   ['<C-p>'] = { 'select_prev', 'snippet_backward', 'fallback' }, -- Select the [p]revious item
 
   -- Manually Trigger completions and toggle documentation window
-  ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
+  ['<C-Space>'] = { 'show', 'show_documentation', 'hide_documentation' },
 
   cmdline = {
     ['<C-e>'] = { 'hide' },

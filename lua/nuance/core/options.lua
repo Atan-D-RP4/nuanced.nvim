@@ -25,11 +25,11 @@ opt.termguicolors = true -- set term gui colors (most terminals support this)
 -- disable nvim intro (Snacks takes care of it)
 -- opt.shortmess:append 's'
 
--- -- set messagesopt
--- if vim.fn.exists 'messagesopt' == 1 then
---   opt.messagesopt:append 'wait:500'
---   opt.messagesopt:remove 'hit-enter'
--- end
+-- set messagesopt
+if vim.fn.exists 'messagesopt' == 1 then
+  opt.messagesopt:append 'wait:500'
+  opt.messagesopt:remove 'hit-enter'
+end
 
 -- Separate vim plugins from neovim in case vim still in use
 opt.runtimepath:remove '/usr/share/vim/vimfiles'
