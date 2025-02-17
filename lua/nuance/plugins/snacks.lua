@@ -3,19 +3,9 @@ local M = {
   lazy = false,
 }
 
+---@module 'snacks'
 ---@type snacks.Config
 M.opts = {
-  picker = {
-    sources = {
-      explorer = {
-        auto_close = true,
-        jump = { close = true },
-        layout = { layout = { position = 'right' } },
-        win = { list = { keys = { ['<leader>l'] = require('flash').jump } } },
-      },
-    },
-  },
-
   dim = {
     -- your dim configuration comes here
     -- or leave it empty to use the default settings
@@ -28,31 +18,43 @@ M.opts = {
   indent = { enabled = true },
   input = { enabled = true },
   dashboard = { enabled = false },
-  notifier = {
-    enabled = true,
-    timeout = 3000,
-  },
-  styles = {
-    notification = {
-      wo = { wrap = true }, -- Wrap notifications
-    },
-  },
-
+  notifier = { enabled = true, timeout = 3000 },
+  styles = { notification = { wo = { wrap = true } } }, -- Wrap notifications
   scroll = { enabled = false },
   statuscolumn = { enabled = false },
   words = { enabled = false },
 }
 
+M.opts.picker = {
+  sources = {
+    explorer = {
+      auto_close = true,
+      jump = { close = true },
+      layout = { layout = { position = 'right' } },
+      win = { list = { keys = { ['<leader>l'] = require('flash').jump } } },
+    },
+    grep = {
+      actions = {
+        cd_up = function(picker, _)
+          picker:set_cwd(vim.fs.dirname(picker:cwd()))
+          picker:find()
+        end,
+      },
+      win = {
+        input = {
+          keys = {
+            ['<c-k>'] = { 'cd_up', desc = 'cd_up', mode = { 'i', 'n' } },
+          },
+        },
+      },
+    },
+  },
+}
+
 M.init = function()
-  -- if vim.fn.executable 'lazygit' == 1 then
-  --   vim.tbl_map(function(map)
-  --     require('nuance.core.utils').map(map[1], map[2], map[3], map[4] or {})
-  --   end, {
-  --     { '<leader>gf', '<cmd>lua Snacks.lazygit.log_file()<CR>', 'Lazygit Current File History' },
-  --     { '<leader>gg', '<cmd>lua Snacks.lazygit()<CR>', 'Lazygit' },
-  --     { '<leader>gl', '<cmd>lua Snacks.lazygit.log()<CR>', 'Lazygit Log (cwd)' },
-  --   })
-  -- end
+  vim.defer_fn(function()
+    vim.ui.select = Snacks.picker.select
+  end, 50)
 
   vim.api.nvim_create_autocmd('User', {
     pattern = 'VeryLazy',
@@ -95,39 +97,20 @@ M.keys = {
   { '<leader>tf', '<cmd>lua Snacks.toggle.dim():toggle()<CR>', desc = '[T]oggle [F]ocus' },
 
   -- Picker maps
-  -- { '<leader>ef', '<cmd>lua Snacks.picker.buffers({sort_lastused=true})<CR>', desc = '[E]xisting Buffers [F]zf', mode = 'n' },
-  -- { '<leader>gc', '<cmd>lua Snacks.picker.git_log()<CR>', desc = 'Fzf [G]it [c]ommit', mode = 'n' },
-  -- { '<leader>gs', '<cmd>lua Snacks.picker.git_status()<CR>', desc = 'Fzf [G]it [s]tatus', mode = 'n' },
-  -- { '<leader>fh', '<cmd>lua Snacks.picker.help()<CR>', desc = '[F]zf [H]elp tags', mode = 'n' },
-  -- { '<leader>fk', '<cmd>lua Snacks.picker.keymaps()<CR>', desc = '[F]zf [K]eymaps', mode = 'n' },
-  -- { '<leader>fo', '<cmd>lua Snacks.picker.recent()<CR>', desc = '[F]zf [O]ld files', mode = 'n' },
-  -- { '<leader>fl', '<cmd>lua Snacks.picker.grep()<CR>', desc = '[F]zf [G]rep files', mode = 'n' },
-  -- { '<leader>ff', '<cmd>lua Snacks.picker.smart()<CR>', desc = '[F]zf [F] files', mode = 'n' },
-  -- { '<leader>fs', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', desc = '[F]zf Document [S]ymbols', mode = 'n' },
-  -- { '<leader>fn', '<cmd>lua Snacks.picker.files({ cwd = vim.fn.stdpath "config", follow = true })<CR>', desc = '[F]zf [N]eovim Config', mode = 'n' },
-  -- { '<leader>f:', '<cmd>lua Snacks.picker.command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
+  { '<leader>ef', '<cmd>lua Snacks.picker.buffers({sort_lastused=true})<CR>', desc = '[E]xisting Buffers [F]zf', mode = 'n' },
+  { '<leader>eo', '<cmd>lua Snacks.picker.explorer()<CR>', desc = '[E]xplorer [O]pen', mode = 'n' },
 
-  -- {
-  --   '<leader>N',
-  --   desc = 'Neovim News',
-  --   function()
-  --     require('snacks').bufdelete()
-  --     Snacks.win {
-  --       file = vim.api.nvim_get_runtime_file('doc/news.txt', false)[1],
-  --       width = 0.6,
-  --       height = 0.6,
-  --       wo = {
-  --         spell = false,
-  --         wrap = false,
-  --         signcolumn = 'yes',
-  --         statuscolumn = ' ',
-  --         conceallevel = 3,
-  --       },
-  --     }
-  --   end,
-  -- },
-  --
-  --
+  { '<leader>gl', '<cmd>lua Snacks.picker.git_log()<CR>', desc = 'Fzf [G]it [c]ommit', mode = 'n' },
+  { '<leader>gs', '<cmd>lua Snacks.picker.git_status()<CR>', desc = 'Fzf [G]it [s]tatus', mode = 'n' },
+
+  { '<leader>fh', '<cmd>lua Snacks.picker.help()<CR>', desc = '[F]zf [H]elp tags', mode = 'n' },
+  { '<leader>fk', '<cmd>lua Snacks.picker.keymaps()<CR>', desc = '[F]zf [K]eymaps', mode = 'n' },
+  { '<leader>fo', '<cmd>lua Snacks.picker.smart()<CR>', desc = '[F]zf [O]ld files', mode = 'n' },
+  { '<leader>fl', '<cmd>lua Snacks.picker.grep()<CR>', desc = '[F]zf [G]rep files', mode = 'n' },
+  { '<leader>ff', '<cmd>lua Snacks.picker.files()<CR>', desc = '[F]zf [F] files', mode = 'n' },
+  { '<leader>fs', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', desc = '[F]zf Document [S]ymbols', mode = 'n' },
+  { '<leader>f:', '<cmd>lua Snacks.picker.command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
+
   -- { '<c-/>', '<cmd>lua Snacks.terminal()<CR>', desc = 'Toggle Terminal' },
   -- { '<c-_>', '<cmd>lua Snacks.terminal()<CR>', desc = 'which_key_ignore' },
   -- { ']]', '<cmd>lua Snacks.words.jump(vim.v.count1)<CR>', desc = 'Next Reference', mode = { 'n', 't' } },

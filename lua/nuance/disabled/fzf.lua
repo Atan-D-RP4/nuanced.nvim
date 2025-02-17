@@ -42,7 +42,6 @@ M.keys = {
   { '<leader>fl', '<cmd>lua require("fzf-lua").live_grep_glob()<CR>', desc = '[F]zf [G]rep files', mode = 'n' },
   { '<leader>ff', '<cmd>lua require("fzf-lua").files()<CR>', desc = '[F]zf [F] files', mode = 'n' },
   { '<leader>fs', '<cmd>lua require("fzf-lua").lsp_document_symbols()<CR>', desc = '[F]zf Document [S]ymbols', mode = 'n' },
-  { '<leader>fn', '<cmd>lua require("fzf-lua").files({ cwd = vim.fn.stdpath "config", follow = true })<CR>', desc = '[F]zf [N]eovim Config', mode = 'n' },
   { '<leader>f:', '<cmd>lua require("fzf-lua").command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
 }
 

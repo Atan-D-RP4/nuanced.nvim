@@ -59,7 +59,7 @@ M.opts.lsp_file_methods = {
 M.opts.keymaps = {
   ['<leader>ff'] = {
     function()
-      require('fzf-lua').files { cwd = require('oil').get_current_dir(), follow = true }
+      Snacks.picker.files { cwd = require('oil').get_current_dir(), follow = true }
     end,
   },
   ['<CR>'] = {},

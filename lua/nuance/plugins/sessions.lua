@@ -1,123 +1,118 @@
--- local M = {}
---
--- function M.sessionSave()
---   require('mini.sessions').setup {
---     autoread = false,
---     directory = vim.fn.stdpath 'data' .. '/sessions',
---   }
+--@param file string
+local session_files = function(file)
+  if vim.fn.isdirectory(file) == 1 then
+    return {}
+  end
+  local lines = {}
+  local cwd, cwd_pat = '', '^cd%s*'
+  local buf_pat = '^badd%s*%+%d+%s*'
+  for line in io.lines(file) do
+    if string.find(line, cwd_pat) then
+      cwd = line:gsub('%p', '%%%1')
+    end
+    if string.find(line, buf_pat) then
+      lines[#lines + 1] = line
+    end
+  end
+  local buffers = {}
+  for k, v in pairs(lines) do
+    buffers[k] = v:gsub(buf_pat, ''):gsub(cwd:gsub('cd%s*', ''), ''):gsub('^/?%.?/', '')
+  end
+  local buffer_lines = table.concat(buffers, '\n')
+  return buffer_lines
+end
 
---   local has_ms, mini_sessions = pcall(require, "mini.sessions")
---   if not has_ms then
---     print("Please install mini.nvim to use this feature")
---     return
---   end
---   local session_name = vim.fn.input("Session name: ")
---   if session_name == "" then
---     print("No session saved")
---     return
---   end
---
---   mini_sessions.write(session_name)
---
---   print("Session saved to: " .. mini_sessions.get_latest())
--- end
---
--- -- Interatively select a session to load with telescope.nvim
--- function M.sessionLoad()
---   local has_ms, mini_sessions = pcall(require, "mini.sessions")
---   if not has_ms then
---     print("Please install mini.nvim to use this feature")
---     return
---   end
---
---   local has_ts, _ = pcall(require, "telescope")
---   if not has_ts then
---     print("Please install telescope.nvim to use this feature")
---     return
---   end
---
---   local get_sessions = function()
---     -- Convert the detected sessions (key-value pairs) into a list of entries
---     local sessions = {}
---     for name, session_info in pairs(MiniSessions.detected) do
---       table.insert(sessions, {
---         name = name,
---         path = session_info.path,
---         -- format the modify_time as a human-readable string
---         modify_time = os.date("%Y-%m-%d %H:%M:%S", session_info.modify_time),
---         type = session_info.type,
---       })
---     end
---     return sessions
---   end
---
---   local state = require("telescope.actions.state")
---   require("telescope.pickers")
---     .new({}, {
---       prompt_title = "Sessions",
---       finder = require("telescope.finders").new_table({
---         results = get_sessions(),
---         entry_maker = function(entry)
---           return {
---             value = entry.path,
---             display = string.format("[%s] %s (Modified: %s)", entry.type, entry.name, entry.modify_time),
---             ordinal = entry.name,
---           }
---         end,
---       }),
---       sorter = require("telescope.config").values.generic_sorter({}),
---       layout_strategy = "vertical",
---       layout_config = { width = 0.5, height = 0.5 },
---       attach_mappings = function(_, map)
---         map("i", "<CR>", function()
---           local entry = state.get_selected_entry().value
---           entry = vim.fs.basename(entry)
---           mini_sessions.read(entry) -- Load the selected session using its path
---           vim.cmd([[bd #]])
---           print("Loaded session: " .. entry)
---         end)
---
---         map("i", "<C-d>", function(prompt_bufnr)
---           local picker = state.get_current_picker(prompt_bufnr)
---           local session = state.get_selected_entry().value
---           MiniSessions.delete(session)
---           picker:refresh(
---             require("telescope.finders").new_table({
---               results = get_sessions(),
---               entry_maker = function(entry)
---                 return {
---                   value = entry.path,
---                   display = string.format(
---                     "[%s] %s (Modified: %s)",
---                     entry.type,
---                     entry.name,
---                     entry.modify_time
---                   ),
---                   ordinal = entry.name,
---                 }
---               end,
---             }),
---             { reset_prompt = true }
---           )
---         end)
---         return true
---       end,
---     })
---     :find()
--- end
---
--- function M.init()
---   local utils = require 'nuance.core.utils'
---   local nmap = utils.nmap
---
---   nmap('<leader>ss', M.sessionSave, { desc = '[S]ession [S]ave' })
---   nmap('<leader>sl', M.sessionLoad, { desc = '[S]ession [L]oad' })
--- end
+local session_pick = function()
+  local items = {} ---@type snacks.picker.finder.Item[]
+  for _, session in pairs(MiniSessions.detected) do
+    table.insert(items, {
+      text = session.name,
+      name = session.name,
+      preview = { text = session_files(session.path) },
+      path = session.path,
+      modify_time = os.date('%Y-%m-%d %H:%M:%S', session.modify_time),
+      type = session.type,
+    })
+  end
+  require('snacks.picker').pick {
+    title = 'Sessions',
+    items = items,
+    preview = 'preview',
+    format = function(item, _)
+      local ret = {}
+      ret[#ret + 1] = { item.name or '', '@string' }
+      return ret
+    end,
+    actions = {
+      delete = function(picker, item)
+        MiniSessions['delete'](item.name)
+        picker:ref()
+      end,
+    },
+    win = {
+      input = {
+        keys = {
+          ['<C-x>'] = 'delete',
+        },
+      },
+    },
+    confirm = function(_, item)
+      if not item then
+        return
+      end
 
-return {
+      vim.notify('Loaded session: ' .. item.name)
+      MiniSessions.read(item.name, {})
+    end,
+  }
+end
+
+local mini_sessions = {
+  'echasnovski/mini.sessions',
+  event = 'VeryLazy',
+  config = function()
+    require('mini.sessions').setup {
+      autoread = false,
+      directory = vim.fn.stdpath 'data' .. '/sessions',
+    }
+  end,
+  keys = {
+    {
+      '<leader>ap',
+      function()
+        session_pick()
+      end,
+      desc = '[S]essions [P]ick',
+    },
+    {
+      '<leader>an',
+      function()
+        local name = vim.fn.input 'Session name: '
+        if name == '' then
+          print 'No session saved'
+          return
+        end
+        require('mini.sessions').write(name)
+      end,
+      desc = '[S]essions [N]ew',
+    },
+    {
+      '<leader>as',
+      function()
+        local ms = require 'mini.sessions'
+        ms.write(ms.get_latest())
+      end,
+      desc = '[S]essions [S]ave/Update',
+    },
+  },
+}
+
+local possession = {
   'gennaro-tedesco/nvim-possession',
+  enabled = require('nuance.disabled.fzf').enabled,
 
   dependencies = {
+    'echasnovski/mini.sessions',
     'nvim-lua/plenary.nvim',
     'ibhagwan/fzf-lua',
   },
@@ -129,6 +124,10 @@ return {
     { '<leader>ad', '<cmd>lua require("nvim-possession").delete()<CR>', desc = '[S]essions [D]elete' },
   },
   config = function()
+    require('mini.sessions').setup {
+      autoread = false,
+      directory = vim.fn.stdpath 'data' .. '/sessions',
+    }
     -- Check if session dir exists and if not create it
     if vim.fn.isdirectory(require('nvim-possession.config').sessions.sessions_path) == 0 then
       vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
@@ -170,3 +169,7 @@ return {
     }
   end,
 }
+
+local M = mini_sessions
+
+return M

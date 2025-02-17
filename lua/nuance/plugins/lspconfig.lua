@@ -152,18 +152,24 @@ M.lspconfig.opts.on_attach = function(event)
 
   local cmd
   local has_fzf, _ = pcall(require, 'fzf-lua')
+  local has_telescope, _ = pcall(require, 'telescope')
   if has_fzf then
     cmd = '<cmd>lua require("fzf-lua").%s<CR>'
     nmap('gws', cmd:format 'lsp_live_workspace_symbols()', 'Lsp [W]orkspace [S]ymbols')
-  else
+    nmap('gd', cmd:format 'lsp_typedefs()', 'Lsp [T]ype [D]efinition')
+  elseif has_telescope then
     cmd = '<cmd>lua require("telescope.builtin").%s<CR>'
     nmap('gws', cmd:format 'lsp_dynamic_workspace_symbols()', 'Lsp [W]orkspace [S]ymbols')
+    nmap('gd', cmd:format 'lsp_typedefs()', 'Lsp [T]ype [D]efinition')
+  else
+    cmd = '<cmd>lua Snacks.picker.%s<CR>'
+    nmap('gd', cmd:format 'lsp_type_definitions()', 'Lsp [T]ype [D]efinition')
+    nmap('gus', cmd:format 'lsp_symbols()', 'Lsp [D]ocument [S]ymbols')
   end
 
   nmap('gd', cmd:format 'lsp_definitions()', 'Lsp [G]oto [D]efinition')
   nmap('grr', cmd:format 'lsp_references()', 'Lsp [G]oto [R]eferences') -- override `grr` mapping
   nmap('gri', cmd:format 'lsp_implementations()', 'Lsp [G]oto [I]mplementation') -- override `gri` mapping
-  nmap('gtd', cmd:format 'lsp_typedefs()', 'Lsp [T]ype [D]efinition')
   nmap('gus', cmd:format 'lsp_document_symbols()', 'Lsp [D]ocument [S]ymbols')
 
   nmap('gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', '[G]oto [D]eclaration')
