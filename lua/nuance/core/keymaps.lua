@@ -26,9 +26,8 @@ local maps = {
   { 't', '<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode' },
   { 't', '<M-r>', [['<C-\><C-N>"'.nr2char(getchar()).'pi']], { desc = 'Vim Register Select in Terminal Mode', expr = true } },
 
-  { 't', '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
-  { 'n', '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
-  { { 'n', 't' }, '<C-w><C-t>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
+  -- { { 'n', 't' }, '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
+  -- { { 'n', 't' }, '<C-w><C-t>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
 
   -- NOTE: Disable arrow keys in normal mode
   --  See `:help nvim-tui-typing`

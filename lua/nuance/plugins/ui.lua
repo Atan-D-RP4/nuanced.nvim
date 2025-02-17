@@ -309,11 +309,17 @@ local noice = {
   event = 'VeryLazy',
   dependencies = {
     'MunifTanjim/nui.nvim',
-    notify,
   },
   opts = {
+    cmdline = {
+      format = {
+        selections = { pattern = "'<,'>", title  = ' Selections ' },
+      }
+    },
     presets = {
-      command_palette = false,
+      lsp_doc_border = true,
+      command_palette = true,
+      bottom_search = true, -- use a classic bottom cmdline for search
     },
   },
 }
@@ -396,8 +402,8 @@ local M = {
   statusline,
   tabline,
   icons,
-  notify,
   noice,
+  -- notify,
   -- which_key,
   -- transparent,
   -- markview,

@@ -74,9 +74,9 @@ gitsigns.opts.on_attach = function(bufnr)
     signs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
   end, { desc = 'reset git hunk' })
   -- normal mode
-  map('n', '<leader>gs', signs.stage_hunk, { desc = '[G]it [t]oggle hunk stage status' })
+  map('n', '<leader>ga', signs.stage_hunk, { desc = '[G]it [t]oggle hunk stage status' })
   map('n', '<leader>gr', signs.reset_hunk, { desc = '[G]it [r]eset hunk' })
-  map('n', '<leader>gS', signs.stage_buffer, { desc = '[G]it [S]tage buffer' })
+  map('n', '<leader>gA', signs.stage_buffer, { desc = '[G]it [S]tage buffer' })
   map('n', '<leader>gR', signs.reset_buffer, { desc = '[G]it [R]eset buffer' })
   map('n', '<leader>gp', signs.preview_hunk, { desc = '[G]it [p]review hunk' })
   map('n', '<leader>gb', signs.blame_line, { desc = '[G]it [b]lame line' })
