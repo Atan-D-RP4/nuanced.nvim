@@ -4,7 +4,7 @@ M = {
   event = { 'InsertEnter', 'CmdlineEnter', 'LspAttach' },
 
   -- use a release tag to download pre-built binaries
-  version = 'v0.9.*',
+  version = 'v0.12.*',
   -- OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
   -- build = 'cargo build --release',
   -- If you use nix, you can build from source using latest nightly rust with:
@@ -32,6 +32,9 @@ M.dependencies = {
     },
     config = function()
       require 'nuance.core.luasnips'
+      vim.cmd [[
+        highlight BlinkLabelDescription ctermfg=gray
+      ]]
     end,
   },
 }
@@ -39,6 +42,9 @@ M.dependencies = {
 ---@module 'blink.cmp'
 ---@type blink.cmp.Config
 M.opts = {
+  enabled = function()
+    return vim.bo.buftype ~= 'prompt' and vim.b.completion ~= false
+  end,
   -- experimental signature help support
   -- signature = { enabled = true, window = { border = 'rounded' } },
 
@@ -56,10 +62,22 @@ M.opts = {
 M.opts.completion = {
   trigger = { show_on_insert_on_trigger_character = false },
 
-  accept = { auto_brackets = { enabled = false } },
+  list = {
+    selection = {
+      auto_insert = function(ctx)
+        return ctx.mode == 'cmdline'
+      end,
+      preselect = function(ctx)
+        return ctx.mode ~= 'cmdline'
+      end,
+    },
+  },
+
+  accept = { auto_brackets = { enabled = true } },
 
   menu = {
     border = 'rounded',
+    scrollbar = false,
 
     cmdline_position = function()
       if vim.g.ui_cmdline_pos ~= nil then
@@ -72,18 +90,9 @@ M.opts.completion = {
 
     draw = {
       treesitter = { 'lsp' },
-      columns = { { 'label', 'label_description', gap = 1 }, { 'kind_icon', 'kind' } },
+      columns = { { 'label', 'label_description', gap = 1 }, { 'kind_icon', 'kind', gap = 1 } },
+      components = { kind = { highlight = 'Special' } },
     },
-  },
-
-  list = {
-    selection = function(ctx)
-      if ctx.mode == 'cmdline' then
-        return 'auto_insert'
-      else -- 'normal' or 'insert'
-        return 'preselect'
-      end
-    end,
   },
 
   documentation = {
@@ -97,11 +106,10 @@ M.opts.completion = {
 M.opts.sources = {
   default = {
     'lsp',
-    'lazydev',
     'path',
-    'snippets',
     'buffer',
-    'luasnip',
+    'snippets',
+    'lazydev',
     --'dadbod',
   },
   providers = {
@@ -112,8 +120,15 @@ M.opts.sources = {
       score_offset = 95,
     },
     path = { score_offset = 95 },
-    luasnip = { score_offset = 90 },
-    snippets = { score_offset = 85 },
+    snippets = {
+      score_offset = 85,
+      opts = {
+        -- Whether to use show_condition for filtering snippets
+        use_show_condition = true,
+        -- Whether to show autosnippets in the completion list
+        show_autosnippets = true,
+      },
+    },
     buffer = { score_offset = 80 },
 
     -- dadbod = {
@@ -125,22 +140,23 @@ M.opts.sources = {
   },
 
   -- optionally disable cmdline completions
-  cmdline = function()
-    local type = vim.fn.getcmdtype()
-    if type == '/' or type == '?' then
-      return { 'buffer' }
-    end
-    if type == ':' then
-      if vim.fn.getcmdline():match '.*!' ~= nil or vim.fn.getcmdline():sub(1, 6) == 'Launch' then
-        return { 'path', 'buffer' }
-      end
-      return { 'cmdline' }
-    end
-    return {}
-  end,
+  -- cmdline = function()
+  --   local type = vim.fn.getcmdtype()
+  --   if type == '/' or type == '?' then
+  --     return { 'buffer' }
+  --   end
+  --   if type == ':' then
+  --     if vim.fn.getcmdline():match '.*!' ~= nil or vim.fn.getcmdline():sub(1, 6) == 'Launch' then
+  --       return { 'path', 'buffer' }
+  --     end
+  --     return { 'cmdline' }
+  --   end
+  --   return {}
+  -- end,
 }
 
 M.opts.snippets = {
+  preset = 'luasnip',
   expand = function(snippet)
     require('luasnip').lsp_expand(snippet)
   end,
@@ -168,29 +184,19 @@ M.opts.keymap = {
 
   -- Manually Trigger completions and toggle documentation window
   ['<C-Space>'] = { 'show', 'show_documentation', 'hide_documentation' },
+}
 
-  cmdline = {
+M.opts.cmdline = {
+  enabled = true,
+  keymap = {
     ['<C-e>'] = { 'hide' },
     ['<C-space>'] = { 'show' },
-    ['<Tab>'] = {
-      function(cmp)
-        if not cmp.is_visible() then
-          return cmp.show()
-        else
-          return cmp.select_next()
-        end
-      end,
-      'fallback',
-    },
-    ['<S-Tab>'] = {
-      function(cmp)
-        if not cmp.is_visible() then
-          return cmp.show()
-        else
-          return cmp.select_prev()
-        end
-      end,
-      'fallback',
+    ['<Tab>'] = { 'show', 'select_next', 'fallback' },
+    ['<S-Tab>'] = { 'show', 'select_prev', 'fallback' },
+  },
+  completion = {
+    menu = {
+      draw = { columns = { { 'label', 'label_description', gap = 1 }, { 'kind_icon', 'kind', gap = 1 } } },
     },
   },
 }
