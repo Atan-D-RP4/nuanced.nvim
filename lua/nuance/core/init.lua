@@ -2,6 +2,7 @@ require('nuance.core.clipboard')
 require('nuance.core.keymaps')
 require('nuance.core.utils')
 require('nuance.core.options')
+require('nuance.core.treesitter-diagnostics')
 
 
 -- NOTE: This is for when I convert the nuance.core directory into a Neovim-Lua plugin

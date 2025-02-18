@@ -114,6 +114,9 @@ M.copilot = {
     event = 'InsertEnter',
     config = function()
       require('copilot').setup {
+        filetypes = {
+          markdown = true, -- overrides default
+        },
         suggestion = {
           hide_during_completion = false,
           auto_trigger = true,

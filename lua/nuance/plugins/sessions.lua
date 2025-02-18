@@ -1,4 +1,5 @@
 --@param file string
+vim.g.current_session = nil
 local session_files = function(file)
   if vim.fn.isdirectory(file) == 1 then
     return {}
@@ -63,6 +64,7 @@ local session_pick = function()
 
       vim.notify('Loaded session: ' .. item.name)
       MiniSessions.read(item.name, {})
+      vim.g.current_session = item.name
     end,
   }
 end
@@ -75,6 +77,22 @@ local mini_sessions = {
       autoread = false,
       directory = vim.fn.stdpath 'data' .. '/sessions',
     }
+
+    -- Check if session dir exists and if not create it
+    if vim.fn.isdirectory(require('mini.sessions').config.directory) == 0 then
+      vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
+    end
+
+    local statusline = require 'mini.statusline'
+    local default_section_filename = statusline.section_filename
+    ---@diagnostic disable-next-line: duplicate-set-field
+    statusline.section_filename = function(args)
+      local session = vim.g.current_session
+      if session == nil then
+        session = 'None'
+      end
+      return session .. ' ' .. default_section_filename(args)
+    end
   end,
   keys = {
     {
@@ -100,7 +118,7 @@ local mini_sessions = {
       '<leader>as',
       function()
         local ms = require 'mini.sessions'
-        ms.write(ms.get_latest())
+        ms.write(vim.g.current_session)
       end,
       desc = '[S]essions [S]ave/Update',
     },
@@ -124,10 +142,6 @@ local possession = {
     { '<leader>ad', '<cmd>lua require("nvim-possession").delete()<CR>', desc = '[S]essions [D]elete' },
   },
   config = function()
-    require('mini.sessions').setup {
-      autoread = false,
-      directory = vim.fn.stdpath 'data' .. '/sessions',
-    }
     -- Check if session dir exists and if not create it
     if vim.fn.isdirectory(require('nvim-possession.config').sessions.sessions_path) == 0 then
       vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
