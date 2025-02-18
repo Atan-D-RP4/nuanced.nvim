@@ -138,21 +138,6 @@ M.opts.sources = {
     --   score_offset = 700,
     -- },
   },
-
-  -- optionally disable cmdline completions
-  -- cmdline = function()
-  --   local type = vim.fn.getcmdtype()
-  --   if type == '/' or type == '?' then
-  --     return { 'buffer' }
-  --   end
-  --   if type == ':' then
-  --     if vim.fn.getcmdline():match '.*!' ~= nil or vim.fn.getcmdline():sub(1, 6) == 'Launch' then
-  --       return { 'path', 'buffer' }
-  --     end
-  --     return { 'cmdline' }
-  --   end
-  --   return {}
-  -- end,
 }
 
 M.opts.snippets = {
@@ -188,12 +173,29 @@ M.opts.keymap = {
 
 M.opts.cmdline = {
   enabled = true,
+
   keymap = {
     ['<C-e>'] = { 'hide' },
     ['<C-space>'] = { 'show' },
     ['<Tab>'] = { 'show', 'select_next', 'fallback' },
     ['<S-Tab>'] = { 'show', 'select_prev', 'fallback' },
   },
+
+  sources = function()
+    local type = vim.fn.getcmdtype()
+    -- Search forward and backward
+    if type == '/' or type == '?' then
+      return { 'buffer' }
+    end
+    if type == ':' or type == '@' then
+      if vim.fn.getcmdline():match '.*!' ~= nil or vim.fn.getcmdline():sub(1, 6) == 'Launch' then
+        return { 'path', 'buffer' }
+      end
+      return { 'cmdline' }
+    end
+    return {}
+  end,
+
   completion = {
     menu = {
       draw = { columns = { { 'label', 'label_description', gap = 1 }, { 'kind_icon', 'kind', gap = 1 } } },
