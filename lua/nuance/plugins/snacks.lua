@@ -11,6 +11,7 @@ M.opts = {
     -- or leave it empty to use the default settings
     -- refer to the configuration section below
   },
+
   profiler = { enabled = false },
   bigfile = { enabled = true },
   quickfile = { enabled = true },
@@ -27,6 +28,9 @@ M.opts = {
 
 M.opts.picker = {
   sources = {
+    projects = {
+      dev = { '~/Develop/repos/' },
+    },
     explorer = {
       auto_close = true,
       jump = { close = true },
@@ -47,6 +51,12 @@ M.opts.picker = {
           },
         },
       },
+    },
+    lsp_symbols = {
+      layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } },
+    },
+    treesitter = {
+      layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } },
     },
   },
 }
@@ -76,22 +86,24 @@ M.keys = {
   { '<leader>Z', '<cmd>lua Snacks.zen.zoom()<CR>', desc = 'Toggle Zoom' },
   { '<leader>.', '<cmd>lua Snacks.scratch()<CR>', desc = 'Toggle Scratch Buffer' },
   { '<leader>S', '<cmd>lua Snacks.scratch.select()<CR>', desc = 'Select Scratch Buffer' },
-  { '<leader>tn', '<cmd>lua Snacks.notifier.show_history()<CR>', desc = 'Notification History' },
   { '<leader>dn', '<cmd>lua Snacks.notifier.hide()<CR>', desc = 'Dismiss All Notifications' },
-  { '<leader>dd', '<cmd>lua Snacks.bufdelete()<CR>', desc = 'Delete Buffer' },
   { '<leader>cR', '<cmd>lua Snacks.rename.rename_file()<CR>', desc = 'Rename File' },
   { '<leader>gB', '<cmd>lua Snacks.gitbrowse()<CR>', desc = 'Git Browse', mode = { 'n', 'v' } },
+
+  { '<leader>ed', '<cmd>lua Snacks.bufdelete()<CR>', desc = 'Delete Buffer' },
+  { '<leader>eD', '<cmd>lua Snacks.bufdelete.all()<CR>', desc = 'Delete Buffer' },
 
   { '<C-w>t', '<cmd>lua Snacks.terminal()<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
   { '<C-w><C-t>', '<cmd>lua Snacks.terminal()<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
 
   -- Create some toggle mappings
+  { '<leader>tn', '<cmd>lua Snacks.notifier.show_history()<CR>', desc = 'Notification History' },
   { '<leader>ts', "<cmd>lua Snacks.toggle.option('spell', { name = 'Spelling' }):toggle()<CR>", desc = '[T]oggle [S]pell' },
   { '<leader>tw', "<cmd>lua Snacks.toggle.option('wrap', { name = 'Wrap' }):toggle()<CR>", desc = 'Toggle [W]rap' },
   { '<leader>tL', "<cmd>lua Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):toggle()<CR>", desc = '[T]oggle [R]elative Numbers' },
   { '<leader>td', '<cmd>lua Snacks.toggle.diagnostics():toggle()<CR>', desc = '[T]oggle Lsp [D]iagnosticse' },
   { '<leader>tl', '<cmd>lua Snacks.toggle.line_number():toggle()<CR>', desc = '[T]oggle [L]ine Numbers' },
-  { '<leader>tT', '<cmd>lua Snacks.toggle.treesitter():toggle()<CR>', desc = '[T]oggle [T]reesitter' },
+  { '<leader>tt', '<cmd>lua Snacks.toggle.treesitter():toggle()<CR>', desc = '[T]oggle [T]reesitter' },
   { '<leader>ti', '<cmd>lua Snacks.toggle.indent():toggle()<CR>', desc = '[T]oggle [I]ndent' },
   { '<leader>tf', '<cmd>lua Snacks.toggle.dim():toggle()<CR>', desc = '[T]oggle [F]ocus' },
 
@@ -108,8 +120,9 @@ M.keys = {
   { '<leader>fo', '<cmd>lua Snacks.picker.smart()<CR>', desc = '[F]zf [O]ld files', mode = 'n' },
   { '<leader>fl', '<cmd>lua Snacks.picker.grep()<CR>', desc = '[F]zf [G]rep files', mode = 'n' },
   { '<leader>ff', '<cmd>lua Snacks.picker.files()<CR>', desc = '[F]zf [F] files', mode = 'n' },
-  { '<leader>fs', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', desc = '[F]zf Document [S]ymbols', mode = 'n' },
   { '<leader>f:', '<cmd>lua Snacks.picker.command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
+  { '<leader>fs', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', desc = '[F]zf Document [S]ymbols', mode = 'n' },
+  { '<leader>ft', '<cmd>lua Snacks.picker.treesitter()<CR>', desc = '[F]zf [T]reesitter [S]ymbols', mode = 'n' },
 
   -- { '<c-/>', '<cmd>lua Snacks.terminal()<CR>', desc = 'Toggle Terminal' },
   -- { '<c-_>', '<cmd>lua Snacks.terminal()<CR>', desc = 'which_key_ignore' },

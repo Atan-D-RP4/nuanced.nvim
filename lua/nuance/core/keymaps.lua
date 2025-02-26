@@ -26,6 +26,7 @@ local maps = {
   { 't', '<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode' },
   { 't', '<M-r>', [['<C-\><C-N>"'.nr2char(getchar()).'pi']], { desc = 'Vim Register Select in Terminal Mode', expr = true } },
 
+  -- Custom Floating Togglable Terminal
   -- { { 'n', 't' }, '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
   -- { { 'n', 't' }, '<C-w><C-t>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
 
@@ -36,27 +37,17 @@ local maps = {
   { 'n', '<left>', '<cmd>execute "normal! h" | lua vim.notify("Tip: Use l to move right", vim.log.levels.INFO)<CR>' },
   { 'n', '<right>', '<cmd>execute "normal! l" | lua vim.notify("Tip: Use h to move left", vim.log.levels.INFO)<CR>' },
 
-  -- Keybinds to make split navigation easier.
-  --  Use CTRL+<hjkl> to switch between windows
-  --
-  --  See `:help wincmd` for a list of all window commands
   { 'n', '<M-h>', '<C-w><C-h>', 'Move focus to the left window' },
   { 'n', '<M-l>', '<C-w><C-l>', 'Move focus to the right window' },
   { 'n', '<M-j>', '<C-w><C-j>', 'Move focus to the lower window' },
   { 'n', '<M-k>', '<C-w><C-k>', 'Move focus to the upper window' },
-
-  -- Keybinds to resize windows
-  { 'n', '<M-S-h>', '<C-w>3<', 'Decrease width of window' },
-  { 'n', '<M-S-l>', '<C-w>3>', 'Increase width of window' },
-  { 'n', '<M-S-j>', '<C-w>-', 'Decrease height of window' },
-  { 'n', '<M-S-k>', '<C-w>+', 'Increase height of window' },
 
   -- My Keybinds
   { 'i', '<C-U>', '<C-G>u<C-U>' },
 
   -- Buffer Management
   -- { 'n', '<leader>dd', ':bdelete! %<CR>', { desc = 'Delete Buffer' } },
-  { 'n', '<leader>du', ':update! <CR>', 'Refresh Buffer' },
+  { 'n', '<leader>eu', ':update! <CR>', 'Refresh Buffer' },
   { 'n', '<Tab>', ':bnext<CR>', 'Next Buffer' },
   { 'n', '<S-Tab>', ':bprevious<CR>', 'Previous Buffer' },
 
@@ -70,10 +61,6 @@ local maps = {
   -- Even Smarter J/K to Line movements
   { { 'n', 'v' }, 'j', "v:count ? (v:count > 5 ? 'm' . v:count : '') . 'j' : 'gj'", { expr = true, desc = 'Smarter J to Line movements' } },
   { { 'n', 'v' }, 'k', "v:count ? (v:count > 5 ? 'm' . v:count : '') . 'k' : 'gk'", { expr = true, desc = 'Smarter K to Line movements' } },
-
-  { { 'n', 'v' }, '<C-q>', '<C-u>' },
-
-  { { 'n', 'v' }, '<S-w>', 'b' },
 
   { 'n', '<leader>:', ':<Up><CR>', 'Repeat Last Ex Command' },
 
@@ -103,6 +90,7 @@ local maps = {
   { 'n', ']s', ']szz' },
 
   -- { 'i', '<C-v>', '<C-r>+', {} },
+  { { 'n', 'v' }, '<C-q>', '<C-u>' },
 
   { 'n', 'J', 'mzJ`z', 'Join line without moving the cursor' },
 
@@ -111,11 +99,11 @@ local maps = {
 
   -- nmap('<leader>gwr', ':%s/\\<<C-r><C-w>\\>//g<Left><Left>', '[G]lobal Current [W]ord [R]eplace')
   -- nmap('<leader>gsr', ':%s//g<left><left>', '[G]lobal [S]earch and [R]eplace')
-  --
+
   -- Search for visually selected text
   -- Better to use the <leader>fv keybind from fzf.lua
-  { 'v', '<leader>vr', '"hy:%s/<C-r>h//g<left><left>', '[R]eplace [V]isual selection' },
-  { 'v', '<leader>vs', 'y/<C-r>=escape(@", "/")<CR><CR>', 'Search Visual Selection' },
+  -- { 'v', '<leader>vr', '"hy:%s/<C-r>h//g<left><left>', '[R]eplace [V]isual selection' },
+  -- { 'v', '<leader>vs', 'y/<C-r>=escape(@", "/")<CR><CR>', 'Search Visual Selection' },
 
   -- map('x', '<leader>P', '"_dP', 'Paste without yanking')
 
