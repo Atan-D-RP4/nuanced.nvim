@@ -56,6 +56,8 @@ local mason_servers = {
 }
 
 local external_servers = {
+  denols = {},
+
   rust_analyzer = {
     ['rust-analyzer'] = {
       checkOnSave = {
@@ -217,16 +219,15 @@ M.lspconfig.opts.on_attach = function(event)
       end,
     })
   end
+
+  -- vim.opt_local.foldmethod = 'expr'
+  -- vim.opt_local.foldexpr = 'v:lua.vim.lsp.foldexpr()'
+  -- vim.opt_local.foldtext = 'v:lua.vim.lsp.foldtext()'
 end
 
 M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
   vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('nuance-lsp-attach', { clear = true }),
-    -- NOTE: Remember that Lua is a real programming language, and as such it is possible
-    -- to define small helper and utility functions so you don't have to repeat yourself.
-    --
-    -- In this case, we create a function that lets us more easily define mappings specific
-    -- for LSP related items. It sets the mode, buffer and description for us each time.
     callback = function(event)
       opts.on_attach(event)
     end,
@@ -281,7 +282,8 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
     'bashls', -- Used for Bash
     'stylua', -- Used to format Lua code
     'harper-ls', -- Used for English grammar checking
-    'emmet-language-server', -- Used for HTML
+    'emmet-language-server', -- Used for HTML Tags
+    'html-lsp', -- Used for HTML and CSS
   })
   require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -290,45 +292,31 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
     ['textDocument/signatureHelp'] = vim.lsp.buf.signature_help { border = 'rounded' },
   }
 
+  require('mason-lspconfig').setup {
+    handlers = {
+      function(server_name)
+        local server = servers[server_name] or {}
+        servers[server_name] = server
+      end,
+    },
+  }
+
   for name, config in pairs(servers) do
     require('lspconfig')[name].setup {
-      autostart = config.autostart,
-      cmd = config.cmd,
       -- on_attach = function(client, bufnr)
       --   if client.server_capabilities.documentSymbolProvider then
       --     require('nvim-navic').attach(client, bufnr)
       --   end
       -- end,
-      capabilities = capabilities,
+      autostart = config.autostart or true,
+      cmd = config.cmd,
+      capabilities = vim.tbl_extend('force', {}, capabilities, config.capabilities or {}),
       filetypes = config.filetypes,
       handlers = vim.tbl_deep_extend('force', {}, default_handlers, config.handlers or {}),
       settings = config.settings,
       root_dir = config.root_dir,
     }
   end
-
-  -- NOTE: This is the mason-lspconfig way of setting up LSPs. Will only setup the LSPs
-  -- that were installed and are managed by mason
-
-  -- require('mason-lspconfig').setup {
-  --   handlers = {
-  --     function(server_name)
-  --       local server = servers[server_name] or {}
-  --       -- This handles overriding only values explicitly passed
-  --       -- by the server configuration above. Useful when disabling
-  --       -- certain features of an LSP (for example, turning off formatting for ts_ls)
-  --       require('lspconfig')[server_name].setup(vim.tbl_extend('force', server, {
-  --         capabilities = vim.tbl_extend('force', {}, capabilities, server.capabilities or {}),
-  --         autostart = server.autostart or true,
-  --         cmd = server.cmd,
-  --         handlers = vim.tbl_deep_extend('force', {}, default_handlers, server.handlers or {}),
-  --         filetypes = server.filetypes,
-  --         settings = server.settings,
-  --         root_dir = server.root_dir,
-  --       }))
-  --     end,
-  --   },
-  -- }
 end
 
 return {
@@ -336,4 +324,5 @@ return {
   M.lspconfig,
   M.copilot,
 }
+
 -- vim: ts=2 sts=2 sw=2 et
