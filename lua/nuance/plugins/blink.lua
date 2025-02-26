@@ -161,7 +161,7 @@ M.opts.keymap = {
   ['<C-f>'] = { 'scroll_documentation_down', 'fallback' }, -- Scroll the documentation window [f]orward
 
   ['<C-e>'] = { 'hide' }, -- Hide the completion menu
-  -- ['<CR>'] = { 'select_accept', 'fallback' }, -- Accept the completion.
+  -- ['<CR>'] = { 'select_and_accept', 'fallback' }, -- Accept the completion.
   -- ['<C-y>'] = { 'select_and_accept', 'fallback' }, -- Accept ([y]es) the completion.
 
   ['<C-n>'] = { 'select_next', 'snippet_forward', 'fallback' }, -- Select the [n]ext item
@@ -175,8 +175,7 @@ M.opts.cmdline = {
   enabled = true,
 
   keymap = {
-    ['<C-e>'] = { 'hide' },
-    ['<C-space>'] = { 'show' },
+    ['<C-space>'] = { 'show', 'hide' },
     ['<Tab>'] = { 'show', 'select_next', 'fallback' },
     ['<S-Tab>'] = { 'show', 'select_prev', 'fallback' },
   },
