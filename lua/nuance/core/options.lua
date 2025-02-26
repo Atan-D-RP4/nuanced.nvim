@@ -47,7 +47,7 @@ opt.mousehide = true
 
 -- Don't show the mode, since it's already in the status line
 opt.showmode = false
-vim.o.laststatus = 0
+opt.laststatus = 0
 
 -- Show Tabline
 opt.showtabline = 2
@@ -94,12 +94,6 @@ opt.signcolumn = 'number'
 
 -- Decrease update time
 opt.updatetime = 300
-
--- Decrease mapped sequence wait time
--- Displays which-key popup sooner
-opt.ttimeout = true
-opt.ttimeoutlen = 10
-opt.timeoutlen = 500
 
 -- Configure how new splits should be opened
 opt.splitright = true
