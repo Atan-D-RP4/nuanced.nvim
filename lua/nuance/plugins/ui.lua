@@ -1,5 +1,5 @@
 ---@diagnostic disable: unused-local
-local very_modded_statusline = {
+local statusline = {
   'echasnovski/mini.statusline',
   -- Simple and easy statusline.
   -- You could remove this setup call if you don't like it,
@@ -43,12 +43,13 @@ local very_modded_statusline = {
     --@param hl_fg string : The highlight name of the highlight class
     --@param hl_bg string : The highlight name of a highlight class
     local make_color = function(hl_fg, hl_bg)
-      ---@class vim.api.keyset.highlight
       local fghl = vim.api.nvim_get_hl(0, { name = hl_fg })
       local bghl = vim.api.nvim_get_hl(0, { name = hl_bg })
       fghl.fg = fghl.bg
       fghl.bg = bghl.bg
+      ---@diagnostic disable-next-line: inject-field
       fghl.force = true
+      ---@diagnostic disable-next-line: param-type-mismatch
       vim.api.nvim_set_hl(0, hl_fg .. '2', fghl)
     end
 
@@ -57,38 +58,39 @@ local very_modded_statusline = {
       content = {
         -- Content for active window
         active = function()
-          local mode, mode_hl = MiniStatusline.section_mode { trunc_width = 50 }
-          local git = MiniStatusline.section_git { trunc_width = 40 }
-          local diff = MiniStatusline.section_diff { trunc_width = 75 }
-          local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 75 }
-          local lsp = MiniStatusline.section_lsp { trunc_width = 75 }
-          local filename = MiniStatusline.section_filename { trunc_width = 140 }
-          local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
-          local location = MiniStatusline.section_location { trunc_width = 75 }
-          local search = MiniStatusline.section_searchcount { trunc_width = 75 }
-
-          -- Usage of `MiniStatusline.combine_groups()` ensures highlighting and
-          -- correct padding with spaces between groups (accounts for 'missing'
-          -- sections, etc.)
-          --
+          local mode, mode_hl = statusline.section_mode { trunc_width = 50 }
+          local git = statusline.section_git { trunc_width = 40 }
+          local diff = statusline.section_diff { trunc_width = 75 }
+          local diagnostics = statusline.section_diagnostics { trunc_width = 75 }
+          local lsp = statusline.section_lsp { trunc_width = 75 }
+          local filename = statusline.section_filename { trunc_width = 140 }
+          local fileinfo = statusline.section_fileinfo { trunc_width = 120 }
+          local location = statusline.section_location { trunc_width = 75 }
+          local search = statusline.section_searchcount { trunc_width = 75 }
 
           make_color(mode_hl, 'MiniStatuslineFilename')
           make_color('MiniStatuslineDevinfo', 'MiniStatuslineFilename')
           make_color('MiniStatuslineFileInfo', 'MiniStatuslineFilename')
 
           local tab = {
+            { hl = mode_hl .. '2', strings = { '█' } },
             { hl = mode_hl, strings = { mode } },
             { hl = mode_hl .. '2', strings = { '█' } },
             '%<', -- Mark general truncate point
           }
-          if table.concat({ git, diff, diagnostics, lsp }):len() > 0 then
+          if table.concat({ git, diff }):len() > 0 then
             table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
-            table.insert(tab, { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp } })
+            table.insert(tab, { hl = 'MiniStatuslineDevinfo', strings = { git, diff } })
             table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
             table.insert(tab, '%<') -- Mark general truncate point
           end
           table.insert(tab, { hl = 'MiniStatuslineFilename', strings = { ' ', filename, ' ' } })
           table.insert(tab, '%=')
+          if table.concat({ diagnostics, lsp }):len() > 0 then
+            table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
+            table.insert(tab, { hl = 'MiniStatuslineDevinfo', strings = { diagnostics, lsp } })
+            table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
+          end
           if fileinfo:len() > 0 then
             table.insert(tab, { hl = 'MiniStatuslineFileinfo2', strings = { '█' } })
             table.insert(tab, { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } })
@@ -97,23 +99,11 @@ local very_modded_statusline = {
 
           table.insert(tab, { hl = mode_hl .. '2', strings = { '█' } })
           table.insert(tab, { hl = mode_hl, strings = { search, location } })
+          table.insert(tab, { hl = mode_hl .. '2', strings = { '█' } })
+          -- Usage of `MiniStatusline.combine_groups()` ensures highlighting and
+          -- correct padding with spaces between groups (accounts for 'missing'
+          -- sections, etc.)
           return combine_groups(tab)
-          -- return combine_groups {
-          --   { hl = mode_hl, strings = { mode } },
-          --   { hl = mode_hl .. '2', strings = { '█' } },
-          --   '%<', -- Mark general truncate point
-          --   { hl = 'MiniStatuslineDevinfo2', strings = { '█' } },
-          --   { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp } },
-          --   { hl = 'MiniStatuslineDevinfo2', strings = { '█' } },
-          --   '%<', -- Mark general truncate point
-          --   { hl = 'MiniStatuslineFilename', strings = { ' ', filename, ' ' } },
-          --   '%=', -- End left alignment
-          --   { hl = 'MiniStatuslineFileinfo2', strings = { '█' } },
-          --   { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
-          --   { hl = 'MiniStatuslineFileinfo2', strings = { '█' } },
-          --   { hl = mode_hl .. '2', strings = { '█' } },
-          --   { hl = mode_hl, strings = { search, location } },
-          -- }
         end,
         -- Content for inactive window(s)
         inactive = nil,
@@ -123,64 +113,7 @@ local very_modded_statusline = {
     }
 
     -- You can configure sections in the statusline by overriding their
-    -- default behavior. For example, here we set the section for
-    -- cursor location to LINE:COLUMN
-    ---@diagnostic disable-next-line: duplicate-set-field
-    statusline.section_location = function()
-      return '%2l:%-2v'
-    end
-  end,
-}
-
-local icons = {
-  'echasnovski/mini.icons',
-  event = 'VimEnter',
-  config = function()
-    require('mini.icons').setup()
-  end,
-}
-
-local tabline = {
-  'echasnovski/mini.tabline',
-  event = 'VimEnter',
-  config = function()
-    require('nuance.core.utils').buftab_setup()
-    require('mini.tabline').setup {
-      format = function(buf_id, label)
-        local tabline = MiniTabline.default_format(buf_id, label)
-        local tab_idx_map = vim.g.tab_idx_map
-        if tab_idx_map == nil then
-          return tabline
-        end
-        local tab_idx = tab_idx_map[buf_id]
-        return tabline .. string.format('[%s]', tab_idx)
-      end,
-      tabpage_section = 'right',
-    }
-  end,
-}
-
-local statusline = {
-  'echasnovski/mini.statusline',
-  event = 'VimEnter',
-
-  -- Simple and easy statusline.
-  --  You could remove this setup call if you don't like it,
-  --  and try some other statusline plugin
-  config = function()
-    local statusline = require 'mini.statusline'
-
-    -- set use_icons to true if you have a Nerd Font
-    statusline.setup { use_icons = vim.g.have_nerd_font }
-
-    -- You can configure sections in the statusline by overriding their
-    -- default behavior. For example, here we set the section for
-    -- cursor location to LINE:COLUMN
-    ---@diagnostic disable-next-line: duplicate-set-field
-    statusline.section_location = function()
-      return '%2l:%-2v'
-    end
-
+    -- default behavior.
     ---@diagnostic disable-next-line: duplicate-set-field
     statusline.section_fileinfo = function(args)
       local size_fn = function()
@@ -213,6 +146,39 @@ local statusline = {
 
       return string.format('%s %s[%s] %s %s', filetype, encoding, format, size_fn(), words)
     end
+
+    ---@diagnostic disable-next-line: duplicate-set-field
+    statusline.section_location = function()
+      return '%2l:%-2v'
+    end
+  end,
+}
+
+local icons = {
+  'echasnovski/mini.icons',
+  event = 'VimEnter',
+  config = function()
+    require('mini.icons').setup()
+  end,
+}
+
+local tabline = {
+  'echasnovski/mini.tabline',
+  event = 'VimEnter',
+  config = function()
+    require('nuance.core.utils').buftab_setup()
+    require('mini.tabline').setup {
+      format = function(buf_id, label)
+        local tabline = MiniTabline.default_format(buf_id, label)
+        local tab_idx_map = vim.g.tab_idx_map
+        if tab_idx_map == nil then
+          return tabline
+        end
+        local tab_idx = tab_idx_map[buf_id]
+        return tabline .. string.format('[%s]', tab_idx)
+      end,
+      tabpage_section = 'right',
+    }
   end,
 }
 
@@ -285,7 +251,7 @@ local themes = {
     },
     init = function()
       vim.cmd [[
-        colorscheme kanagawa
+        colorscheme kanagawa-wave
         hi Comment gui=italic
       ]]
     end,
@@ -310,11 +276,41 @@ local noice = {
   dependencies = {
     'MunifTanjim/nui.nvim',
   },
+  ---@module 'noice'
+  ---@type NoiceConfig
   opts = {
+    lsp = {
+      override = {
+        ['vim.lsp.util.convert_input_to_markdown_lines'] = true,
+        ['vim.lsp.util.stylize_markdown'] = true,
+        ['cmp.entry.get_documentation'] = true,
+      },
+      signature = {
+        enabled = true,
+        view = nil, -- when nil, use defaults from documentation
+        ---@type NoiceViewOptions
+        opts = {}, -- merged with defaults from documentation
+      },
+    },
+    ---@type NoiceRouteConfig[]
+    routes = {
+      {
+        filter = {
+          event = 'msg_show',
+          any = {
+            { find = '%d+L, %d+B' },
+            { find = '; after #%d+' },
+            { find = '; before #%d+' },
+          },
+        },
+        view = 'mini',
+      },
+    },
     cmdline = {
+      ---@type table<string, CmdlineFormat>
       format = {
-        selections = { pattern = "'<,'>", title  = ' Selections ' },
-      }
+        selections = { pattern = "'<,'>", title = ' Selections ' },
+      },
     },
     presets = {
       lsp_doc_border = true,
@@ -328,6 +324,14 @@ local transparent = {
   'xiyaowong/nvim-transparent',
   event = 'VimEnter',
   config = true,
+  init = function()
+    -- Decrease mapped sequence wait time
+    -- Displays which-key popup sooner
+    vim.o.ttimeout = true
+    vim.o.ttimeoutlen = 10
+    vim.o.timeout = true
+    vim.o.timeoutlen = 500
+  end,
 }
 
 local which_key = { -- Useful plugin to show you pending keybinds.
@@ -398,13 +402,13 @@ local markview = {
 }
 
 local M = {
-  themes.witch,
+  themes.catpuccin,
   statusline,
   tabline,
   icons,
   noice,
+  which_key,
   -- notify,
-  -- which_key,
   -- transparent,
   -- markview,
 }
