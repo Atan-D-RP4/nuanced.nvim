@@ -86,5 +86,5 @@ local treesitter_context = {
 
 return {
   treesitter_core,
-  -- treesitter_context, -- Replaced by nvim-navic in lspconfig
+  -- treesitter_context, -- Replaced by dropbar.nvim
 }

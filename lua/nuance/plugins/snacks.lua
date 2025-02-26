@@ -31,7 +31,7 @@ M.opts.picker = {
       auto_close = true,
       jump = { close = true },
       layout = { layout = { position = 'right' } },
-      win = { list = { keys = { ['<leader>l'] = require('flash').jump } } },
+      win = { list = { keys = { ['gw'] = require('flash').jump } } },
     },
     grep = {
       actions = {
