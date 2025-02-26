@@ -1,13 +1,7 @@
 -- [[ Basic Keymaps ]]
---  See `:helpvim.keymap.set()`
 
--- Set <space> as the leader key
--- See `:help mapleader`
---  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
---
--- vim.g.mapleader = ' '
 vim.g.mapleader = '\r'
-vim.g.maplocalleader = ' '
+vim.g.maplocalleader = '\r'
 
 local maps = {
   -- Better Escape

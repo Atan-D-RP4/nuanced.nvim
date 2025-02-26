@@ -1,5 +1,62 @@
 --@param file string
-vim.g.current_session = nil
+vim.g.active_session = ''
+
+local create_default = function()
+  local session_path = require('mini.sessions').config.directory .. '/' .. 'default'
+  local session_file = io.open(session_path, 'w')
+  if session_file == nil then
+    print 'Failed to create session file'
+    return
+  end
+  session_file:write [[
+let SessionLoad = 1
+let s:so_save = &g:so | let s:siso_save = &g:siso | setg so=0 siso=0 | setl so=-1 siso=-1
+let v:this_session=expand("<sfile>:p")
+silent only
+silent tabonly
+cd ~/.local/share/nvim/sessions
+if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
+  let s:wipebuf = bufnr('%')
+endif
+let s:shortmess_save = &shortmess
+if &shortmess =~ 'A'
+  set shortmess=aoOA
+else
+  set shortmess=aoO
+endif
+argglobal
+%argdel
+argglobal
+enew
+setlocal foldmethod=manual
+setlocal foldexpr=0
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=0
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal nofoldenable
+tabnext 1
+if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
+  silent exe 'bwipe ' . s:wipebuf
+endif
+unlet! s:wipebuf
+set winheight=1 winwidth=20
+let &shortmess = s:shortmess_save
+let s:sx = expand("<sfile>:p:r")."x.vim"
+if filereadable(s:sx)
+  exe "source " . fnameescape(s:sx)
+endif
+let &g:so = s:so_save | let &g:siso = s:siso_save
+set hlsearch
+nohlsearch
+doautoall SessionLoadPost
+unlet SessionLoad
+" vim: set ft=vim :
+  ]]
+  session_file:close()
+end
+
 local session_files = function(file)
   if vim.fn.isdirectory(file) == 1 then
     return {}
@@ -24,166 +81,126 @@ local session_files = function(file)
 end
 
 local session_pick = function()
-  local items = {} ---@type snacks.picker.finder.Item[]
+  ---@type snacks.picker.finder.Item[]
+  local items = {}
   for _, session in pairs(MiniSessions.detected) do
-    table.insert(items, {
-      text = session.name,
-      name = session.name,
-      preview = { text = session_files(session.path) },
-      path = session.path,
-      modify_time = os.date('%Y-%m-%d %H:%M:%S', session.modify_time),
-      type = session.type,
-    })
+    if session.name ~= 'default' then
+      table.insert(items, {
+        text = session.name,
+        name = session.name,
+        preview = { text = session_files(session.path) },
+        path = session.path,
+        modify_time = os.date('%Y-%m-%d %H:%M:%S', session.modify_time),
+        type = session.type,
+      })
+    end
   end
+
   require('snacks.picker').pick {
     title = 'Sessions',
     items = items,
     preview = 'preview',
+
     format = function(item, _)
       local ret = {}
       ret[#ret + 1] = { item.name or '', '@string' }
       return ret
     end,
-    actions = {
-      delete = function(picker, item)
-        MiniSessions['delete'](item.name)
-        picker:ref()
-      end,
-    },
-    win = {
-      input = {
-        keys = {
-          ['<C-x>'] = 'delete',
-        },
-      },
-    },
+
     confirm = function(_, item)
       if not item then
         return
       end
 
-      vim.notify('Loaded session: ' .. item.name)
       MiniSessions.read(item.name, {})
-      vim.g.current_session = item.name
+      if vim.g.active_session == '' then
+        vim.notify('Loaded Session: ' .. item.name)
+      else
+        vim.notify('Switched From Session: ' .. vim.g.active_session .. '\nTo: ' .. item.name)
+      end
+      vim.g.active_session = item.name
     end,
   }
 end
 
-local mini_sessions = {
+M = {
   'echasnovski/mini.sessions',
   event = 'VeryLazy',
-  config = function()
-    require('mini.sessions').setup {
-      autoread = false,
-      directory = vim.fn.stdpath 'data' .. '/sessions',
-    }
-
-    -- Check if session dir exists and if not create it
-    if vim.fn.isdirectory(require('mini.sessions').config.directory) == 0 then
-      vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
-    end
-
-    local statusline = require 'mini.statusline'
-    local default_section_filename = statusline.section_filename
-    ---@diagnostic disable-next-line: duplicate-set-field
-    statusline.section_filename = function(args)
-      local session = vim.g.current_session
-      if session == nil then
-        session = 'None'
-      end
-      return session .. ' ' .. default_section_filename(args)
-    end
-  end,
-  keys = {
-    {
-      '<leader>ap',
-      function()
-        session_pick()
-      end,
-      desc = '[S]essions [P]ick',
-    },
-    {
-      '<leader>an',
-      function()
-        local name = vim.fn.input 'Session name: '
-        if name == '' then
-          print 'No session saved'
-          return
-        end
-        require('mini.sessions').write(name)
-      end,
-      desc = '[S]essions [N]ew',
-    },
-    {
-      '<leader>as',
-      function()
-        local ms = require 'mini.sessions'
-        ms.write(vim.g.current_session)
-      end,
-      desc = '[S]essions [S]ave/Update',
-    },
-  },
-}
-
-local possession = {
-  'gennaro-tedesco/nvim-possession',
-  enabled = require('nuance.disabled.fzf').enabled,
-
   dependencies = {
-    'echasnovski/mini.sessions',
-    'nvim-lua/plenary.nvim',
-    'ibhagwan/fzf-lua',
+    'folke/snacks.nvim',
   },
-
-  keys = {
-    { '<leader>al', '<cmd>lua require("nvim-possession").list()<CR>', desc = '[S]essions [L]ist' },
-    { '<leader>an', '<cmd>lua require("nvim-possession").new()<CR>', desc = '[S]essions [N]ew' },
-    { '<leader>as', '<cmd>lua require("nvim-possession").update()<CR>', desc = '[S]essions [S]ave/Update' },
-    { '<leader>ad', '<cmd>lua require("nvim-possession").delete()<CR>', desc = '[S]essions [D]elete' },
-  },
-  config = function()
-    -- Check if session dir exists and if not create it
-    if vim.fn.isdirectory(require('nvim-possession.config').sessions.sessions_path) == 0 then
-      vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
-    end
-
-    local statusline = require 'mini.statusline'
-    local default_section_filename = statusline.section_filename
-    ---@diagnostic disable-next-line: duplicate-set-field
-    statusline.section_filename = function(args)
-      local session = require('nvim-possession').status()
-      if session == nil then
-        session = 'None'
-      end
-      return session .. ' ' .. default_section_filename(args)
-    end
-    require('nvim-possession').setup {
-      autoload = false,
-
-      autoswitch = {
-        enable = true,
-      },
-
-      fzf_winopts = {
-        height = 0.4,
-        width = 0.2,
-        row = 0.5,
-        col = 0.5,
-      },
-
-      post_hook = function()
-        -- Clear any unnecessary buffers
-        local bufs = vim.api.nvim_list_bufs()
-        for _, bufnr in ipairs(bufs) do
-          if not (vim.api.nvim_get_option_value('buflisted', { buf = bufnr }) == true and vim.api.nvim_buf_get_name(bufnr):len() > 0) then
-            vim.api.nvim_buf_delete(bufnr, { force = true })
-          end
-        end
-      end,
-    }
-  end,
 }
 
-local M = mini_sessions
+---@diagnostic disable-next-line: duplicate-set-field
+M.config = function()
+  require('mini.sessions').setup {
+    autoread = false,
+    directory = vim.fn.stdpath 'data' .. '/sessions',
+    hooks = {
+      pre = {
+        read = function()
+          vim.cmd [[ silent! %bwipeout! ]]
+        end,
+      },
+    },
+  }
+
+  -- Check if session dir exists and if not create it
+  if vim.fn.isdirectory(require('mini.sessions').config.directory) == 0 then
+    vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
+  end
+
+  -- Create a default session
+  create_default()
+
+  local statusline = require 'mini.statusline'
+  local default_section_filename = statusline.section_filename
+  ---@diagnostic disable-next-line: duplicate-set-field
+  statusline.section_filename = function(args)
+    local session = vim.g.active_session
+    if session == nil then
+      session = 'None'
+    else
+      session = '■ ' .. session
+    end
+    return session .. ' ' .. default_section_filename(args)
+  end
+end
+
+M.keys = {
+  {
+    '<leader>ac',
+    function()
+      require('mini.sessions').read('default', {})
+      vim.g.active_session = ''
+      vim.notify 'Clear session'
+    end,
+    desc = '[S]essions [C]lose',
+    mode = 'n',
+  },
+  {
+    '<leader>ap',
+    function()
+      session_pick()
+    end,
+    desc = '[S]essions [P]ick',
+    mode = 'n',
+  },
+  {
+    '<leader>an',
+    function()
+      local name = vim.fn.input 'Session name: '
+      if name == '' then
+        print 'No session saved'
+        return
+      end
+      require('mini.sessions').write(name)
+      vim.g.active_session = name
+    end,
+    desc = '[S]essions [N]ew',
+    mode = 'n',
+  },
+  { '<leader>as', '<cmd>lua MiniSessions.write(vim.g.current_session)<CR>', desc = '[S]essions [S]ave/Update', mode = 'n' },
+}
 
 return M
