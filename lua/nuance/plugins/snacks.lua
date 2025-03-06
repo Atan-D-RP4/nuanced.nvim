@@ -18,7 +18,28 @@ M.opts = {
   scope = { enabled = true }, -- tpope/vim-sleuth is just better for this
   indent = { enabled = true },
   input = { enabled = true },
-  dashboard = { enabled = false },
+
+  dashboard = {
+    enabled = true,
+    preset = {
+      ---@type fun(cmd:string, opts:table)|nil
+      pick = nil,
+
+      ---@type snacks.dashboard.Item[]
+      keys = {
+        { key = 'f', desc = 'Find File', action = ":lua Snacks.dashboard.pick('files')" },
+        { key = 'n', desc = 'New File', action = ':ene | startinsert' },
+        { key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
+        { key = 'r', desc = 'Recent Files', action = "<cmd>lua Snacks.dashboard.pick('oldfiles')<CR>" },
+        { key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
+        { key = 'a', desc = 'Pick Session', action = ':SessionPick' },
+        { key = 'o', desc = 'File System', action = ':Oil' },
+        { key = 'L', desc = 'Lazy', action = ':Lazy', enabled = package.loaded.lazy ~= nil },
+        { key = 'q', desc = 'Quit', action = ':qa' },
+      },
+    },
+  },
+
   notifier = { enabled = true, timeout = 3000 },
   styles = { notification = { wo = { wrap = true } } }, -- Wrap notifications
   scroll = { enabled = false },
@@ -27,37 +48,43 @@ M.opts = {
 }
 
 M.opts.picker = {
-  sources = {
-    projects = {
-      dev = { '~/Develop/repos/' },
-    },
-    explorer = {
-      auto_close = true,
-      jump = { close = true },
-      layout = { layout = { position = 'right' } },
-      win = { list = { keys = { ['gw'] = require('flash').jump } } },
-    },
-    grep = {
-      actions = {
-        cd_up = function(picker, _)
-          picker:set_cwd(vim.fs.dirname(picker:cwd()))
-          picker:find()
-        end,
-      },
-      win = {
-        input = {
-          keys = {
-            ['<c-k>'] = { 'cd_up', desc = 'cd_up', mode = { 'i', 'n' } },
+  actions = {
+    cd_up = function(picker, _)
+      picker:set_cwd(vim.fs.dirname(picker:cwd()))
+      picker:find()
+    end,
+    flash = function(picker)
+      local err, flash = pcall(require, 'flash')
+      if not err then
+        vim.print 'You need to install flash.nvim to use this feature'
+        return
+      end
+      flash.jump {
+        pattern = '^',
+        label = { after = { 0, 0 } },
+        search = {
+          mode = 'search',
+          exclude = {
+            function(win)
+              return vim.bo[vim.api.nvim_win_get_buf(win)].filetype ~= 'snacks_picker_list'
+            end,
           },
         },
-      },
-    },
-    lsp_symbols = {
-      layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } },
-    },
-    treesitter = {
-      layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } },
-    },
+        highlight = { backdrop = false },
+        action = function(match)
+          local idx = picker.list:row2idx(match.pos[1])
+          picker.list:_move(idx, true, true)
+        end,
+      }
+    end,
+  },
+  win = { input = { keys = { ['<C-l>'] = { 'flash', desc = 'flash', mode = { 'i', 'n' } } } } },
+  sources = {
+    projects = { dev = { '~/Develop/repos/' } },
+    explorer = { auto_close = true, jump = { close = true }, layout = { layout = { position = 'right' } } },
+    grep = { win = { input = { keys = { ['<C-k>'] = { 'cd_up', desc = 'cd_up', mode = { 'i', 'n' } } } } } },
+    lsp_symbols = { layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } } },
+    treesitter = { layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } } },
   },
 }
 
@@ -121,14 +148,11 @@ M.keys = {
   { '<leader>fl', '<cmd>lua Snacks.picker.grep()<CR>', desc = '[F]zf [G]rep files', mode = 'n' },
   { '<leader>ff', '<cmd>lua Snacks.picker.files()<CR>', desc = '[F]zf [F] files', mode = 'n' },
   { '<leader>f:', '<cmd>lua Snacks.picker.command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
-  { '<leader>fs', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', desc = '[F]zf Document [S]ymbols', mode = 'n' },
+  { '<leader>fs', '<cmd>lua Snacks.picker.lsp_symbols({layout = {preset = "vscode", preview = "main"}})<CR>', desc = '[F]zf Document [S]ymbols', mode = 'n' },
   { '<leader>ft', '<cmd>lua Snacks.picker.treesitter()<CR>', desc = '[F]zf [T]reesitter [S]ymbols', mode = 'n' },
 
-  -- { '<c-/>', '<cmd>lua Snacks.terminal()<CR>', desc = 'Toggle Terminal' },
   -- { '<c-_>', '<cmd>lua Snacks.terminal()<CR>', desc = 'which_key_ignore' },
-  -- { ']]', '<cmd>lua Snacks.words.jump(vim.v.count1)<CR>', desc = 'Next Reference', mode = { 'n', 't' } },
-  -- { '[[', '<cmd>lua Snacks.words.jump(-vim.v.count1)<CR>', desc = 'Prev Reference', mode = { 'n', 't' } },
-  --
+
   -- {
   --   '<leader>tb',
   --   "<cmd>lua Snacks.toggle.option('background', { off = 'light', on = 'dark', name = 'Dark Background' }):toggle()<CR>",

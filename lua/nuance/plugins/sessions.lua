@@ -83,7 +83,7 @@ end
 local session_pick = function()
   ---@type snacks.picker.finder.Item[]
   local items = {}
-  for _, session in pairs(MiniSessions.detected) do
+  for _, session in pairs(require('mini.sessions').detected) do
     if session.name ~= 'default' then
       table.insert(items, {
         text = session.name,
@@ -107,12 +107,39 @@ local session_pick = function()
       return ret
     end,
 
+    -- actions = {
+    --   delete = function(picker, item, action)
+    --     vim.print('Action: ', action)
+    --     vim.print('Deleting: ' .. item.name)
+    --     require('mini.sessions').delete(item.name, { force = true, verbose = true })
+    --     picker:ref()
+    --   end,
+    --   echo = function(_, item)
+    --     vim.notify('Session: ' .. item.name .. '\nPath: ' .. item.path .. '\nModified: ' .. item.modify_time)
+    --   end,
+    -- },
+    --
+    -- win = {
+    --   input = {
+    --     keys = {
+    --       ['<C-x>'] = 'delete',
+    --       ['<C-e>'] = 'echo',
+    --     },
+    --   },
+    --   list = {
+    --     keys = {
+    --       ['<C-x>'] = 'delete',
+    --       ['<C-e>'] = 'echo',
+    --     },
+    --   },
+    -- },
+
     confirm = function(_, item)
       if not item then
         return
       end
 
-      MiniSessions.read(item.name, {})
+      require('mini.sessions').read(item.name, {})
       if vim.g.active_session == '' then
         vim.notify('Loaded Session: ' .. item.name)
       else
@@ -123,9 +150,13 @@ local session_pick = function()
   }
 end
 
+vim.api.nvim_create_user_command('SessionPick', function()
+  session_pick()
+end, { nargs = 0 })
+
 M = {
   'echasnovski/mini.sessions',
-  event = 'VeryLazy',
+  event = 'VimEnter',
   dependencies = {
     'folke/snacks.nvim',
   },
@@ -169,6 +200,14 @@ end
 
 M.keys = {
   {
+    '<leader>ap',
+    function()
+      session_pick()
+    end,
+    desc = '[S]essions [P]ick',
+    mode = 'n',
+  },
+  {
     '<leader>ac',
     function()
       require('mini.sessions').read('default', {})
@@ -176,14 +215,6 @@ M.keys = {
       vim.notify 'Clear session'
     end,
     desc = '[S]essions [C]lose',
-    mode = 'n',
-  },
-  {
-    '<leader>ap',
-    function()
-      session_pick()
-    end,
-    desc = '[S]essions [P]ick',
     mode = 'n',
   },
   {
@@ -200,7 +231,7 @@ M.keys = {
     desc = '[S]essions [N]ew',
     mode = 'n',
   },
-  { '<leader>as', '<cmd>lua MiniSessions.write(vim.g.current_session)<CR>', desc = '[S]essions [S]ave/Update', mode = 'n' },
+  { '<leader>as', '<cmd>lua require("mini.sessions").write(vim.g.current_session)<CR>', desc = '[S]essions [S]ave/Update', mode = 'n' },
 }
 
 return M
