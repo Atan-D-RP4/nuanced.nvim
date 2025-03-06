@@ -1,12 +1,14 @@
+-- Check if nvim version is at least 0.11.0
+if vim.fn.has 'nvim-0.11' == 1 then
+  vim.g.treesitter_diagnostics = true
+else
+  vim.g.treesitter_diagnostics = false
+end
+
 require 'nuance.core.clipboard'
 require 'nuance.core.keymaps'
 require 'nuance.core.utils'
 require 'nuance.core.options'
-
--- Check if nvim version is at least 0.11.0
-if vim.fn.has 'nvim-0.11' == 1 then
-  require 'nuance.core.treesitter-diagnostics'
-end
 
 -- NOTE: This is for when I convert the nuance.core directory into a Neovim-Lua plugin
 vim.api.nvim_create_autocmd('User', {

@@ -191,11 +191,16 @@ autocmd('FileType', {
     'notify',
     'git',
     'fugitive',
+    'fugitiveblame',
+    'fugitivediff',
+    'fugitivediffsplit',
+    'fugitivediffvsplit',
     'qf',
     'spectre_panel',
     'startuptime',
     'tsplayground',
   },
+  ---@param event vim.api.keyset.create_autocmd.callback_args
   callback = function(event)
     vim.bo[event.buf].buflisted = false
     vim.schedule(function()
@@ -221,5 +226,68 @@ autocmd({ 'BufWritePre' }, {
     vim.fn.mkdir(vim.fn.fnamemodify(file, ':p:h'), 'p')
   end,
 })
+
+vim.api.nvim_create_autocmd({ 'FileType', 'TextChanged', 'InsertLeave' }, {
+  desc = 'Treesitter-based Diagnostics',
+  pattern = '*',
+  group = vim.api.nvim_create_augroup('nuance-treesitter-diagnostics', { clear = true }),
+  ---@param event vim.api.keyset.create_autocmd.callback_args
+  callback = vim.schedule_wrap(function(event)
+    if vim.g.treesitter_diagnostics == false then
+      vim.diagnostic.reset(require('nuance.core.ts-diagnostics').namespace, event.buf)
+      return
+    end
+    require('nuance.core.ts-diagnostics').diagnostics(event)
+  end),
+})
+
+vim.api.nvim_create_user_command('TSDiagnosticsToggle', function(_)
+  vim.g.treesitter_diagnostics = not vim.g.treesitter_diagnostics
+end, { nargs = 0 })
+
+-- Define highlight groups
+vim.api.nvim_command 'highlight Filepath gui=underline cterm=underline guifg=#F38BA8'
+
+-- Match filepaths (fixed regex)
+vim.cmd 'match Filepath /\\v(\\~\\/|\\.\\.\\/|\\.\\/|\\/)([^\\/ ]+\\/)*[^\\/ ]+(\\.[a-zA-Z0-9]+)*(:\\d+){0,2}/'
+
+-- local ns = vim.api.nvim_create_namespace 'filepath_highlighter'
+--
+-- local function highlight_filepaths(bufnr)
+--   vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+--   local content = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+--   local pattern = "(/[%w%._%-]+)+"
+--
+--   for lnum, line in ipairs(content) do
+--     local start = 0
+--     while true do
+--       local start_idx, end_idx = line:find(pattern, start)
+--       if not start_idx then
+--         break
+--       end
+--
+--       vim.g.filepath_highlighter = ns
+--       vim.api.nvim_buf_set_extmark(bufnr, ns, lnum - 1, start_idx - 1, {
+--         end_row = lnum - 1,
+--         end_col = end_idx,
+--         hl_group = 'Filepath',
+--         priority = 100,
+--       })
+--
+--       start = end_idx + 1
+--     end
+--   end
+-- end
+--
+-- -- Attach to buffers
+-- vim.api.nvim_create_autocmd({ 'BufEnter', 'TextChanged', 'InsertLeave' }, {
+--   callback = function(args)
+--     vim.print(vim.api.nvim_buf_get_extmarks(args.buf, ns, 0, -1, { details = true }))
+--     vim.schedule(function()
+--       highlight_filepaths(args.buf)
+--     end)
+--   end,
+--   pattern = '*',
+-- })
 
 -- vim: ts=2 sts=2 sw=2 et
