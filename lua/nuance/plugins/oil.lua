@@ -9,7 +9,7 @@ local M = {
     ---@diagnostic disable-next-line: param-type-mismatch
     if vim.fn.argc() == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1 then
       require('lazy').load { plugins = { 'oil.nvim' } }
-      vim.cmd 'bd' -- Close the initial buffer
+      vim.cmd 'bdelete' -- Close the initial buffer
       vim.cmd('Oil ' .. vim.fn.argv(0))
     end
   end,
@@ -57,26 +57,22 @@ M.opts.lsp_file_methods = {
 }
 
 M.opts.keymaps = {
-  ['<leader>ff'] = {
-    function()
-      Snacks.picker.files { cwd = require('oil').get_current_dir(), follow = true }
-    end,
-  },
+  ['<leader>ff'] = { "<cmd>lua Snacks.picker.files({ cwd = require('oil').get_current_dir(), follow = true })<CR>" },
   ['<CR>'] = {},
   ['<C-l>'] = 'actions.refresh',
-  ['<C-x>'] = '',
+  -- Append to a register (Primitive impl for marking files)
+  -- ['<C-x>'] = function()
+  --   local reg = vim.fn.getreg 'a'
+  --   vim.fn.setreg('a', reg .. vim.api.nvim_get_current_line())
+  -- end,
   ['<C-s>'] = { 'actions.select', opts = { vertical = true }, desc = 'Open the entry in a vertical split' },
   ['<C-h>'] = { 'actions.select', opts = { horizontal = true }, desc = 'Open the entry in a horizontal split' },
   ['<C-t>'] = { 'actions.select', opts = { tab = true }, desc = 'Open the entry in new tab' },
   ['<C-p>'] = 'actions.preview',
   ['<Right>'] = 'actions.select',
-  ['l'] = 'actions.select',
+  ['l'] = { 'actions.select', mode = 'n' },
   ['q'] = 'actions.close',
-  ['='] = {
-    function()
-      vim.cmd 'w'
-    end,
-  }, -- Save the current buffer
+  ['='] = { function() vim.cmd 'write' end, }, -- Save the current buffer
   ['-'] = 'actions.parent',
   ['_'] = 'actions.open_cwd',
   ['`'] = 'actions.cd',

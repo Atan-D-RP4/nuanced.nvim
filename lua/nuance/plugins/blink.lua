@@ -4,7 +4,7 @@ M = {
   event = { 'InsertEnter', 'CmdlineEnter', 'LspAttach' },
 
   -- use a release tag to download pre-built binaries
-  version = 'v0.12.*',
+  version = 'v0.13.*',
   -- OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
   -- build = 'cargo build --release',
   -- If you use nix, you can build from source using latest nightly rust with:
@@ -32,9 +32,6 @@ M.dependencies = {
     },
     config = function()
       require 'nuance.core.luasnips'
-      vim.cmd [[
-        highlight BlinkLabelDescription ctermfg=gray
-      ]]
     end,
   },
 }
@@ -175,9 +172,10 @@ M.opts.cmdline = {
   enabled = true,
 
   keymap = {
-    ['<C-space>'] = { 'show', 'hide' },
+    ['<C-space>'] = { 'show', 'hide', 'fallback' },
     ['<Tab>'] = { 'show', 'select_next', 'fallback' },
     ['<S-Tab>'] = { 'show', 'select_prev', 'fallback' },
+    -- ['<C-D>'] = { 'show', 'show_documentation' },
   },
 
   sources = function()
@@ -196,7 +194,13 @@ M.opts.cmdline = {
   end,
 
   completion = {
+    list = {
+      selection = {
+        preselect = false,
+      },
+    },
     menu = {
+      auto_show = true,
       draw = { columns = { { 'label', 'label_description', gap = 1 }, { 'kind_icon', 'kind', gap = 1 } } },
     },
   },
