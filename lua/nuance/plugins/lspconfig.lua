@@ -60,9 +60,8 @@ local external_servers = {
 
   rust_analyzer = {
     ['rust-analyzer'] = {
-      checkOnSave = {
-        command = 'clippy',
-      },
+      cargo = { allFeatures = true },
+      checkOnSave = { command = 'clippy' },
     },
   },
 
@@ -75,7 +74,7 @@ local M = {}
 
 M.lspconfig = {
   'neovim/nvim-lspconfig',
-  cmd = { 'LspStart', 'LspInfo', 'LspInstall', 'LspUninstall' },
+  cmd = { 'LspStart', 'LspInfo', 'LspLog' },
   ft = {
     'typescript',
     'javascript',
@@ -154,6 +153,15 @@ M.lspconfig.dependencies = {
 M.lspconfig.opts.on_attach = function(event)
   local nmap = require('nuance.core.utils').nmap
   vim.lsp.set_log_level(vim.log.levels.OFF)
+  vim.lsp.log.set_format_func(function(a, b)
+    vim.inspect(a, b)
+    vim.cmd 's/\\n/\\r/g'
+  end)
+
+  -- Set the priority of the semantic tokens to be lower than
+  -- that of Treesitter, so that Treesitter is always highlighting
+  -- over LSP semantic tokens.
+  vim.highlight.priorities.semantic_tokens = 95
 
   local cmd
   local has_fzf, _ = pcall(require, 'fzf-lua')
@@ -173,7 +181,7 @@ M.lspconfig.opts.on_attach = function(event)
   end
 
   nmap('gd', cmd:format 'lsp_definitions()', 'Lsp [G]oto [D]efinition')
-  nmap('grr', cmd:format 'lsp_references()', 'Lsp [G]oto [R]eferences') -- override `grr` mapping
+  nmap('grr', cmd:format 'lsp_references({layout = {preset = "vscode", preview = "main"}})', 'Lsp [G]oto [R]eferences') -- override `grr` mapping
   nmap('gri', cmd:format 'lsp_implementations()', 'Lsp [G]oto [I]mplementation') -- override `gri` mapping
   nmap('gus', cmd:format 'lsp_document_symbols()', 'Lsp [D]ocument [S]ymbols')
 
@@ -237,8 +245,14 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
     underline = true,
     signs = true,
     update_in_insert = false,
+    virtual_lines = { current_line = true },
+
     virtual_text = {
       spacing = 2,
+      ---@param diagnostic vim.Diagnostic
+      format = function(diagnostic)
+        return string.format('%s - %s', diagnostic.source, diagnostic.message)
+      end,
     },
   }
 

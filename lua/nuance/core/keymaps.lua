@@ -4,6 +4,38 @@ vim.g.mapleader = '\r'
 vim.g.maplocalleader = '\r'
 
 local maps = {
+  -- Treesitter-based '%' motion
+  -- {
+  --   { 'n', 'x' },
+  --   '%',
+  --   function()
+  --     local node_on_cursor = vim.treesitter.get_node()
+  --     if node_on_cursor == nil then vim.cmd 'execute "normal! %"' return end
+  --     local s_row, s_col, _, e_row, e_col, _ = unpack(vim.treesitter.get_range(node_on_cursor))
+  --     local start_line = s_row + 1
+  --     local start_col = s_col
+  --     local end_line = e_row + 1
+  --     local end_col = e_col - 1
+  --
+  --     local curr_line, curr_col = unpack(vim.api.nvim_win_get_cursor(0))
+  --
+  --     -- Determine if cursor is at either boundary
+  --     local at_start = curr_line == start_line and curr_col == start_col
+  --     local at_end = curr_line == end_line and curr_col == end_col
+  --
+  --     -- Jump to opposite boundary
+  --     if at_start then
+  --       vim.api.nvim_win_set_cursor(0, { end_line, end_col })
+  --     elseif at_end then
+  --       vim.api.nvim_win_set_cursor(0, { start_line, s_col })
+  --     else
+  --       -- Default to jumping to start if not at either boundary
+  --       vim.api.nvim_win_set_cursor(0, { start_line, s_col })
+  --     end
+  --   end,
+  --   'Treesitter % Motion',
+  -- },
+
   -- Better Escape
   { 'n', '<Esc>', '<C-c><C-c>', 'Better Escape' },
   { 'i', '<Esc>', '<Esc><Esc>', 'Better Escape' },
@@ -17,7 +49,7 @@ local maps = {
 
   -- NOTE: This won't work in all terminal emulators/tmux/etc. Try other mappings
   -- or just use <C-\><C-n> to exit terminal mode
-  { 't', '<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode' },
+  { 't', '<S-Esc>', '<C-\\><C-n>', 'Exit terminal mode' },
   { 't', '<M-r>', [['<C-\><C-N>"'.nr2char(getchar()).'pi']], { desc = 'Vim Register Select in Terminal Mode', expr = true } },
 
   -- Custom Floating Togglable Terminal
@@ -40,7 +72,8 @@ local maps = {
   { 'i', '<C-U>', '<C-G>u<C-U>' },
 
   -- Buffer Management
-  -- { 'n', '<leader>dd', ':bdelete! %<CR>', { desc = 'Delete Buffer' } },
+  -- { 'n', '<leader>ed', ':bdelete! %<CR>', { desc = 'Delete Buffer' } },
+  { 'n', '<leader>en', '<cmd>enew<CR>', 'New Buffer' },
   { 'n', '<leader>eu', ':update! <CR>', 'Refresh Buffer' },
   { 'n', '<Tab>', ':bnext<CR>', 'Next Buffer' },
   { 'n', '<S-Tab>', ':bprevious<CR>', 'Previous Buffer' },
