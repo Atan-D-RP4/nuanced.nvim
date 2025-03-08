@@ -2,7 +2,7 @@ local M = {}
 
 ---@param modes string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
-M.is_key_mapped = function(modes, lhs)
+function M.is_key_mapped(modes, lhs)
   -- Normalize modes to a list if it's a single string
   if type(modes) == 'string' then
     modes = { modes }
@@ -23,7 +23,7 @@ end
 --
 ---@param modes string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
-M.unmap = function(modes, lhs)
+function M.unmap(modes, lhs)
   -- Normalize modes to a list if it's a single string
   if type(modes) == 'string' then
     modes = { modes }
@@ -42,7 +42,7 @@ end
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
 ---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
 ---@param opts? vim.keymap.set.Opts|string
-M.map = function(modes, lhs, rhs, opts)
+function M.map(modes, lhs, rhs, opts)
   M.unmap(modes, lhs)
   -- Set new mapping
   local options = { noremap = true, silent = true }
@@ -58,42 +58,36 @@ end
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
 ---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
 ---@param opts? vim.keymap.set.Opts|string
-M.nmap = function(lhs, rhs, opts)
+function M.nmap(lhs, rhs, opts)
   M.map('n', lhs, rhs, opts)
 end
 
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
 ---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
 ---@param opts? vim.keymap.set.Opts
-M.imap = function(lhs, rhs, opts)
+function M.imap(lhs, rhs, opts)
   M.map('i', lhs, rhs, opts)
 end
 
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
 ---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
 ---@param opts? vim.keymap.set.Opts
-M.tmap = function(lhs, rhs, opts)
+function M.tmap(lhs, rhs, opts)
   M.map('t', lhs, rhs, opts)
 end
 
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
 ---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
 ---@param opts? vim.keymap.set.Opts
-M.vmap = function(lhs, rhs, opts)
+function M.vmap(lhs, rhs, opts)
   M.map('v', lhs, rhs, opts)
 end
 
-M.ternary = function(cond, T, F, ...)
+function M.ternary(cond, T, F, ...)
   if cond then
     return T(...)
   else
     return F(...)
-  end
-end
-
-M.lazy_require = function(module)
-  return function()
-    require(module)
   end
 end
 
@@ -114,7 +108,7 @@ M.zeroIndexedTable = setmetatable({}, {
 })
 
 -- Usage Example for the zero-indexed table
-M.test = function()
+function M.test()
   local table = { 1, 2, 3, 4 }
   local test = M.zeroIndexedTable(table)
   vim.print(test[0])
@@ -137,7 +131,7 @@ M.term_conf = {
   },
 }
 
-M.term_send_cmd = function(cmd)
+function M.term_send_cmd(cmd)
   -- Prompt for a command to send to the terminal
   if not cmd then
     cmd = vim.fn.input 'Command: '
@@ -173,7 +167,7 @@ M.term_send_key = function(key)
 end
 
 ---@param keys string[]|string
-M.term_send_keys = function(keys)
+function M.term_send_keys(keys)
   if not keys then
     return
   end
@@ -187,7 +181,7 @@ M.term_send_keys = function(keys)
   end
 end
 
-M.toggleterm = function()
+function M.toggleterm()
   if not vim.api.nvim_buf_is_valid(M.buf or -1) then
     M.buf = vim.api.nvim_create_buf(false, false)
   end
@@ -213,7 +207,7 @@ M.toggleterm = function()
   end
 end
 
-M.buftab_setup = function()
+function M.buftab_setup()
   -- NOTE: This does not work since any of the buffer delete operations don't seemd to trigger this autocommand
   vim.api.nvim_create_autocmd({ 'BufAdd', 'BufDelete', 'BufEnter', 'BufUnload', 'BufHidden', 'BufNewFile', 'BufNew' }, {
     desc = 'Trigger an Autocommand everytime the buffer list changes',
@@ -242,7 +236,7 @@ M.buftab_setup = function()
 end
 
 ---@param offset integer
-M.get_relative_line = function(offset)
+function M.get_relative_line(offset)
   -- Get the current cursor row (1-indexed)
   local current_row = vim.api.nvim_win_get_cursor(0)[1]
 

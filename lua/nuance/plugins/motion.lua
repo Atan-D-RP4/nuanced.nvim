@@ -97,22 +97,10 @@ local spider = {
 local flash = {
   'folke/flash.nvim',
   keys = {
-    'f',
-    'F',
-    't',
-    'T',
-    ';',
-    ',',
+    'f', 'F', 't', 'T', ';', ',',
     { 'gw', '<cmd>lua require("flash").jump()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash' },
     { 'gW', '<cmd>lua require("flash").treesitter()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash Treesitter' },
-    {
-      'r',
-      mode = 'o',
-      function()
-        require('flash').remote()
-      end,
-      desc = 'Remote Flash',
-    },
+    { 'r', mode = 'o', function() require('flash').remote() end, desc = 'Remote Flash', },
     { 'R', '<cmd>lua require("flash").treesitter_search()<CR>', mode = { 'o', 'x' }, desc = 'Treesitter Search' },
     { '<c-s>', mode = { 'c' }, '<cmd>lua require("flash").toggle()<CR>', desc = 'Toggle Flash Search in "/" mode' },
   },
@@ -121,21 +109,15 @@ local flash = {
   opts = {
     -- labels = 'asdfghjklqwertyuiopzxcvbnm',
     labels = 'dgqftyuzxcvbnm1234567890',
-    search = {
-      mode = 'search',
-    },
-    modes = {
-      char = {
-        jump_labels = true,
-        highlight = { backdrop = false },
-      },
-    },
+    search = { mode = 'search' },
+    modes = { char = { jump_labels = true } },
+    label = { rainbow = { enabled = true } },
   },
 }
 
 local matchup = {
   'andymass/vim-matchup',
-  event = 'VeryLazy',
+  event = 'BufRead',
   config = function()
     vim.g.matchup_matchparen_offscreen = { method = 'popup' }
     require('nvim-treesitter.configs').setup {

@@ -2,12 +2,17 @@ local gitcore = {
   'tpope/vim-fugitive',
   cmd = { 'Git', 'Gstatus', 'Gblame', 'Gpush', 'Gpull', 'Gcommit', 'Gdiff' },
   keys = {
-    { '<leader>gg', '<cmd>Git<CR>', desc = '[G]it', mode = 'n' },
+    { '<leader>gg', '<cmd>Git ++curwin<CR>', desc = '[G]it', mode = 'n' },
   },
+  init = function ()
+    vim.cmd [[
+      ]]
+  end
 }
 
 local gitsigns = { -- Adds git related signs to the gutter, as well as utilities for managing changes
   'lewis6991/gitsigns.nvim',
+  ---@type Gitsigns.Config
   opts = {},
 }
 
@@ -31,12 +36,16 @@ local gitworktree = {
   },
 }
 
-gitsigns.signs = {
-  add = { text = '+' },
-  change = { text = '~' },
-  delete = { text = '_' },
-  topdelete = { text = '‾' },
-  changedelete = { text = '~' },
+gitsigns.opts = {
+  ---@type table<Gitsigns.SignType,Gitsigns.SignConfig>
+  signs = {
+    add = { text = '+' },
+    change = { text = '~' },
+    delete = { text = '_' },
+    topdelete = { text = '‾' },
+    changedelete = { text = '~' },
+    untracked = { text = '?' },
+  },
 }
 
 gitsigns.opts.on_attach = function(bufnr)
@@ -67,10 +76,10 @@ gitsigns.opts.on_attach = function(bufnr)
 
   -- Actions
   -- visual mode
-  map('v', 'gs', function()
+  map('v', '<leader>gs', function()
     signs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
   end, { desc = 'stage git hunk' })
-  map('v', 'gr', function()
+  map('v', '<leader>gr', function()
     signs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
   end, { desc = 'reset git hunk' })
   -- normal mode
