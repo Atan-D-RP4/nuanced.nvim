@@ -1,26 +1,11 @@
--- Enable the following language servers
---  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
---
---  Add any additional override configuration in the following tables. Available keys are:
---  - cmd (table): Override the default command used to start the server
---  - filetypes (table): Override the default list of associated filetypes for the server
---  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
---  - settings (table): Override the default settings passed when initializing the server.
---        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
 local mason_servers = {
   -- gopls = {},
   -- pyright = {},
   -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-  --
-  -- Some languages (like typescript) have entire language plugins that can be useful:
-  --    https://github.com/pmizio/typescript-tools.nvim
-  --
-  -- But for many setups, the LSP (`ts_ls`) will work just fine
-  -- ts_ls = {},
   lua_ls = {
     -- cmd = {...},
-    -- filetypes = { ...},
     -- capabilities = {},
+    filetypes = { 'lua' },
     settings = {
       Lua = {
         telemetry = { enable = false },
@@ -88,6 +73,9 @@ M.lspconfig = {
     'c',
     'cpp',
   },
+
+  ---@module 'lspconfig'
+  ---@type lspconfig.Config
   opts = {},
 }
 
@@ -109,23 +97,21 @@ M.lazydev = {
 }
 
 M.copilot = {
-  {
-    'zbirenbaum/copilot.lua',
-    cmd = 'Copilot',
-    event = 'InsertEnter',
-    config = function()
-      require('copilot').setup {
-        filetypes = {
-          markdown = true, -- overrides default
-        },
-        suggestion = {
-          hide_during_completion = false,
-          auto_trigger = true,
-        },
-        copilot_node_command = 'node', -- Node.js version must be > 18.x
-      }
-    end,
-  },
+  'zbirenbaum/copilot.lua',
+  cmd = 'Copilot',
+  event = { 'InsertEnter' },
+  config = function()
+    require('copilot').setup {
+      filetypes = {
+        markdown = true, -- overrides default
+      },
+      suggestion = {
+        hide_during_completion = false,
+        auto_trigger = true,
+      },
+      copilot_node_command = 'node', -- Node.js version must be > 18.x
+    }
+  end,
 }
 
 M.lspconfig.dependencies = {
@@ -168,27 +154,28 @@ M.lspconfig.opts.on_attach = function(event)
   local has_telescope, _ = pcall(require, 'telescope')
   if has_fzf then
     cmd = '<cmd>lua require("fzf-lua").%s<CR>'
-    nmap('gws', cmd:format 'lsp_live_workspace_symbols()', 'Lsp [W]orkspace [S]ymbols')
-    nmap('gd', cmd:format 'lsp_typedefs()', 'Lsp [T]ype [D]efinition')
+    nmap('gws', cmd:format 'lsp_live_workspace_symbols()', { buffer = true, desc = 'Lsp [W]orkspace [S]ymbols' })
+    nmap('gd', cmd:format 'lsp_typedefs()', { buffer = true, desc = 'Lsp [T]ype [D]efinition' })
+    nmap('gus', cmd:format 'lsp_document_symbols()', { buffer = true, desc = 'Lsp [D]ocument [S]ymbols' })
   elseif has_telescope then
     cmd = '<cmd>lua require("telescope.builtin").%s<CR>'
-    nmap('gws', cmd:format 'lsp_dynamic_workspace_symbols()', 'Lsp [W]orkspace [S]ymbols')
-    nmap('gd', cmd:format 'lsp_typedefs()', 'Lsp [T]ype [D]efinition')
+    nmap('gws', cmd:format 'lsp_dynamic_workspace_symbols()', { buffer = true, desc = 'Lsp [W]orkspace [S]ymbols' })
+    nmap('gd', cmd:format 'lsp_typedefs()', { buffer = true, desc = 'Lsp [T]ype [D]efinition' })
+    nmap('gus', cmd:format 'lsp_document_symbols()', { buffer = true, desc = 'Lsp [D]ocument [S]ymbols' })
   else
     cmd = '<cmd>lua Snacks.picker.%s<CR>'
-    nmap('gd', cmd:format 'lsp_type_definitions()', 'Lsp [T]ype [D]efinition')
-    nmap('gus', cmd:format 'lsp_symbols()', 'Lsp [D]ocument [S]ymbols')
+    nmap('gd', cmd:format 'lsp_type_definitions()', { buffer = true, desc = 'Lsp [T]ype [D]efinition' })
+    nmap('gus', cmd:format 'lsp_symbols()', { buffer = true, desc = 'Lsp [D]ocument [S]ymbols' })
   end
 
-  nmap('gd', cmd:format 'lsp_definitions()', 'Lsp [G]oto [D]efinition')
-  nmap('grr', cmd:format 'lsp_references({layout = {preset = "vscode", preview = "main"}})', 'Lsp [G]oto [R]eferences') -- override `grr` mapping
-  nmap('gri', cmd:format 'lsp_implementations()', 'Lsp [G]oto [I]mplementation') -- override `gri` mapping
-  nmap('gus', cmd:format 'lsp_document_symbols()', 'Lsp [D]ocument [S]ymbols')
+  nmap('gd', cmd:format 'lsp_definitions()', { buffer = true, desc = 'Lsp [G]oto [D]efinition' })
+  nmap('grr', cmd:format 'lsp_references()', { buffer = true, desc = 'Lsp [G]oto [R]eferences' }) -- override `grr` mapping
+  nmap('gri', cmd:format 'lsp_implementations()', { buffer = true, desc = 'Lsp [G]oto [I]mplementation' }) -- override `gri` mapping
 
-  nmap('gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', '[G]oto [D]eclaration')
-  nmap('gs', '<cmd>lua vim.lsp.buf.signature_help()<CR>', '[G]et [S]ignature Help')
-  nmap('gca', '<cmd>lua vim.lsp.buf.code_action()<CR>', '[G]et [C]ode [A]ctions')
-  nmap('K', '<cmd>lua vim.lsp.buf.hover({ border = "rounded" })<CR>', 'LSP Hover Documentation')
+  nmap('gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', { buffer = true, desc = '[G]oto [D]eclaration' })
+  nmap('gs', '<cmd>lua vim.lsp.buf.signature_help()<CR>', { buffer = true, desc = '[G]et [S]ignature Help' })
+  nmap('gca', '<cmd>lua vim.lsp.buf.code_action()<CR>', { buffer = true, desc = '[G]et [C]ode [A]ctions' })
+  nmap('K', '<cmd>lua vim.lsp.buf.hover({ border = "round" })<CR>', { buffer = true, desc = 'LSP Hover Documentation' })
 
   local client = vim.lsp.get_client_by_id(event.data.client_id)
 
@@ -218,14 +205,6 @@ M.lspconfig.opts.on_attach = function(event)
       group = highlight_augroup,
       callback = vim.lsp.buf.clear_references,
     })
-
-    vim.api.nvim_create_autocmd('LspDetach', {
-      group = vim.api.nvim_create_augroup('nuance-lsp-detach', { clear = true }),
-      callback = function(event2)
-        vim.lsp.buf.clear_references()
-        vim.api.nvim_clear_autocmds { group = 'nuance-lsp-highlight', buffer = event2.buf }
-      end,
-    })
   end
 
   -- vim.opt_local.foldmethod = 'expr'
@@ -236,8 +215,29 @@ end
 M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
   vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('nuance-lsp-attach', { clear = true }),
+    callback = opts.on_attach,
+  })
+
+  vim.api.nvim_create_autocmd('LspDetach', {
+    group = vim.api.nvim_create_augroup('nuance-lsp-detach', { clear = false }),
     callback = function(event)
-      opts.on_attach(event)
+      vim.lsp.buf.clear_references()
+      vim.api.nvim_clear_autocmds { group = 'nuance-lsp-highlight', buffer = event.buf }
+
+      vim.defer_fn(function()
+        -- Kill the LS process if no buffers are attached to the client
+        local cur_client = vim.lsp.get_client_by_id(event.data.client_id)
+        if cur_client == nil or cur_client.name == 'copilot' then
+          return
+        end
+        local attached_buffers_count = vim.tbl_count(cur_client.attached_buffers)
+        if attached_buffers_count == 0 then
+          local msg = 'No attached buffers to client: ' .. cur_client.name .. '\n'
+          msg = msg .. 'Stopping language server: ' .. cur_client.name
+          vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
+          cur_client:stop(true)
+        end
+      end, 100)
     end,
   })
 
@@ -271,19 +271,19 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   -- NOTE: Extend nvim LSP client capabilities for completion
   -- LSP servers and clients are able to communicate to each other what features they support.
   --  By default, Neovim doesn't support everything that is in the LSP specification.
-  --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
-  --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
+  --  When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
+  --  So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
   --
-  local capabilities = vim.lsp.protocol.make_client_capabilities()
-  local has_cmp, cmp = pcall(require, 'blink.cmp')
-  if has_cmp then
-    capabilities = vim.tbl_deep_extend('force', capabilities, cmp.get_lsp_capabilities())
-  else
-    cmp = require 'cmp_nvim_lsp'
-    capabilities = vim.tbl_deep_extend('force', capabilities, cmp.default_capabilities())
-  end
-
-  local servers = vim.tbl_deep_extend('force', mason_servers, external_servers)
+  local has_cmp, cmp_nvim_lsp = pcall(require, 'cmp_nvim_lsp')
+  local has_blink, blink = pcall(require, 'blink.cmp')
+  local capabilities = vim.tbl_deep_extend(
+    'force',
+    {},
+    vim.lsp.protocol.make_client_capabilities(),
+    has_cmp and cmp_nvim_lsp.default_capabilities() or {},
+    has_blink and blink.get_lsp_capabilities() or {},
+    opts.capabilities or {}
+  )
 
   require('mason').setup()
 
@@ -301,11 +301,10 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   })
   require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
-  local default_handlers = {
-    ['textDocument/hover'] = vim.lsp.buf.hover { border = 'rounded' },
-    ['textDocument/signatureHelp'] = vim.lsp.buf.signature_help { border = 'rounded' },
-  }
+  -- Merge Mason installed servers list with external servers list
+  local servers = vim.tbl_deep_extend('force', mason_servers, external_servers)
 
+  -- Adding Mason Installed servers to list of configured servers
   require('mason-lspconfig').setup {
     handlers = {
       function(server_name)
@@ -315,6 +314,7 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
     },
   }
 
+  -- Configure the LSP servers with nvim-lspconfig
   for name, config in pairs(servers) do
     require('lspconfig')[name].setup {
       -- on_attach = function(client, bufnr)
@@ -323,10 +323,12 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
       --   end
       -- end,
       autostart = config.autostart or true,
+      on_init = config.on_init or function()
+        vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
+      end,
       cmd = config.cmd,
       capabilities = vim.tbl_extend('force', {}, capabilities, config.capabilities or {}),
       filetypes = config.filetypes,
-      handlers = vim.tbl_deep_extend('force', {}, default_handlers, config.handlers or {}),
       settings = config.settings,
       root_dir = config.root_dir,
     }

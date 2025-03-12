@@ -39,7 +39,7 @@ local treesitter_core = {
           local max_treesitter_filesize = 300 * 1024
 
           if not ok then
-            vim.notify('Cannot get stats for ' + vim.api.nvim_buf_get_name(buf), vim.log.levels.DEBUG)
+            vim.notify('Cannot get stats for ' + vim.api.nvim_buf_get_name(buf), vim.log.levels.DEBUG, { title = 'Treesitter' })
             return true
           end
 

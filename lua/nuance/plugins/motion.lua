@@ -100,9 +100,9 @@ local flash = {
     'f', 'F', 't', 'T', ';', ',',
     { 'gw', '<cmd>lua require("flash").jump()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash' },
     { 'gW', '<cmd>lua require("flash").treesitter()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash Treesitter' },
-    { 'r', mode = 'o', function() require('flash').remote() end, desc = 'Remote Flash', },
+    { 'r', '<cmd>require("flash").remote()<CR>', mode = 'o', desc = 'Remote Flash' },
     { 'R', '<cmd>lua require("flash").treesitter_search()<CR>', mode = { 'o', 'x' }, desc = 'Treesitter Search' },
-    { '<c-s>', mode = { 'c' }, '<cmd>lua require("flash").toggle()<CR>', desc = 'Toggle Flash Search in "/" mode' },
+    { '<c-s>', '<cmd>lua require("flash").toggle()<CR>', mode = { 'c' }, desc = 'Toggle Flash Search in "/" mode' },
   },
 
   ---@type Flash.Config
@@ -140,8 +140,8 @@ local M = {
   spider,
   ai,
   flash,
-  matchup,
   operator,
+  -- matchup,
 }
 
 return M

@@ -15,7 +15,7 @@ M.opts = {
   open_no_results = true,
   focus = true,
   win = {
-    position = 'bottom',
+    position = 'top',
     width = 100,
   },
   -- modes = {

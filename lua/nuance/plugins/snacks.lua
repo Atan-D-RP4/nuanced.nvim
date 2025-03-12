@@ -27,15 +27,16 @@ M.opts = {
 
       ---@type snacks.dashboard.Item[]
       keys = {
-        { key = 'f', desc = 'Find File', action = ":lua Snacks.dashboard.pick('files')" },
-        { key = 'n', desc = 'New File', action = ':ene | startinsert' },
-        { key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
+        { key = 'f', desc = 'Find File', action = "<cmd>lua Snacks.dashboard.pick('files')<CR>" },
+        { key = 'n', desc = 'New File', action = '<cmd>ene | startinsert<CR>' },
+        { key = 'g', desc = 'Find Text', action = "<cmd>lua Snacks.dashboard.pick('live_grep')<CR>" },
+        { key = 'G', desc = 'FuGitive UI', action = '<cmd>Git ++curwin<CR>' },
         { key = 'r', desc = 'Recent Files', action = "<cmd>lua Snacks.dashboard.pick('oldfiles')<CR>" },
-        { key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
-        { key = 'a', desc = 'Pick Session', action = ':SessionPick' },
-        { key = 'o', desc = 'File System', action = ':Oil' },
-        { key = 'L', desc = 'Lazy', action = ':Lazy', enabled = package.loaded.lazy ~= nil },
-        { key = 'q', desc = 'Quit', action = ':qa' },
+        { key = 'c', desc = 'Config', action = "<cmd>lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})<CR>" },
+        { key = 'a', desc = 'Pick Session', action = '<cmd>SessionPick<CR>' },
+        { key = 'o', desc = 'File System', action = '<cmd>Oil<CR>' },
+        { key = 'L', desc = 'Lazy', action = '<cmd>Lazy<CR>', enabled = package.loaded.lazy ~= nil },
+        { key = 'q', desc = 'Quit', action = '<cmd>qa<CR>' },
       },
     },
   },
@@ -53,6 +54,7 @@ M.opts.picker = {
       picker:set_cwd(vim.fs.dirname(picker:cwd()))
       picker:find()
     end,
+
     flash = function(picker)
       local err, flash = pcall(require, 'flash')
       if not err then
@@ -78,10 +80,26 @@ M.opts.picker = {
       }
     end,
   },
-  win = { input = { keys = { ['<C-l>'] = { 'flash', desc = 'flash', mode = { 'i', 'n' } } } } },
+
+  win = {
+    input = {
+      keys = {
+        ['<C-l>'] = { 'flash', desc = 'flash', mode = { 'i', 'n' } },
+      },
+    },
+  },
+
   sources = {
     projects = { dev = { '~/Develop/repos/' } },
-    explorer = { auto_close = true, jump = { close = true }, layout = { layout = { position = 'right' } } },
+
+    explorer = {
+      auto_close = true,
+      jump = { close = true },
+      layout = {
+        layout = { height = 0.2, position = 'top' },
+      },
+    },
+
     grep = { win = { input = { keys = { ['<C-k>'] = { 'cd_up', desc = 'cd_up', mode = { 'i', 'n' } } } } } },
     lsp_symbols = { layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } } },
     treesitter = { layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } } },

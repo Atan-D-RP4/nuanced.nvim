@@ -76,19 +76,16 @@ autocmd('BufWinEnter', {
 --     end
 --   end,
 -- })
---
+
 autocmd({ 'RecordingEnter', 'RecordingLeave' }, {
   callback = function(ev)
-    -- NOTE: The oneliner that follows is equivalent to the if-else block below
-    -- though it is less readable and can't use the `vim.notify` function
-    -- vim.opt.cmdheight = ev.event == "RecordingEnter" and 1 or 0
+    local msg
     if ev.event == 'RecordingEnter' then
-      vim.notify('Recording macro', vim.log.levels.INFO, { timeout = 500 })
-      vim.opt.cmdheight = 1
+      msg = 'Recording to register @'
     else
-      vim.notify('Macro recorded', vim.log.levels.INFO, { timeout = 500 })
-      vim.opt.cmdheight = 0
+      msg = 'Recorded to register @'
     end
+    vim.notify(msg .. vim.fn.reg_recording(), vim.log.levels.INFO, { title = 'Macro', timeout = 5000, hide_from_history = false })
   end,
 })
 
@@ -205,8 +202,8 @@ autocmd('FileType', {
     vim.bo[event.buf].buflisted = false
     vim.schedule(function()
       vim.keymap.set('n', 'q', function()
-        vim.cmd 'close'
-        pcall(autocmd, event.buf, { force = true })
+        pcall(vim.api.nvim_exec2, 'close', {})
+        pcall(vim.api.nvim_buf_delete, event.buf, { force = true })
       end, {
         buffer = event.buf,
         silent = true,

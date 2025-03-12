@@ -32,9 +32,9 @@ require('lazy').setup({
         'tutor',
         'rplugin',
         'bugreport',
-        'matchit',
-        'matchparen',
 
+        -- 'matchit',
+        -- 'matchparen',
         -- 'osc52',
         -- 'ftplugin',
         -- 'gzip',

@@ -4,10 +4,6 @@ local gitcore = {
   keys = {
     { '<leader>gg', '<cmd>Git ++curwin<CR>', desc = '[G]it', mode = 'n' },
   },
-  init = function ()
-    vim.cmd [[
-      ]]
-  end
 }
 
 local gitsigns = { -- Adds git related signs to the gutter, as well as utilities for managing changes

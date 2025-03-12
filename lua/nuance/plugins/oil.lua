@@ -61,10 +61,8 @@ M.opts.keymaps = {
   ['<CR>'] = {},
   ['<C-l>'] = 'actions.refresh',
   -- Append to a register (Primitive impl for marking files)
-  -- ['<C-x>'] = function()
-  --   local reg = vim.fn.getreg 'a'
-  --   vim.fn.setreg('a', reg .. vim.api.nvim_get_current_line())
-  -- end,
+  ['<C-x>'] = function() vim.fn.setreg('a', vim.fn.getreg 'a' .. vim.api.nvim_get_current_line() .. '\n') end,
+  ['<C-c>'] = function() vim.fn.setreg('a', '') end,
   ['<C-s>'] = { 'actions.select', opts = { vertical = true }, desc = 'Open the entry in a vertical split' },
   ['<C-h>'] = { 'actions.select', opts = { horizontal = true }, desc = 'Open the entry in a horizontal split' },
   ['<C-t>'] = { 'actions.select', opts = { tab = true }, desc = 'Open the entry in new tab' },
@@ -72,7 +70,7 @@ M.opts.keymaps = {
   ['<Right>'] = 'actions.select',
   ['l'] = { 'actions.select', mode = 'n' },
   ['q'] = 'actions.close',
-  ['='] = { function() vim.cmd 'write' end, }, -- Save the current buffer
+  ['='] = function() vim.cmd 'write' end, -- Save the current buffer
   ['-'] = 'actions.parent',
   ['_'] = 'actions.open_cwd',
   ['`'] = 'actions.cd',

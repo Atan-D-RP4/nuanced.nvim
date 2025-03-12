@@ -81,24 +81,25 @@ local session_files = function(file)
 end
 
 local session_pick = function()
-  ---@type snacks.picker.finder.Item[]
-  local items = {}
-  for _, session in pairs(require('mini.sessions').detected) do
-    if session.name ~= 'default' then
-      table.insert(items, {
-        text = session.name,
-        name = session.name,
-        preview = { text = session_files(session.path) },
-        path = session.path,
-        modify_time = os.date('%Y-%m-%d %H:%M:%S', session.modify_time),
-        type = session.type,
-      })
-    end
-  end
-
   require('snacks.picker').pick {
     title = 'Sessions',
-    items = items,
+    finder = function()
+      ---@type snacks.picker.finder.Item[]
+      local items = {}
+      for _, session in pairs(require('mini.sessions').detected) do
+        if session.name ~= 'default' then
+          table.insert(items, {
+            text = session.name,
+            name = session.name,
+            preview = { text = session_files(session.path) },
+            path = session.path,
+            modify_time = os.date('%Y-%m-%d %H:%M:%S', session.modify_time),
+            type = session.type,
+          })
+        end
+      end
+      return items
+    end,
     preview = 'preview',
 
     format = function(item, _)
@@ -107,32 +108,22 @@ local session_pick = function()
       return ret
     end,
 
-    -- actions = {
-    --   delete = function(picker, item, action)
-    --     vim.print('Action: ', action)
-    --     vim.print('Deleting: ' .. item.name)
-    --     require('mini.sessions').delete(item.name, { force = true, verbose = true })
-    --     picker:ref()
-    --   end,
-    --   echo = function(_, item)
-    --     vim.notify('Session: ' .. item.name .. '\nPath: ' .. item.path .. '\nModified: ' .. item.modify_time)
-    --   end,
-    -- },
-    --
-    -- win = {
-    --   input = {
-    --     keys = {
-    --       ['<C-x>'] = 'delete',
-    --       ['<C-e>'] = 'echo',
-    --     },
-    --   },
-    --   list = {
-    --     keys = {
-    --       ['<C-x>'] = 'delete',
-    --       ['<C-e>'] = 'echo',
-    --     },
-    --   },
-    -- },
+    actions = {
+      delete = function(picker, item, action)
+        vim.print('Action: ', action)
+        vim.print('Deleting: ' .. item.name)
+        require('mini.sessions').delete(item.name, { force = true, verbose = true })
+        picker:find { refresh = true }
+      end,
+    },
+
+    win = {
+      input = {
+        keys = {
+          ['<C-x>'] = { 'delete', desc = 'Delete Session', mode = { 'n', 'i' } },
+        },
+      },
+    },
 
     confirm = function(_, item)
       if not item then
@@ -140,11 +131,13 @@ local session_pick = function()
       end
 
       require('mini.sessions').read(item.name, {})
+      local msg = ''
       if vim.g.active_session == '' then
-        vim.notify('Loaded Session: ' .. item.name)
+        msg = 'Loaded Session: ' .. item.name
       else
-        vim.notify('Switched From Session: ' .. vim.g.active_session .. '\nTo: ' .. item.name)
+        msg = 'Switched From Session: ' .. vim.g.active_session .. '\nTo: ' .. item.name
       end
+      vim.notify(msg, vim.log.levels.INFO, { title = 'Session' })
       vim.g.active_session = item.name
     end,
   }
@@ -199,20 +192,14 @@ M.config = function()
 end
 
 M.keys = {
-  {
-    '<leader>ap',
-    function()
-      session_pick()
-    end,
-    desc = '[S]essions [P]ick',
-    mode = 'n',
-  },
+  { '<leader>as', '<cmd>lua require("mini.sessions").write(vim.g.current_session)<CR>', desc = '[S]essions [S]ave/Update', mode = 'n' },
+  { '<leader>ap', '<cmd>SessionPick<CR>', desc = '[S]essions [P]ick', mode = 'n' },
   {
     '<leader>ac',
     function()
       require('mini.sessions').read('default', {})
       vim.g.active_session = ''
-      vim.notify 'Clear session'
+      vim.notify('Cleared Session', vim.log.levels.INFO, { title = 'Session' })
     end,
     desc = '[S]essions [C]lose',
     mode = 'n',
@@ -231,7 +218,6 @@ M.keys = {
     desc = '[S]essions [N]ew',
     mode = 'n',
   },
-  { '<leader>as', '<cmd>lua require("mini.sessions").write(vim.g.current_session)<CR>', desc = '[S]essions [S]ave/Update', mode = 'n' },
 }
 
 return M

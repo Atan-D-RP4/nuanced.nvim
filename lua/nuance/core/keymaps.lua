@@ -173,8 +173,8 @@ vim.tbl_map(
       desc = string.format('Jump to buffer %d', index),
       cmd = string.format('<leader>e%d', index),
       callback = function()
-        local ok, bufs = pcall(vim.api.nvim_list_bufs)
-        if not ok then
+        local ok_list, bufs = pcall(vim.api.nvim_list_bufs)
+        if not ok_list then
           vim.notify('Failed to list buffers', vim.log.levels.ERROR)
           return
         end
@@ -190,8 +190,8 @@ vim.tbl_map(
 
         local target_buf = valid_bufs[index]
         if target_buf then
-          local ok, err = pcall(vim.api.nvim_set_current_buf, target_buf)
-          if not ok then
+          local ok_set, err = pcall(vim.api.nvim_set_current_buf, target_buf)
+          if not ok_set then
             vim.notify('Failed to switch buffer: ' .. err, vim.log.levels.ERROR)
           end
         end
