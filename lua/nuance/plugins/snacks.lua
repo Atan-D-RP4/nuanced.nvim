@@ -49,6 +49,10 @@ M.opts = {
 }
 
 M.opts.picker = {
+  matcher = {
+    frecency = true,
+    cwd_bonus = true,
+  },
   actions = {
     cd_up = function(picker, _)
       picker:set_cwd(vim.fs.dirname(picker:cwd()))
