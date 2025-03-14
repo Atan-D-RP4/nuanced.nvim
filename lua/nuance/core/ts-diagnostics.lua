@@ -1,16 +1,16 @@
 --- language-independent query for syntax errors and missing elements
-local error_query = vim.treesitter.query.parse('query', '[(ERROR)(MISSING)] @a')
 M.namespace = vim.api.nvim_create_namespace 'nuance-treesitter-diagnostics'
+local error_query = vim.treesitter.query.parse('query', '[(ERROR)(MISSING)] @a')
 
 ---@param event vim.api.keyset.create_autocmd.callback_args
-function M.diagnostics(event)
+function M.diagnostics(buf)
   -- don't diagnose strange stuff
-  if vim.bo[event.buf].buftype ~= '' then
+  if vim.bo[buf].buftype ~= '' then
     return
   end
 
   local diagnostics = {}
-  local parser = vim.treesitter.get_parser(event.buf, nil, { error = false })
+  local parser = vim.treesitter.get_parser(buf, nil, { error = false })
   if parser then
     parser:parse(false, function(_, trees)
       if not trees then
@@ -19,7 +19,7 @@ function M.diagnostics(event)
       parser:for_each_tree(function(tree, ltree)
         -- only process trees containing errors
         if tree:root():has_error() then
-          for _, node in error_query:iter_captures(tree:root(), event.buf) do
+          for _, node in error_query:iter_captures(tree:root(), buf) do
             local lnum, col, end_lnum, end_col = node:range()
 
             -- collapse nested syntax errors that occur at the exact same position
@@ -43,7 +43,7 @@ function M.diagnostics(event)
               end_col = end_col,
               message = '',
               code = string.format('%s-syntax', ltree:lang()),
-              bufnr = event.buf,
+              bufnr = buf,
               namespace = M.namespace,
               severity = vim.diagnostic.severity.ERROR,
             }
@@ -70,7 +70,7 @@ function M.diagnostics(event)
         end
       end)
     end)
-    vim.diagnostic.set(M.namespace, event.buf, diagnostics)
+    vim.diagnostic.set(M.namespace, buf, diagnostics)
   end
 end
 

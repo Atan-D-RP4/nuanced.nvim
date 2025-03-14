@@ -54,7 +54,8 @@ local preset_one = function()
     })
   )
 
-  wilder.set_option('renderer',
+  wilder.set_option(
+    'renderer',
     wilder.renderer_mux {
       [':'] = wilder.popupmenu_renderer(wilder.popupmenu_border_theme {
         highlighter = wilder.highlighter_with_gradient {

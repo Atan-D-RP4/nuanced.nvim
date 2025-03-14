@@ -38,7 +38,9 @@ local grugfar = {
       ['grug-far-help'] = false,
     },
   },
-  keys = { { 'g/', '<cmd>lua require("grug-far").open()<CR>', desc = 'local lti-[file|line] search', mode = { 'n', 'x' } } },
+  keys = {
+    { 'g/', '<cmd>lua require("grug-far").open()<CR>', desc = 'local lti-[file|line] search', mode = { 'n', 'x' } },
+  },
 }
 
 return {

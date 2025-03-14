@@ -104,7 +104,16 @@ opt.splitbelow = true
 --  and `:help 'listchars'`
 opt.list = true
 opt.listchars = { tab = '» ', trail = '·', nbsp = '␣', extends = '›', precedes = '‹' }
-opt.fillchars = { vert = '│', fold = '·', eob = ' ', diff = '─', msgsep = '‾', foldopen = '▾', foldsep = '│', foldclose = '▸' }
+opt.fillchars = {
+  vert = '│',
+  fold = '·',
+  eob = ' ',
+  diff = '─',
+  msgsep = '‾',
+  foldopen = '▾',
+  foldsep = '│',
+  foldclose = '▸',
+}
 
 -- go to previous/next line with h,l,left arrow and right arrow
 -- when cursor reaches end/beginning of line
@@ -170,6 +179,9 @@ local is_windows = vim.fn.has 'win32' ~= 0
 local sep = is_windows and '\\' or '/'
 local delim = is_windows and ';' or ':'
 vim.env.PATH = table.concat({ vim.fn.stdpath 'data', 'mason', 'bin' }, sep) .. delim .. vim.env.PATH
+
+vim.g.treesitter_diagnostics = true
+vim.g.treesitter_lint_available = vim.fn.has 'nvim-0.11' == 1
 
 -- vim.g.netrw_banner = 0
 -- vim.g.netrw_fastbrowse = 1

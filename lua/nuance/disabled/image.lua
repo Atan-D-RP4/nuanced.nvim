@@ -60,8 +60,8 @@ image.opts.integrations = {
     filetypes = { 'norg' },
   },
 
-  html = { enabled = false, },
-  css = { enabled = false, },
+  html = { enabled = false },
+  css = { enabled = false },
 }
 
 local M = {

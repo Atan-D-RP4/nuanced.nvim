@@ -22,9 +22,9 @@ local types = require 'luasnip.util.types'
 local parse = require('luasnip.util.parser').parse_snippet
 local k = require('luasnip.nodes.key_indexer').new_key
 
-local clipboard = function () return vim.fn.getreg('+') end
+local clipboard = function() return vim.fn.getreg '+' end
 
-require('luasnip.session.snippet_collection').clear_snippets("lua")
+require('luasnip.session.snippet_collection').clear_snippets 'lua'
 ls.add_snippets('lua', {
   parse('if', 'if $1 then\n\t$0\nend'),
   parse('lf', 'local $1 = function($2)\n\t$0 \nend'),
@@ -32,8 +32,7 @@ ls.add_snippets('lua', {
   s('req', fmt("local {} = require('{}')", { i(2), i(1) })),
 })
 
-require('luasnip.session.snippet_collection').clear_snippets("c")
+require('luasnip.session.snippet_collection').clear_snippets 'c'
 ls.add_snippets('c', {
   parse('main', 'int main(int argc, char *argv[]) {\n\t$0\n}'),
 })
-

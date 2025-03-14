@@ -93,7 +93,18 @@ autocmd('VimResized', {
   desc = 'Resize splits when resizing the window',
   group = augroup 'resize-splits',
   callback = function()
-    vim.cmd 'wincmd ='
+    vim.cmd 'tabdo wincmd ='
+    vim.cmd('tabnext ' .. vim.fn.tabpagenr())
+  end,
+})
+
+-- Check if we need to reload the file when it changed
+vim.api.nvim_create_autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
+  group = augroup 'checktime',
+  callback = function()
+    if vim.o.buftype ~= 'nofile' then
+      vim.cmd 'checktime'
+    end
   end,
 })
 
@@ -224,22 +235,27 @@ autocmd({ 'BufWritePre' }, {
   end,
 })
 
-vim.api.nvim_create_autocmd({ 'FileType', 'TextChanged', 'InsertLeave' }, {
-  desc = 'Treesitter-based Diagnostics',
-  pattern = '*',
-  group = vim.api.nvim_create_augroup('nuance-treesitter-diagnostics', { clear = true }),
-  ---@param event vim.api.keyset.create_autocmd.callback_args
-  callback = vim.schedule_wrap(function(event)
-    if vim.g.treesitter_diagnostics == false then
-      vim.diagnostic.reset(require('nuance.core.ts-diagnostics').namespace, event.buf)
-      return
-    end
-    require('nuance.core.ts-diagnostics').diagnostics(event)
-  end),
-})
+if vim.g.treesitter_lint_available == true then
+  autocmd({ 'FileType', 'TextChanged', 'InsertLeave', 'DiagnosticChanged' }, {
+    desc = 'Treesitter-based Diagnostics',
+    pattern = '*',
+    group = augroup 'treesitter-diagnostics',
+    callback = vim.schedule_wrap(function()
+      local bufnr = vim.api.nvim_get_current_buf()
+      if vim.g.treesitter_diagnostics == false then
+        vim.diagnostic.reset(require('nuance.core.ts-diagnostics').namespace, bufnr)
+        return
+      end
+      require('nuance.core.ts-diagnostics').diagnostics(bufnr)
+    end),
+  })
+end
 
 vim.api.nvim_create_user_command('TSDiagnosticsToggle', function(_)
   vim.g.treesitter_diagnostics = not vim.g.treesitter_diagnostics
+  local bufnr = vim.api.nvim_get_current_buf()
+  vim.diagnostic.reset(require('nuance.core.ts-diagnostics').namespace, bufnr)
+  require('nuance.core.ts-diagnostics').diagnostics(bufnr)
 end, { nargs = 0 })
 
 -- Define highlight groups

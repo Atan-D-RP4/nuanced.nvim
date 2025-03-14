@@ -49,10 +49,7 @@ local treesitter_core = {
         end,
       },
 
-      indent = {
-        enable = true,
-        disable = { 'ruby', 'php' },
-      },
+      indent = { enable = true, disable = { 'ruby', 'php' } },
 
       incremental_selection = {
         enable = true,
