@@ -59,10 +59,42 @@ vim.schedule(function()
       },
       paste = {
         ['+'] = 'powershell.exe -NoLogo -NoProfile -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-        ['*'] = 'powershell.exe -NoLogo -NoProfile -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+        ['*'] = 'powershell.exe -NoLogo -NoProfile -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring( ).replace("`r", ""))',
       },
       cache_enabled = 0,
     }
+  elseif os_name == 'Linux' then
+    -- Linux configuration
+    vim.opt.clipboard = 'unnamedplus,unnamed'
+    if os.getenv 'XDG_SESSION_TYPE' == 'wayland' then
+      -- Wayland configuration
+      vim.g.clipboard = {
+        name = 'Wayland Clipboard',
+        copy = {
+          ['+'] = 'wl-copy',
+          ['*'] = 'wl-copy',
+        },
+        paste = {
+          ['+'] = 'wl-paste',
+          ['*'] = 'wl-paste',
+        },
+        cache_enabled = 0,
+      }
+    else
+      -- X11 configuration
+      vim.g.clipboard = {
+        name = 'Linux Clipboard',
+        copy = {
+          ['+'] = 'xclip -selection clipboard',
+          ['*'] = 'xclip -selection clipboard',
+        },
+        paste = {
+          ['+'] = 'xclip -selection clipboard -o',
+          ['*'] = 'xclip -selection clipboard -o',
+        },
+        cache_enabled = 0,
+      }
+    end
   end
 end)
 

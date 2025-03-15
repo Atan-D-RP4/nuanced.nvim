@@ -12,8 +12,7 @@ local mason_servers = {
         completion = {
           callSnippet = 'Replace',
         },
-        -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-        -- diagnostics = { disable = { 'missing-fields' } },
+        diagnostics = { disable = { 'missing-fields' } },
       },
     },
   },
@@ -136,6 +135,7 @@ M.lspconfig.dependencies = {
   -- },
 }
 
+---@param event vim.api.keyset.create_autocmd.callback_args
 M.lspconfig.opts.on_attach = function(event)
   local nmap = require('nuance.core.utils').nmap
   vim.lsp.set_log_level(vim.log.levels.OFF)
@@ -180,7 +180,7 @@ M.lspconfig.opts.on_attach = function(event)
   local client = vim.lsp.get_client_by_id(event.data.client_id)
 
   ---@diagnostic disable-next-line: param-type-mismatch
-  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
     nmap('<leader>th', function()
       vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
     end, '[T]oggle Inlay [H]ints')
@@ -191,8 +191,7 @@ M.lspconfig.opts.on_attach = function(event)
   --    See `:help CursorHold` for information about when this is executed
   --
   -- When you move your cursor, the highlights will be cleared (the second autocommand).
-  ---@diagnostic disable-next-line: param-type-mismatch
-  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+  if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
     local highlight_augroup = vim.api.nvim_create_augroup('nuance-lsp-highlight', { clear = false })
     vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
       buffer = event.buf,
@@ -213,6 +212,7 @@ M.lspconfig.opts.on_attach = function(event)
 end
 
 M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
+
   vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('nuance-lsp-attach', { clear = true }),
     callback = opts.on_attach,

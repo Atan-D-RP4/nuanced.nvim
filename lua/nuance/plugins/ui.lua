@@ -157,7 +157,7 @@ local statusline = {
 
 local icons = {
   'echasnovski/mini.icons',
-  event = 'VimEnter',
+  event = 'VeryLazy',
   config = function()
     require('mini.icons').setup()
   end,
@@ -337,7 +337,7 @@ local transparent = {
 
 local which_key = { -- Useful plugin to show you pending keybinds.
   'folke/which-key.nvim',
-  event = 'VimEnter', -- Sets the loading event to 'VimEnter'
+  event = 'VeryLazy', -- Sets the loading event to 'VimEnter'
   opts = {
     expand = function(node)
       return not node.desc

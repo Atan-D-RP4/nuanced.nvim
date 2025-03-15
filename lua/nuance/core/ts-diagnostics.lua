@@ -2,7 +2,7 @@
 M.namespace = vim.api.nvim_create_namespace 'nuance-treesitter-diagnostics'
 local error_query = vim.treesitter.query.parse('query', '[(ERROR)(MISSING)] @a')
 
----@param event vim.api.keyset.create_autocmd.callback_args
+---@param buf integer
 function M.diagnostics(buf)
   -- don't diagnose strange stuff
   if vim.bo[buf].buftype ~= '' then

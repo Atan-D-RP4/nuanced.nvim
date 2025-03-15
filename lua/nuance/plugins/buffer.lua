@@ -15,6 +15,7 @@ local undotree = {
   -- Undotree
   'mbbill/undotree',
   cmd = 'UndotreeToggle',
+  enabled = false,
   keys = {
     { '<leader>u', '<cmd>UndotreeToggle<CR>', desc = 'Toggle undotree' },
   },

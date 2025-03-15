@@ -149,7 +149,7 @@ end, { nargs = 0 })
 
 M = {
   'echasnovski/mini.sessions',
-  event = 'VimEnter',
+  event = 'VeryLazy',
   dependencies = {
     'folke/snacks.nvim',
   },
