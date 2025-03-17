@@ -115,12 +115,25 @@ local session_pick = function()
         require('mini.sessions').delete(item.name, { force = true, verbose = true })
         picker:find { refresh = true }
       end,
+
+      rename = function(picker, item, _)
+        vim.ui.input({ prompt = 'Rename Session "' .. item.name .. '" to:' }, function(input)
+          vim.print('Renaming: ' .. item.name)
+          require('mini.sessions').delete(item.name, { force = true })
+          require('mini.sessions').write(input)
+          if vim.g.active_session == item.name then
+            vim.g.active_session = input
+          end
+          picker:find { refresh = true }
+        end)
+      end,
     },
 
     win = {
       input = {
         keys = {
           ['<C-x>'] = { 'delete', desc = 'Delete Session', mode = { 'n', 'i' } },
+          ['<C-r>'] = { 'rename', desc = 'Rename Session', mode = { 'n', 'i' } },
         },
       },
     },
@@ -194,6 +207,22 @@ end
 M.keys = {
   { '<leader>as', '<cmd>lua require("mini.sessions").write(vim.g.current_session)<CR>', desc = '[S]essions [S]ave/Update', mode = 'n' },
   { '<leader>ap', '<cmd>SessionPick<CR>', desc = '[S]essions [P]ick', mode = 'n' },
+  {
+    '<leader>ar',
+    function()
+      if vim.g.active_session == '' then
+        print 'No session loaded'
+        return
+      end
+      vim.ui.input({ prompt = 'Rename Session "' .. vim.g.active_session .. '" to:' }, function(input)
+        require('mini.sessions').delete(vim.g.active_session, { force = true })
+        require('mini.sessions').write(input)
+        vim.g.active_session = input
+      end)
+    end,
+    desc = '[S]ession [R]ename',
+    mode = 'n',
+  },
   {
     '<leader>ac',
     function()

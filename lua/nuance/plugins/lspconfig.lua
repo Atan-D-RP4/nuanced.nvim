@@ -71,6 +71,7 @@ M.lspconfig = {
     'rust',
     'c',
     'cpp',
+    'java',
   },
 
   ---@module 'lspconfig'
@@ -116,8 +117,8 @@ M.copilot = {
 M.lspconfig.dependencies = {
   -- Automatically install LSPs and related tools to stdpath for Neovim
   { 'williamboman/mason.nvim', config = true, cmd = { 'Mason', 'MasonLog' } }, -- NOTE: Must be loaded before dependants
+  { 'WhoIsSethDaniel/mason-tool-installer.nvim', cmd = { 'MasonToolsInstall', 'MasonToolsClean', 'MasonToolsUpdate' } },
   'williamboman/mason-lspconfig.nvim',
-  'WhoIsSethDaniel/mason-tool-installer.nvim',
 
   -- NOTE: This requires configuring of on_attach handlers for the
   -- language servers that are running. See docs.
@@ -136,8 +137,10 @@ M.lspconfig.dependencies = {
 }
 
 ---@param event vim.api.keyset.create_autocmd.callback_args
-M.lspconfig.opts.on_attach = function(event)
+local function on_attach(event)
   local nmap = require('nuance.core.utils').nmap
+  local vmap = require('nuance.core.utils').vmap
+
   vim.lsp.set_log_level(vim.log.levels.OFF)
   vim.lsp.log.set_format_func(function(a, b)
     vim.inspect(a, b)
@@ -169,12 +172,14 @@ M.lspconfig.opts.on_attach = function(event)
   end
 
   nmap('gd', cmd:format 'lsp_definitions()', { buffer = true, desc = 'Lsp [G]oto [D]efinition' })
-  nmap('grr', cmd:format 'lsp_references()', { buffer = true, desc = 'Lsp [G]oto [R]eferences' }) -- override `grr` mapping
+  nmap('grr', cmd:format 'lsp_references()', { buffer = true, desc = 'Lsp [G]oto [R]eferences' })          -- override `grr` mapping
   nmap('gri', cmd:format 'lsp_implementations()', { buffer = true, desc = 'Lsp [G]oto [I]mplementation' }) -- override `gri` mapping
 
   nmap('gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', { buffer = true, desc = '[G]oto [D]eclaration' })
   nmap('gs', '<cmd>lua vim.lsp.buf.signature_help()<CR>', { buffer = true, desc = '[G]et [S]ignature Help' })
-  nmap('gca', '<cmd>lua vim.lsp.buf.code_action()<CR>', { buffer = true, desc = '[G]et [C]ode [A]ctions' })
+  nmap('gra', '<cmd>lua vim.lsp.buf.code_action()<CR>', { buffer = true, desc = '[G]et [C]ode [A]ctions' })
+  nmap('grn', '<cmd>lua vim.lsp.buf.rename()<CR>', { buffer = true, desc = '[G]et [C]ode [A]ctions' })
+  vmap('gra', '<cmd>lua vim.lsp.buf.code_action()<CR>', { buffer = true, desc = '[G]et [C]ode [A]ctions' })
   nmap('K', '<cmd>lua vim.lsp.buf.hover({ border = "round" })<CR>', { buffer = true, desc = 'LSP Hover Documentation' })
 
   local client = vim.lsp.get_client_by_id(event.data.client_id)
@@ -212,10 +217,10 @@ M.lspconfig.opts.on_attach = function(event)
 end
 
 M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
-
+  opts.on_attach = on_attach
   vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('nuance-lsp-attach', { clear = true }),
-    callback = opts.on_attach,
+    callback = on_attach,
   })
 
   vim.api.nvim_create_autocmd('LspDetach', {
@@ -237,7 +242,7 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
           vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
           cur_client:stop(true)
         end
-      end, 100)
+      end, 200)
     end,
   })
 
@@ -289,17 +294,12 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
 
   -- You can add other tools here that you want Mason to install
   -- for you, so that they are available from within Neovim.
-  local ensure_installed = vim.tbl_keys(mason_servers or {})
+  vim.list_extend(vim.tbl_keys(mason_servers or {}), {})
 
-  vim.list_extend(ensure_installed, {
-    'vim-language-server', -- Used for Vimscript
-    'bashls', -- Used for Bash
-    'stylua', -- Used to format Lua code
-    'harper-ls', -- Used for English grammar checking
-    'emmet-language-server', -- Used for HTML Tags
-    'html-lsp', -- Used for HTML and CSS
-  })
-  require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+  require('mason-tool-installer').setup {
+    ensure_installed = vim.list_extend(vim.tbl_keys(mason_servers or {}), {}),
+    run_on_start = true,
+  }
 
   -- Merge Mason installed servers list with external servers list
   local servers = vim.tbl_deep_extend('force', mason_servers, external_servers)
@@ -308,11 +308,12 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   require('mason-lspconfig').setup {
     handlers = {
       function(server_name)
-        local server = servers[server_name] or {}
-        servers[server_name] = server
+        servers[server_name] = servers[server_name] or {}
       end,
     },
   }
+
+  vim.g.configured_language_servers = servers
 
   -- Configure the LSP servers with nvim-lspconfig
   for name, config in pairs(servers) do
