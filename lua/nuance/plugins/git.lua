@@ -3,6 +3,7 @@ local gitcore = {
   cmd = { 'Git', 'Gstatus', 'Gblame', 'Gpush', 'Gpull', 'Gcommit', 'Gdiff' },
   keys = {
     { '<leader>gg', '<cmd>Git ++curwin<CR>', desc = '[G]it', mode = 'n' },
+    { '<leader>gl', '<cmd>Git ++curwin log<CR>', desc = '[G]it log', mode = 'n' },
   },
 }
 
@@ -78,6 +79,7 @@ gitsigns.opts.on_attach = function(bufnr)
   map('v', '<leader>gr', function()
     signs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
   end, { desc = 'reset git hunk' })
+
   -- normal mode
   map('n', '<leader>ga', signs.stage_hunk, { desc = '[G]it [t]oggle hunk stage status' })
   map('n', '<leader>gr', signs.reset_hunk, { desc = '[G]it [r]eset hunk' })

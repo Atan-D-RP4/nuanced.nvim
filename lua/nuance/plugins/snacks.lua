@@ -161,9 +161,6 @@ M.keys = {
   { '<leader>ef', '<cmd>lua Snacks.picker.buffers({sort_lastused=true})<CR>', desc = '[E]xisting Buffers [F]zf', mode = 'n' },
   { '<leader>eo', '<cmd>lua Snacks.picker.explorer()<CR>', desc = '[E]xplorer [O]pen', mode = 'n' },
 
-  { '<leader>gl', '<cmd>lua Snacks.picker.git_log()<CR>', desc = 'Fzf [G]it [c]ommit', mode = 'n' },
-  { '<leader>gs', '<cmd>lua Snacks.picker.git_status()<CR>', desc = 'Fzf [G]it [s]tatus', mode = 'n' },
-
   { '<leader>fr', '<cmd>lua Snacks.picker.registers({confirm = { "copy", "close" }})<CR>', desc = '[F]zf [K]eymaps', mode = 'n' },
   { '<leader>fh', '<cmd>lua Snacks.picker.help()<CR>', desc = '[F]zf [H]elp tags', mode = 'n' },
   { '<leader>fk', '<cmd>lua Snacks.picker.keymaps()<CR>', desc = '[F]zf [K]eymaps', mode = 'n' },

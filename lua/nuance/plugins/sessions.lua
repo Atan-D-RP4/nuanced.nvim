@@ -205,7 +205,18 @@ M.config = function()
 end
 
 M.keys = {
-  { '<leader>as', '<cmd>lua require("mini.sessions").write(vim.g.current_session)<CR>', desc = '[S]essions [S]ave/Update', mode = 'n' },
+  {
+    '<leader>as',
+    function()
+      if vim.g.active_session == '' or vim.g.active_session == 'default' then
+        vim.notify('No Active Session', vim.log.levels.INFO, { title = "Session" })
+        return
+      end
+      require('mini.sessions').write(vim.g.active_session)
+    end,
+    desc = '[S]essions [S]ave/Update',
+    mode = 'n'
+  },
   { '<leader>ap', '<cmd>SessionPick<CR>', desc = '[S]essions [P]ick', mode = 'n' },
   {
     '<leader>ar',

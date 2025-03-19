@@ -30,13 +30,6 @@ local mason_servers = {
   html = {},
   emmet_language_server = {},
   vimls = {},
-
-  phpactor = {
-    ft = { 'php' },
-    root_dir = function()
-      return vim.fn.getcwd()
-    end,
-  },
 }
 
 local external_servers = {
@@ -256,7 +249,7 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
       spacing = 2,
       ---@param diagnostic vim.Diagnostic
       format = function(diagnostic)
-        return string.format('%s - %s', diagnostic.source, diagnostic.message)
+        return string.format('%s - [%s] %s', diagnostic.source, diagnostic.code, diagnostic.message)
       end,
     },
   }
