@@ -204,7 +204,6 @@ autocmd('FileType', {
     'fugitivediffsplit',
     'fugitivediffvsplit',
     'qf',
-    'spectre_panel',
     'startuptime',
     'tsplayground',
   },

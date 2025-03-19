@@ -1,4 +1,3 @@
--- Check if nvim version is at least 0.11.0
 require 'nuance.core.clipboard'
 require 'nuance.core.keymaps'
 require 'nuance.core.utils'

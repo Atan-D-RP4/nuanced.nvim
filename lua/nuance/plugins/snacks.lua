@@ -56,7 +56,17 @@ M.opts.picker = {
   actions = {
     cd_up = function(picker, _)
       picker:set_cwd(vim.fs.dirname(picker:cwd()))
+      vim.print('New cwd: ' .. picker:cwd())
       picker:find()
+    end,
+
+    cd_down = function(picker, _)
+      local new_cwd = picker.list:current().text:match '([^/]+)/'
+      if new_cwd and vim.fn.isdirectory(picker:cwd() .. '/' .. new_cwd) == 1 then
+        picker:set_cwd(picker:cwd() .. '/' .. new_cwd)
+        vim.print('New cwd: ' .. picker:cwd())
+        picker:find()
+      end
     end,
 
     flash = function(picker)
@@ -94,8 +104,6 @@ M.opts.picker = {
   },
 
   sources = {
-    projects = { dev = { '~/Develop/repos/' } },
-
     explorer = {
       auto_close = true,
       jump = { close = true },
@@ -104,6 +112,16 @@ M.opts.picker = {
       },
     },
 
+    files = {
+      win = {
+        input = {
+          keys = {
+            ['<C-j>'] = { 'cd_down', desc = 'cd_down', mode = { 'i', 'n' } },
+            ['<C-k>'] = { 'cd_up', desc = 'cd_up', mode = { 'i', 'n' } },
+          },
+        },
+      },
+    },
     grep = { win = { input = { keys = { ['<C-k>'] = { 'cd_up', desc = 'cd_up', mode = { 'i', 'n' } } } } } },
     lsp_symbols = { layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } } },
     treesitter = { layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } } },
@@ -146,10 +164,10 @@ M.keys = {
   { '<C-w><C-t>', '<cmd>lua Snacks.terminal()<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
 
   -- Create some toggle mappings
-  { '<leader>tn', '<cmd>lua Snacks.notifier.show_history()<CR>', desc = 'Notification History' },
   { '<leader>ts', "<cmd>lua Snacks.toggle.option('spell', { name = 'Spelling' }):toggle()<CR>", desc = '[T]oggle [S]pell' },
   { '<leader>tw', "<cmd>lua Snacks.toggle.option('wrap', { name = 'Wrap' }):toggle()<CR>", desc = 'Toggle [W]rap' },
   { '<leader>tL', "<cmd>lua Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):toggle()<CR>", desc = '[T]oggle [R]elative Numbers' },
+  { '<leader>tn', '<cmd>lua Snacks.notifier.show_history()<CR>', desc = 'Notification History' },
   { '<leader>td', '<cmd>lua Snacks.toggle.diagnostics():toggle()<CR>', desc = '[T]oggle Lsp [D]iagnosticse' },
   { '<leader>tl', '<cmd>lua Snacks.toggle.line_number():toggle()<CR>', desc = '[T]oggle [L]ine Numbers' },
   { '<leader>tt', '<cmd>lua Snacks.toggle.treesitter():toggle()<CR>', desc = '[T]oggle [T]reesitter' },
@@ -170,8 +188,6 @@ M.keys = {
   { '<leader>f:', '<cmd>lua Snacks.picker.command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
   { '<leader>fs', '<cmd>lua Snacks.picker.lsp_symbols({layout = {preset = "vscode", preview = "main"}})<CR>', desc = '[F]zf Document [S]ymbols', mode = 'n' },
   { '<leader>ft', '<cmd>lua Snacks.picker.treesitter()<CR>', desc = '[F]zf [T]reesitter [S]ymbols', mode = 'n' },
-
-  -- { '<c-_>', '<cmd>lua Snacks.terminal()<CR>', desc = 'which_key_ignore' },
 
   -- {
   --   '<leader>tb',

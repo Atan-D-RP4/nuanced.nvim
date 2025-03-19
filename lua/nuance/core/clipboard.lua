@@ -8,94 +8,28 @@ vim.schedule(function()
     return
   end
 
-  local os_name = vim.loop.os_uname().sysname
-
   -- Platform-specific clipboard configuration
   vim.opt.clipboard = 'unnamedplus,unnamed'
-  if os_name == 'Windows_NT' then
-    -- Native Windows configuration
-    vim.g.clipboard = {
-      name = 'Windows Clipboard',
-      copy = {
-        ['+'] = 'clip.exe',
-        ['*'] = 'clip.exe',
-      },
-      paste = {
-        ['+'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-        ['*'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-      },
-      cache_enabled = 0,
+  local function paste()
+    return {
+      vim.fn.split(vim.fn.getreg '', '\n'),
+      vim.fn.getregtype '',
     }
-  elseif os.getenv 'SSH_TTY' ~= nil then
-    -- SSH session configuration (OSC 52)
-    local function paste()
-      return {
-        vim.fn.split(vim.fn.getreg '', '\n'),
-        vim.fn.getregtype '',
-      }
-    end
-
-    vim.g.clipboard = {
-      name = 'OSC 52',
-      copy = {
-        ['+'] = require('vim.ui.clipboard.osc52').copy '+',
-        ['*'] = require('vim.ui.clipboard.osc52').copy '*',
-      },
-      -- For security reasons, pasting is usually not supported by terminals for OSC52
-      -- So we don't use clipboard.osc52 for pasting to avoid nvim hanging
-      paste = {
-        ['+'] = paste,
-        ['*'] = paste,
-      },
-    }
-  elseif os.getenv 'WSL_DISTRO_NAME' then
-    -- WSL (Windows Subsystem for Linux) configuration
-    vim.opt.clipboard = 'unnamedplus,unnamed'
-    vim.g.clipboard = {
-      name = 'WslClipboard',
-      copy = {
-        ['+'] = 'clip.exe',
-        ['*'] = 'clip.exe',
-      },
-      paste = {
-        ['+'] = 'powershell.exe -NoLogo -NoProfile -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-        ['*'] = 'powershell.exe -NoLogo -NoProfile -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring( ).replace("`r", ""))',
-      },
-      cache_enabled = 0,
-    }
-  elseif os_name == 'Linux' then
-    -- Linux configuration
-    vim.opt.clipboard = 'unnamedplus,unnamed'
-    if os.getenv 'XDG_SESSION_TYPE' == 'wayland' then
-      -- Wayland configuration
-      vim.g.clipboard = {
-        name = 'Wayland Clipboard',
-        copy = {
-          ['+'] = 'wl-copy',
-          ['*'] = 'wl-copy',
-        },
-        paste = {
-          ['+'] = 'wl-paste',
-          ['*'] = 'wl-paste',
-        },
-        cache_enabled = 0,
-      }
-    else
-      -- X11 configuration
-      vim.g.clipboard = {
-        name = 'Linux Clipboard',
-        copy = {
-          ['+'] = 'xclip -selection clipboard',
-          ['*'] = 'xclip -selection clipboard',
-        },
-        paste = {
-          ['+'] = 'xclip -selection clipboard -o',
-          ['*'] = 'xclip -selection clipboard -o',
-        },
-        cache_enabled = 0,
-      }
-    end
   end
+
+  vim.g.clipboard = {
+    name = 'OSC 52',
+    copy = {
+      ['+'] = require('vim.ui.clipboard.osc52').copy '+',
+      ['*'] = require('vim.ui.clipboard.osc52').copy '*',
+    },
+    -- For security reasons, pasting is usually not supported by terminals for OSC52
+    -- So we don't use clipboard.osc52 for pasting to avoid nvim hanging
+    paste = {
+      ['+'] = paste,
+      ['*'] = paste,
+    },
+  }
 end)
 
 -- vim: ts=2 sts=2 sw=2 et

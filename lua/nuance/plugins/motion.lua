@@ -133,6 +133,10 @@ local operator = {
   'echasnovski/mini.operators',
   lazy = true,
   event = { 'BufRead', 'BufNewFile' },
+  config = function()
+    -- Set up proper mappings for operators
+    -- require('mini.operators').setup {}
+  end,
 }
 
 local M = {

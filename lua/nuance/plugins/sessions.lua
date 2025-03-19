@@ -1,7 +1,7 @@
 --@param file string
 vim.g.active_session = ''
 
-local create_default = function()
+local function create_default()
   local session_path = require('mini.sessions').config.directory .. '/' .. 'default'
   local session_file = io.open(session_path, 'w')
   if session_file == nil then
@@ -14,7 +14,7 @@ let s:so_save = &g:so | let s:siso_save = &g:siso | setg so=0 siso=0 | setl so=-
 let v:this_session=expand("<sfile>:p")
 silent only
 silent tabonly
-cd ~/.local/share/nvim/sessions
+cd ~/
 if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
@@ -132,8 +132,8 @@ local session_pick = function()
     win = {
       input = {
         keys = {
-          ['<C-x>'] = { 'delete', desc = 'Delete Session', mode = { 'n', 'i' } },
-          ['<C-r>'] = { 'rename', desc = 'Rename Session', mode = { 'n', 'i' } },
+          ['<C-x>'] = { 'delete', desc = 'delete_session', mode = { 'n', 'i' } },
+          ['<C-r>'] = { 'rename', desc = 'rename_session', mode = { 'n', 'i' } },
         },
       },
     },
@@ -173,6 +173,7 @@ M.config = function()
   require('mini.sessions').setup {
     autoread = false,
     directory = vim.fn.stdpath 'data' .. '/sessions',
+    file = '', -- File for local session (use `''` to disable)
     hooks = {
       pre = {
         read = function()
@@ -225,7 +226,11 @@ M.keys = {
         print 'No session loaded'
         return
       end
-      vim.ui.input({ prompt = 'Rename Session "' .. vim.g.active_session .. '" to:' }, function(input)
+      vim.ui.input({ default = vim.g.active_session, prompt = 'Rename Session' }, function(input)
+        if input == nil then
+          vim.notify('Empty Session Name', vim.log.levels.ERROR, { title = 'Session' })
+          return
+        end
         require('mini.sessions').delete(vim.g.active_session, { force = true })
         require('mini.sessions').write(input)
         vim.g.active_session = input
