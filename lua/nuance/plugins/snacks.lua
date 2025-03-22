@@ -15,9 +15,10 @@ M.opts = {
   profiler = { enabled = false },
   bigfile = { enabled = true },
   quickfile = { enabled = true },
-  scope = { enabled = true }, -- tpope/vim-sleuth is just better for this
+  scope = { enabled = false }, -- tpope/vim-sleuth is just better for this
   indent = { enabled = true },
   input = { enabled = true },
+  image = { enabled = true },
 
   dashboard = {
     enabled = true,
@@ -27,16 +28,16 @@ M.opts = {
 
       ---@type snacks.dashboard.Item[]
       keys = {
-        { key = 'f', desc = 'Find File', action = "<cmd>lua Snacks.dashboard.pick('files')<CR>" },
-        { key = 'n', desc = 'New File', action = '<cmd>ene | startinsert<CR>' },
-        { key = 'g', desc = 'Find Text', action = "<cmd>lua Snacks.dashboard.pick('live_grep')<CR>" },
-        { key = 'G', desc = 'FuGitive UI', action = '<cmd>Git ++curwin<CR>' },
-        { key = 'r', desc = 'Recent Files', action = "<cmd>lua Snacks.dashboard.pick('oldfiles')<CR>" },
-        { key = 'c', desc = 'Config', action = "<cmd>lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})<CR>" },
-        { key = 'a', desc = 'Pick Session', action = '<cmd>SessionPick<CR>' },
-        { key = 'o', desc = 'File System', action = '<cmd>Oil<CR>' },
-        { key = 'L', desc = 'Lazy', action = '<cmd>Lazy<CR>', enabled = package.loaded.lazy ~= nil },
-        { key = 'q', desc = 'Quit', action = '<cmd>qa<CR>' },
+        { icon = ' ', key = 'f', desc = 'Find File', action = ":lua Snacks.dashboard.pick('files')" },
+        { icon = ' ', key = 'n', desc = 'New File', action = ':ene | startinsert' },
+        { icon = ' ', key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
+        { icon = ' ', key = 'G', desc = 'Git', action = '<cmd>Git ++curwin | Git log | wincmd H | wincmd l<CR>' },
+        { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
+        { icon = ' ', key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
+        { icon = ' ', key = 'o', desc = 'File System', action = '<cmd>Oil<CR>' },
+        { icon = ' ', key = 'a', desc = 'Pick Session', action = '<cmd>SessionPick<CR>' },
+        { icon = '󰒲 ', key = 'L', desc = 'Lazy', action = ':Lazy', enabled = package.loaded.lazy ~= nil },
+        { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
       },
     },
   },
@@ -95,13 +96,7 @@ M.opts.picker = {
     end,
   },
 
-  win = {
-    input = {
-      keys = {
-        ['<C-l>'] = { 'flash', desc = 'flash', mode = { 'i', 'n' } },
-      },
-    },
-  },
+  win = { input = { keys = { ['<C-l>'] = { 'flash', desc = 'flash', mode = { 'i', 'n' } } } } },
 
   sources = {
     explorer = {

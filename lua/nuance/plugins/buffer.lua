@@ -1,7 +1,3 @@
-local sleuth = {
-  'tpope/vim-sleuth', -- For auto-detecting indent settings
-}
-
 local dropbar = {
   'Bekaboo/dropbar.nvim',
   event = { 'VeryLazy', 'BufRead' },
@@ -45,7 +41,7 @@ local grugfar = {
 }
 
 return {
-  sleuth,
+  { 'tpope/vim-sleuth' }, -- For auto-detecting indent settings
   dropbar,
   undotree,
   grugfar,

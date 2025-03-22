@@ -181,46 +181,58 @@ autocmd('BufWinEnter', {
   end,
 })
 
-autocmd('FileType', {
+autocmd('BufEnter', {
   group = augroup 'close-with-q',
-  pattern = {
-    'PlenaryTestPopup',
-    'checkhealth',
-    '',
-    'dbout',
-    'gitsigns-blame',
-    'query',
-    'grug-far',
-    'help',
-    'lspinfo',
-    'neotest-output',
-    'neotest-output-panel',
-    'neotest-summary',
-    'notify',
-    'git',
-    'fugitive',
-    'fugitiveblame',
-    'fugitivediff',
-    'fugitivediffsplit',
-    'fugitivediffvsplit',
-    'qf',
-    'startuptime',
-    'tsplayground',
-  },
-  ---@param event vim.api.keyset.create_autocmd.callback_args
-  callback = function(event)
-    vim.bo[event.buf].buflisted = false
-    vim.schedule(function()
+  callback = vim.schedule_wrap(function(event)
+    local bufnr = event.buf
+    local ft = vim.bo[bufnr].filetype
+    local q_fts = {
+      'PlenaryTestPopup',
+      'checkhealth',
+      'dbout',
+      'gitsigns-blame',
+      'query',
+      'grug-far',
+      'help',
+      'lspinfo',
+      'neotest-output',
+      'neotest-output-panel',
+      'neotest-summary',
+      'notify',
+      'git',
+      'fugitive',
+      'fugitiveblame',
+      'fugitivediff',
+      'fugitivediffsplit',
+      'fugitivediffvsplit',
+      'qf',
+      'startuptime',
+      'tsplayground',
+      snacks,
+    }
+
+    -- Check if it's a special filetype or an empty buffer
+    local is_qft = vim.tbl_contains(q_fts, ft)
+
+    local is_empty = vim.api.nvim_buf_get_name(bufnr) == '' and (ft == '' or ft == nil)
+
+    if is_qft or is_empty then
+      vim.bo[bufnr].buflisted = false
       vim.keymap.set('n', 'q', function()
         pcall(vim.api.nvim_exec2, 'close', {})
-        pcall(vim.api.nvim_buf_delete, event.buf, { force = true })
+        local err, snacks = pcall(require, 'snacks')
+        if err == false then
+          vim.print('Fallback to default forced buffer deletion')
+          pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
+        end
+        snacks.bufdelete.delete(bufnr)
       end, {
-        buffer = event.buf,
+        buffer = bufnr,
         silent = true,
         desc = 'Quit buffer',
       })
-    end)
-  end,
+    end
+  end),
 })
 
 autocmd({ 'BufWritePre' }, {
