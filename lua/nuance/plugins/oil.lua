@@ -2,6 +2,7 @@ local M = {
   'stevearc/oil.nvim',
   version = '*',
   cmd = 'Oil',
+  dependencies = { 'folke/snacks.nvim' },
 
   keys = { { '<leader>o', '<cmd>lua require("oil").open()<CR>', mode = 'n', desc = 'Open Oil Window' } },
 
@@ -11,12 +12,20 @@ local M = {
       require('lazy').load { plugins = { 'oil.nvim' } }
       vim.cmd 'bdelete' -- Close the initial buffer
       vim.cmd('Oil ' .. vim.fn.argv(0))
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'OilActionsPost',
+        callback = function(event)
+          if event.data.actions.type == 'move' then
+            require('snacks').rename.on_rename_file(event.data.actions.src_url, event.data.actions.dest_url)
+          end
+        end,
+      })
     end
   end,
 }
 
 ---@module 'oil'
----@class oil.SetupOpts
+---@type oil.SetupOpts
 M.opts = {
   default_file_explorer = true,
   use_default_keymaps = true,
@@ -61,8 +70,12 @@ M.opts.keymaps = {
   ['<CR>'] = {},
   ['<C-l>'] = 'actions.refresh',
   -- Append to a register (Primitive impl for marking files)
-  ['<C-x>'] = function() vim.fn.setreg('a', vim.fn.getreg 'a' .. vim.api.nvim_get_current_line() .. '\n') end,
-  ['<C-c>'] = function() vim.fn.setreg('a', '') end,
+  ['<C-x>'] = function()
+    vim.fn.setreg('a', vim.fn.getreg 'a' .. vim.api.nvim_get_current_line() .. '\n')
+  end,
+  ['<C-c>'] = function()
+    vim.fn.setreg('a', '')
+  end,
   ['<C-s>'] = { 'actions.select', opts = { vertical = true }, desc = 'Open the entry in a vertical split' },
   ['<C-h>'] = { 'actions.select', opts = { horizontal = true }, desc = 'Open the entry in a horizontal split' },
   ['<C-t>'] = { 'actions.select', opts = { tab = true }, desc = 'Open the entry in new tab' },
@@ -70,7 +83,9 @@ M.opts.keymaps = {
   ['<Right>'] = 'actions.select',
   ['l'] = { 'actions.select', mode = 'n' },
   ['q'] = 'actions.close',
-  ['='] = function() vim.cmd 'write' end, -- Save the current buffer
+  ['='] = function()
+    vim.cmd 'write'
+  end, -- Save the current buffer
   ['-'] = 'actions.parent',
   ['_'] = 'actions.open_cwd',
   ['`'] = 'actions.cd',
@@ -131,19 +146,6 @@ M.opts.git = {
 --     return conf
 --   end,
 -- }
-
----@class M.opts
-M.opts.preview = {
-  max_width = 0.9,
-  min_width = { 40, 0.4 },
-  width = nil,
-  max_height = 0.9,
-  min_height = { 5, 0.1 },
-  height = nil,
-  border = 'rounded',
-  update_on_cursor_moved = true,
-  win_options = { winblend = 0 },
-}
 
 M.opts.progress = {
   max_width = 0.9,

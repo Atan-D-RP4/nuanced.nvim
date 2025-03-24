@@ -53,18 +53,12 @@ M.lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspLog' },
   ft = {
-    'typescript',
-    'javascript',
-    'html',
-    'css',
-    'vim',
-    'lua',
-    'sh',
-    'python',
-    'rust',
-    'c',
-    'cpp',
-    'java',
+    'typescript', 'javascript',
+    'html', 'css',
+    'vim', 'lua',
+    'sh', 'python',
+    'c', 'cpp',
+    'rust', 'java',
   },
 
   ---@module 'lspconfig'
@@ -165,7 +159,7 @@ local function on_attach(event)
   end
 
   nmap('gd', cmd:format 'lsp_definitions()', { buffer = true, desc = 'Lsp [G]oto [D]efinition' })
-  nmap('grr', cmd:format 'lsp_references()', { buffer = true, desc = 'Lsp [G]oto [R]eferences' })          -- override `grr` mapping
+  nmap('grr', cmd:format 'lsp_references()', { buffer = true, desc = 'Lsp [G]oto [R]eferences' }) -- override `grr` mapping
   nmap('gri', cmd:format 'lsp_implementations()', { buffer = true, desc = 'Lsp [G]oto [I]mplementation' }) -- override `gri` mapping
 
   nmap('gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', { buffer = true, desc = '[G]oto [D]eclaration' })
@@ -178,7 +172,7 @@ local function on_attach(event)
   local client = vim.lsp.get_client_by_id(event.data.client_id)
 
   ---@diagnostic disable-next-line: param-type-mismatch
-  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
+  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, { bufnr = event.buf }) then
     nmap('<leader>th', function()
       vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
     end, '[T]oggle Inlay [H]ints')
@@ -186,10 +180,8 @@ local function on_attach(event)
 
   -- The following two autocommands are used to highlight references of the
   -- word under your cursor when your cursor rests there for a little while.
-  --    See `:help CursorHold` for information about when this is executed
-  --
   -- When you move your cursor, the highlights will be cleared (the second autocommand).
-  if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
+  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, { bufnr = event.buf }) then
     local highlight_augroup = vim.api.nvim_create_augroup('nuance-lsp-highlight', { clear = false })
     vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
       buffer = event.buf,
@@ -201,6 +193,15 @@ local function on_attach(event)
       buffer = event.buf,
       group = highlight_augroup,
       callback = vim.lsp.buf.clear_references,
+    })
+  end
+
+  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_codeLens, { bufnr = event.buf }) then
+    local code_lens_augroup = vim.api.nvim_create_augroup('nuance-lsp-code-lens', { clear = false })
+    vim.api.nvim_create_autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
+      buffer = event.buf,
+      group = code_lens_augroup,
+      callback = vim.lsp.codelens.refresh,
     })
   end
 
@@ -219,10 +220,10 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   vim.api.nvim_create_autocmd('LspDetach', {
     group = vim.api.nvim_create_augroup('nuance-lsp-detach', { clear = false }),
     callback = function(event)
-      vim.lsp.buf.clear_references()
-      vim.api.nvim_clear_autocmds { group = 'nuance-lsp-highlight', buffer = event.buf }
-
       vim.defer_fn(function()
+        vim.lsp.buf.clear_references()
+        vim.api.nvim_clear_autocmds { group = 'nuance-lsp-highlight', buffer = event.buf }
+        vim.api.nvim_clear_autocmds { group = 'nuance-lsp-code-lens', buffer = event.buf }
         -- Kill the LS process if no buffers are attached to the client
         local cur_client = vim.lsp.get_client_by_id(event.data.client_id)
         if cur_client == nil or cur_client.name == 'copilot' then
@@ -233,7 +234,7 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
           local msg = 'No attached buffers to client: ' .. cur_client.name .. '\n'
           msg = msg .. 'Stopping language server: ' .. cur_client.name
           vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
-          cur_client:stop(true)
+          cur_client.stop(true)
         end
       end, 200)
     end,
@@ -241,6 +242,7 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
 
   vim.diagnostic.config {
     underline = true,
+    severity_sort = true,
     signs = true,
     update_in_insert = false,
     virtual_lines = { current_line = true },
@@ -255,14 +257,27 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   }
 
   -- Change diagnostic symbols in the sign column (gutter)
-  -- if vim.g.have_nerd_font then
-  --   local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
-  --   local diagnostic_signs = {}
-  --   for type, icon in pairs(signs) do
-  --     diagnostic_signs[vim.diagnostic.severity[type]] = icon
-  --   end
-  --   vim.diagnostic.config { signs = { text = diagnostic_signs } }
-  -- end
+  if vim.g.have_nerd_font then
+    local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
+    local diagnostic_signs = {}
+    for type, icon in pairs(signs) do
+      diagnostic_signs[vim.diagnostic.severity[type]] = icon
+    end
+    vim.diagnostic.config {
+      signs = { text = diagnostic_signs },
+      -- virtual_text = {
+      --   prefix = function(diagnostic)
+      --     for d, icon in pairs(signs) do
+      --       if diagnostic.severity == vim.diagnostic.severity[d:upper()] then
+      --         return icon
+      --       end
+      --     end
+      --     -- default squaur block
+      --     return '■'
+      --   end,
+      -- },
+    }
+  end
 
   vim.api.nvim_set_hl(0, 'LspReferenceText', {})
 

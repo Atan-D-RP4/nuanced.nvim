@@ -11,6 +11,13 @@ vim.schedule(function()
   -- Platform-specific clipboard configuration
   vim.opt.clipboard = 'unnamedplus,unnamed'
   local function paste()
+    if os.getenv 'TERM_PROGRAM' == 'tmux' then
+      return {
+        'tmux',
+        'save-buffer',
+        '-',
+      }
+    end
     return {
       vim.fn.split(vim.fn.getreg '', '\n'),
       vim.fn.getregtype '',
@@ -29,6 +36,7 @@ vim.schedule(function()
       ['+'] = paste,
       ['*'] = paste,
     },
+    cache_enabled = 1,
   }
 end)
 

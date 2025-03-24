@@ -19,18 +19,7 @@ local autocmd = vim.api.nvim_create_autocmd
 autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = augroup 'highlight-yank',
-  callback = function()
-    local clip = '/mnt/c/Windows/System32/clip.exe'
-    if vim.v.event.operator == 'y' then
-      if vim.fn.executable(clip) == 1 then
-        vim.fn.system(clip, vim.fn.getreg '0')
-        if vim.g.cur_yank_pre then
-          vim.api.nvim_win_set_cursor(0, vim.g.cur_yank_pre)
-        end
-      end
-    end
-    (vim.hl or vim.highlight).on_yank()
-  end,
+  callback = (vim.hl or vim.highlight).on_yank,
 })
 
 -- Automatically restore the previous cursor position when entering a new buffer.
@@ -183,7 +172,7 @@ autocmd('BufWinEnter', {
 
 autocmd('BufEnter', {
   group = augroup 'close-with-q',
-  callback = vim.schedule_wrap(function(event)
+  callback = function(event)
     local bufnr = event.buf
     local ft = vim.bo[bufnr].filetype
     local q_fts = {
@@ -208,7 +197,6 @@ autocmd('BufEnter', {
       'qf',
       'startuptime',
       'tsplayground',
-      snacks,
     }
 
     -- Check if it's a special filetype or an empty buffer
@@ -217,12 +205,14 @@ autocmd('BufEnter', {
     local is_empty = vim.api.nvim_buf_get_name(bufnr) == '' and (ft == '' or ft == nil)
 
     if is_qft or is_empty then
-      vim.bo[bufnr].buflisted = false
+      if is_qft then
+        vim.bo[bufnr].buflisted = false
+      end
       vim.keymap.set('n', 'q', function()
         pcall(vim.api.nvim_exec2, 'close', {})
         local err, snacks = pcall(require, 'snacks')
         if err == false then
-          vim.print('Fallback to default forced buffer deletion')
+          vim.print 'Fallback to default forced buffer deletion'
           pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
         end
         snacks.bufdelete.delete(bufnr)
@@ -232,7 +222,7 @@ autocmd('BufEnter', {
         desc = 'Quit buffer',
       })
     end
-  end),
+  end,
 })
 
 autocmd({ 'BufWritePre' }, {

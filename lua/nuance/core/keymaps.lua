@@ -49,7 +49,8 @@ local maps = {
 
   -- NOTE: This won't work in all terminal emulators/tmux/etc. Try other mappings
   -- or just use <C-\><C-n> to exit terminal mode
-  { 't', '<S-Esc>', '<C-\\><C-n>', 'Exit terminal mode' },
+  { 't', '<C-w>q', '<C-\\><C-n>', 'Exit terminal mode' },
+  { 't', '<C-w><C-q>', '<C-\\><C-n>', 'Exit terminal mode' },
   { 't', '<M-r>', [['<C-\><C-N>"'.nr2char(getchar()).'pi']], { desc = 'Vim Register Select in Terminal Mode', expr = true } },
 
   -- Custom Floating Togglable Terminal

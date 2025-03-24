@@ -9,6 +9,7 @@ local gitcore = {
 
 local gitsigns = { -- Adds git related signs to the gutter, as well as utilities for managing changes
   'lewis6991/gitsigns.nvim',
+  event = 'VeryLazy',
   ---@type Gitsigns.Config
   opts = {},
 }

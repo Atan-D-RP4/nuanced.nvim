@@ -1,4 +1,3 @@
---@param file string
 vim.g.active_session = ''
 
 local function create_default()

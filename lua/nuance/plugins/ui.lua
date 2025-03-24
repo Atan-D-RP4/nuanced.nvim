@@ -200,20 +200,6 @@ local themes = {
     end,
   },
 
-  shadotheme = {
-    'Shadorain/shadotheme',
-    priority = 1000,
-    init = function()
-      vim.cmd [[
-        colorscheme shado-legacy
-        hi Keyword gui=italic
-        hi WinBar guibg=None
-        hi WinBarNC guibg=None
-        hi Comment gui=italic
-      ]]
-    end,
-  },
-
   witch = {
     'sontungexpt/witch',
     priority = 1000,
