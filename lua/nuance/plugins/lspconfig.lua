@@ -100,24 +100,6 @@ M.lazydev = {
   },
 }
 
-M.copilot = {
-  'zbirenbaum/copilot.lua',
-  cmd = 'Copilot',
-  event = { 'InsertEnter' },
-  config = function()
-    require('copilot').setup {
-      filetypes = {
-        markdown = true, -- overrides default
-      },
-      suggestion = {
-        hide_during_completion = false,
-        auto_trigger = true,
-      },
-      copilot_node_command = 'node', -- Node.js version must be > 18.x
-    }
-  end,
-}
-
 M.lspconfig.dependencies = {
   -- Automatically install LSPs and related tools to stdpath for Neovim
   { 'williamboman/mason.nvim', config = true, cmd = { 'Mason', 'MasonLog' } }, -- NOTE: Must be loaded before dependants

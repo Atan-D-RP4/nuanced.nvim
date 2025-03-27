@@ -47,7 +47,7 @@ opt.mousehide = true
 
 -- Don't show the mode, since it's already in the status line
 opt.showmode = false
-opt.laststatus = 0
+opt.laststatus = 3
 
 -- Show Tabline
 opt.showtabline = 2
