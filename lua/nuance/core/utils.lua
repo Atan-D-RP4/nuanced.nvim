@@ -256,4 +256,28 @@ function M.get_relative_line(offset)
   return line[1] or '', nil -- Return the line as a string
 end
 
+---@param workspace string
+---@return string
+function M.get_python_path(workspace)
+  -- Check for activated virtualenv first
+  if vim.env.VIRTUAL_ENV then
+    return vim.env.VIRTUAL_ENV .. '/bin/python'
+  end
+
+  -- Try .venv directory
+  local venv_path = workspace .. '/.venv/bin/python'
+  if vim.fn.executable(venv_path) == 1 then
+    return venv_path
+  end
+
+  -- Try venv directory
+  local venv_alt_path = workspace .. '/venv/bin/python'
+  if vim.fn.executable(venv_alt_path) == 1 then
+    return venv_alt_path
+  end
+
+  -- Fallback to system Python
+  return vim.fn.exepath 'python3' or vim.fn.exepath 'python' or 'python'
+end
+
 return M

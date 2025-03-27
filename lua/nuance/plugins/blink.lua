@@ -5,7 +5,7 @@ M = {
   -- build = 'cargo build --release',
 
   -- use a release tag to download pre-built binaries
-  version = 'v0.14.*',
+  version = 'v1.*',
   -- OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
   -- build = 'cargo build --release',
   -- If you use nix, you can build from source using latest nightly rust with:
