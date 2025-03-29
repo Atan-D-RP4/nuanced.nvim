@@ -1,13 +1,14 @@
---- language-independent query for syntax errors and missing elements
-M.namespace = vim.api.nvim_create_namespace 'nuance-treesitter-diagnostics'
-local error_query = vim.treesitter.query.parse('query', '[(ERROR)(MISSING)] @a')
-
+-- https://www.reddit.com/r/neovim/comments/1ir069p/treesitter_diagnostics/
+-- language-independent query for syntax errors and missing elements
 ---@param buf integer
 function M.diagnostics(buf)
   -- don't diagnose strange stuff
   if vim.bo[buf].buftype ~= '' then
     return
   end
+
+  M.namespace = vim.api.nvim_create_namespace 'nuance-treesitter-diagnostics'
+  local error_query = vim.treesitter.query.parse('query', '[(ERROR)(MISSING)] @a')
 
   local diagnostics = {}
   local parser = vim.treesitter.get_parser(buf, nil, { error = false })

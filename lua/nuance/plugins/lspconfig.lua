@@ -1,127 +1,3 @@
-local mason_servers = {
-  -- gopls = {},
-  -- pyright = {},
-  -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-  lua_ls = {
-    -- cmd = {...},
-    -- capabilities = {},
-    filetypes = { 'lua' },
-    settings = {
-      Lua = {
-        telemetry = { enable = false },
-        completion = {
-          callSnippet = 'Replace',
-        },
-        diagnostics = { disable = { 'missing-fields' } },
-      },
-    },
-  },
-
-  harper_ls = {
-    filetypes = { 'markdown', 'text', 'gitcommit', 'html', 'norg' },
-    settings = {
-      ['harper-ls'] = {
-        userDictPath = vim.fn.stdpath 'config' .. '/user.dict',
-      },
-    },
-  },
-
-  bashls = {},
-  html = {},
-  emmet_language_server = {},
-  vimls = {},
-  pyright = {
-    on_init = function(client, _)
-      client.settings.python = vim.tbl_extend('force', client.settings.python, {
-        pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
-      })
-    end,
-  },
-  basedpyright = {
-    on_init = function(client, _)
-      client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
-        pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
-      })
-    end,
-  },
-}
-
-local external_servers = {
-  denols = {},
-
-  rust_analyzer = {
-    settings = {
-      ['rust-analyzer'] = {
-        cargo = { allFeatures = true },
-        imports = { granularity = { group = 'module' }, prefix = 'self' },
-        checkOnSave = { command = 'clippy' },
-      },
-    },
-  },
-
-  clangd = {
-    filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
-  },
-}
--- LSP Plugins
-local M = {}
-
-M.lspconfig = {
-  'neovim/nvim-lspconfig',
-  cmd = { 'LspStart', 'LspInfo', 'LspLog' },
-  ft = {
-    'typescript', 'javascript',
-    'html', 'css',
-    'vim', 'lua',
-    'sh', 'python',
-    'c', 'cpp',
-    'rust', 'java',
-  },
-
-  ---@module 'lspconfig'
-  ---@type lspconfig.Config
-  opts = {},
-}
-
-M.lazydev = {
-  -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
-  -- used for completion, annotations and signatures of Neovim apis
-  'folke/lazydev.nvim',
-  ft = 'lua',
-  events = 'VeryLazy',
-  dependencies = {
-    { 'Bilal2453/luvit-meta', lazy = true },
-  },
-  opts = {
-    library = {
-      -- Load luvit types when the `vim.uv` word is found
-      { path = 'luvit-meta/library', words = { 'vim%.uv' } },
-    },
-  },
-}
-
-M.lspconfig.dependencies = {
-  -- Automatically install LSPs and related tools to stdpath for Neovim
-  { 'williamboman/mason.nvim', config = true, cmd = { 'Mason', 'MasonLog' } }, -- NOTE: Must be loaded before dependants
-  'williamboman/mason-lspconfig.nvim',
-  -- { 'WhoIsSethDaniel/mason-tool-installer.nvim', cmd = { 'MasonToolsInstall', 'MasonToolsClean', 'MasonToolsUpdate' } },
-
-  -- NOTE: This requires configuring of on_attach handlers for the
-  -- language servers that are running. See docs.
-  --
-  -- The Minimalist Navigation Bar
-  -- {
-  --   'SmiteshP/nvim-navic',
-  --   opts = {
-  --     click = true,
-  --   },
-  --   config = function(_, opts)
-  --     require('nvim-navic').setup(opts)
-  --     vim.o.winbar = "%{%v:lua.require'nvim-navic'.get_location()%}"
-  --   end,
-  -- },
-}
-
 ---@param event vim.api.keyset.create_autocmd.callback_args
 local function on_attach(event)
   local nmap = require('nuance.core.utils').nmap
@@ -166,12 +42,12 @@ local function on_attach(event)
   nmap('gra', '<cmd>lua vim.lsp.buf.code_action()<CR>', { buffer = true, desc = '[G]et [C]ode [A]ctions' })
   nmap('grn', '<cmd>lua vim.lsp.buf.rename()<CR>', { buffer = true, desc = '[G]et [C]ode [A]ctions' })
   vmap('gra', '<cmd>lua vim.lsp.buf.code_action()<CR>', { buffer = true, desc = '[G]et [C]ode [A]ctions' })
-  nmap('K', '<cmd>lua vim.lsp.buf.hover({ border = "round" })<CR>', { buffer = true, desc = 'LSP Hover Documentation' })
+  nmap('K', '<cmd>lua vim.lsp.buf.hover()<CR>', { buffer = true, desc = 'LSP Hover Documentation' })
 
   local client = vim.lsp.get_client_by_id(event.data.client_id)
 
   ---@diagnostic disable-next-line: param-type-mismatch
-  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, { bufnr = event.buf }) then
+  if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, { bufnr = event.buf }) then
     nmap('<leader>th', function()
       vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
     end, '[T]oggle Inlay [H]ints')
@@ -180,7 +56,7 @@ local function on_attach(event)
   -- The following two autocommands are used to highlight references of the
   -- word under your cursor when your cursor rests there for a little while.
   -- When you move your cursor, the highlights will be cleared (the second autocommand).
-  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, { bufnr = event.buf }) then
+  if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
     local highlight_augroup = vim.api.nvim_create_augroup('nuance-lsp-highlight', { clear = true })
     vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
       buffer = event.buf,
@@ -193,14 +69,13 @@ local function on_attach(event)
       group = highlight_augroup,
       callback = vim.lsp.buf.clear_references,
     })
-  end
 
-  if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_codeLens, { bufnr = event.buf }) then
-    local code_lens_augroup = vim.api.nvim_create_augroup('nuance-lsp-code-lens', { clear = true })
-    vim.api.nvim_create_autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
-      buffer = event.buf,
-      group = code_lens_augroup,
-      callback = vim.lsp.codelens.refresh,
+    vim.api.nvim_create_autocmd('LspDetach', {
+      group = highlight_augroup,
+      callback = function(ev)
+        vim.lsp.buf.clear_references()
+        vim.api.nvim_clear_autocmds { group = 'nuance-lsp-highlight', buffer = ev.buf }
+      end,
     })
   end
 
@@ -208,6 +83,106 @@ local function on_attach(event)
   -- vim.opt_local.foldexpr = 'v:lua.vim.lsp.foldexpr()'
   -- vim.opt_local.foldtext = 'v:lua.vim.lsp.foldtext()'
 end
+
+local mason_servers = {
+  -- See `:help lspconfig-all` for a list of all the pre-configured LSPs
+  lua_ls = {
+    -- cmd = {...},
+    -- capabilities = {},
+    filetypes = { 'lua' },
+    settings = {
+      Lua = {
+        telemetry = { enable = false },
+        completion = {
+          callSnippet = 'Replace',
+        },
+        diagnostics = { disable = { 'missing-fields' } },
+      },
+    },
+  },
+
+  harper_ls = {
+    filetypes = { 'markdown', 'text', 'gitcommit', 'html', 'norg' },
+    settings = {
+      ['harper-ls'] = {
+        userDictPath = vim.fn.stdpath 'config' .. '/user.dict',
+      },
+    },
+  },
+
+  bashls = {},
+  html = {},
+  emmet_language_server = {},
+  vimls = {},
+
+  pyright = {
+    on_init = function(client, _)
+      client.settings.python = vim.tbl_extend('force', client.settings.python, {
+        pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
+      })
+    end,
+  },
+
+  basedpyright = {
+    on_init = function(client, _)
+      client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
+        pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
+      })
+    end,
+  },
+
+  bacon_ls = {},
+}
+
+local external_servers = {
+  denols = {},
+
+  rust_analyzer = {
+    settings = {
+      ['rust-analyzer'] = {
+        cargo = {
+          allFeatures = true,
+          loadOutDirsFromCheck = true,
+          buildScripts = {
+            enable = true,
+          },
+        },
+        imports = { granularity = { group = 'module' }, prefix = 'self' },
+        checkOnSave = {
+          -- enabled = false,
+          command = 'clippy',
+        },
+        diagnostics = {
+          -- enabled = false,
+        },
+      },
+    },
+  },
+
+  clangd = {
+    filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
+  },
+}
+
+-- LSP Plugins
+local M = {}
+
+M.lspconfig = {
+  'neovim/nvim-lspconfig',
+  cmd = { 'LspStart', 'LspInfo', 'LspLog' },
+  ft = {
+    'typescript', 'javascript',
+    'html', 'css',
+    'vim', 'lua',
+    'sh', 'python',
+    'c', 'cpp',
+    'rust', 'java',
+  },
+
+  ---@module 'lspconfig'
+  ---@type lspconfig.Config
+  opts = {},
+}
 
 M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
   opts.on_attach = on_attach
@@ -220,10 +195,6 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   vim.api.nvim_create_autocmd('LspDetach', {
     group = vim.api.nvim_create_augroup('nuance-lsp-detach', { clear = false }),
     callback = function(event)
-      vim.lsp.buf.clear_references()
-      vim.api.nvim_clear_autocmds { group = 'nuance-lsp-highlight', buffer = event.buf }
-      vim.api.nvim_clear_autocmds { group = 'nuance-lsp-code-lens', buffer = event.buf }
-
       vim.defer_fn(function()
         -- Kill the LS process if no buffers are attached to the client
         local cur_client = vim.lsp.get_client_by_id(event.data.client_id)
@@ -235,7 +206,7 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
           local msg = 'No attached buffers to client: ' .. cur_client.name .. '\n'
           msg = msg .. 'Stopping language server: ' .. cur_client.name
           vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
-          cur_client.stop(true)
+          cur_client:stop(true)
         end
       end, 200)
     end,
@@ -244,41 +215,32 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   vim.diagnostic.config {
     underline = true,
     severity_sort = true,
-    signs = true,
+    signs = vim.g.have_nerd_font and {
+      text = {
+        [vim.diagnostic.severity.ERROR] = '󰅚 ',
+        [vim.diagnostic.severity.WARN] = '󰀪 ',
+        [vim.diagnostic.severity.INFO] = '󰋽 ',
+        [vim.diagnostic.severity.HINT] = '󰌶 ',
+      },
+    } or {},
     update_in_insert = false,
     virtual_lines = { current_line = true },
 
     virtual_text = {
+      source = true,
       spacing = 2,
       ---@param diagnostic vim.Diagnostic
       format = function(diagnostic)
-        return string.format('%s - [%s] %s', diagnostic.source, diagnostic.code, diagnostic.message)
+        local diagnostic_message = {
+          [vim.diagnostic.severity.ERROR] = diagnostic.message,
+          [vim.diagnostic.severity.WARN] = diagnostic.message,
+          [vim.diagnostic.severity.INFO] = diagnostic.message,
+          [vim.diagnostic.severity.HINT] = diagnostic.message,
+        }
+        return string.format('[%s] %s', diagnostic.code, diagnostic_message[diagnostic.severity])
       end,
     },
   }
-
-  -- Change diagnostic symbols in the sign column (gutter)
-  if vim.g.have_nerd_font then
-    local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
-    local diagnostic_signs = {}
-    for type, icon in pairs(signs) do
-      diagnostic_signs[vim.diagnostic.severity[type]] = icon
-    end
-    vim.diagnostic.config {
-      signs = { text = diagnostic_signs },
-      -- virtual_text = {
-      --   prefix = function(diagnostic)
-      --     for d, icon in pairs(signs) do
-      --       if diagnostic.severity == vim.diagnostic.severity[d:upper()] then
-      --         return icon
-      --       end
-      --     end
-      --     -- default squaur block
-      --     return '■'
-      --   end,
-      -- },
-    }
-  end
 
   vim.api.nvim_set_hl(0, 'LspReferenceText', {})
 
@@ -299,29 +261,8 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
     opts.capabilities or {}
   )
 
-  require('mason').setup()
-
-  -- You can add other tools here that you want Mason to install
-  -- for you, so that they are available from within Neovim.
-  vim.list_extend(vim.tbl_keys(mason_servers or {}), {})
-
-  -- require('mason-tool-installer').setup {
-  --   ensure_installed = vim.list_extend(vim.tbl_keys(mason_servers or {}), {}),
-  --   run_on_start = true,
-  -- }
-
   -- Merge Mason installed servers list with external servers list
   local servers = vim.tbl_deep_extend('force', mason_servers, external_servers)
-
-  -- Adding Mason Installed servers to list of configured servers
-  require('mason-lspconfig').setup {
-    handlers = {
-      function(server_name)
-        servers[server_name] = servers[server_name] or {}
-      end,
-    },
-  }
-
   vim.g.configured_language_servers = servers
 
   -- Configure the LSP servers with nvim-lspconfig
@@ -348,7 +289,33 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   end
 end
 
+M.lazydev = {
+  -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
+  -- used for completion, annotations and signatures of Neovim apis
+  'folke/lazydev.nvim',
+  ft = 'lua',
+  events = 'VeryLazy',
+  dependencies = {
+    { 'Bilal2453/luvit-meta', lazy = true },
+  },
+  opts = {
+    library = {
+      -- Load luvit types when the `vim.uv` word is found
+      { path = 'luvit-meta/library', words = { 'vim%.uv' } },
+    },
+  },
+}
+
+M.mason = {
+  'williamboman/mason.nvim',
+  config = function()
+    require('mason').setup()
+  end,
+  cmd = { 'Mason', 'MasonLog' },
+} -- NOTE: Must be loaded before dependants
+
 return {
+  M.mason,
   M.lazydev,
   M.lspconfig,
 }

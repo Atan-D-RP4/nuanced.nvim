@@ -89,8 +89,15 @@ M.opts.completion = {
 
     draw = {
       treesitter = { 'lsp' },
-      columns = { { 'label', 'label_description', gap = 1 }, { 'kind_icon', 'kind', gap = 1 } },
-      components = { kind = { highlight = 'Special' } },
+      columns = { { 'kind_icon', 'label', 'label_description', gap = 1 }, { 'kind', 'source_name', gap = 1 } },
+      components = {
+        kind = { highlight = 'Special' },
+        source_name = {
+          text = function(ctx)
+            return ctx.source_name == 'LSP' and vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })[1].name or ctx.source_name
+          end,
+        },
+      },
     },
   },
 

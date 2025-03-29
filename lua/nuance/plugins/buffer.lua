@@ -11,7 +11,6 @@ local undotree = {
   -- Undotree
   'mbbill/undotree',
   cmd = 'UndotreeToggle',
-  enabled = false,
   keys = {
     { '<leader>u', '<cmd>UndotreeToggle<CR>', desc = 'Toggle undotree' },
   },
@@ -46,6 +45,6 @@ return {
     event = 'InsertEnter',
   }, -- For auto-detecting indent settings
   dropbar,
-  undotree,
   grugfar,
+  -- undotree,
 }

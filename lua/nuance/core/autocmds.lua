@@ -237,7 +237,7 @@ autocmd({ 'BufWritePre' }, {
 })
 
 if vim.g.treesitter_lint_available == true then
-  autocmd({ 'FileType', 'TextChanged', 'InsertLeave', 'DiagnosticChanged' }, {
+  autocmd({ 'FileType', 'TextChanged', 'InsertLeave' }, {
     desc = 'Treesitter-based Diagnostics',
     pattern = '*',
     group = augroup 'treesitter-diagnostics',
@@ -250,14 +250,31 @@ if vim.g.treesitter_lint_available == true then
       require('nuance.core.ts-diagnostics').diagnostics(bufnr)
     end),
   })
-end
 
-vim.api.nvim_create_user_command('TSDiagnosticsToggle', function(_)
-  vim.g.treesitter_diagnostics = not vim.g.treesitter_diagnostics
-  local bufnr = vim.api.nvim_get_current_buf()
-  vim.diagnostic.reset(require('nuance.core.ts-diagnostics').namespace, bufnr)
-  require('nuance.core.ts-diagnostics').diagnostics(bufnr)
-end, { nargs = 0 })
+  vim.api.nvim_create_user_command('TSDiagnosticsToggle', function(_)
+    -- Toggle the global flag
+    vim.g.treesitter_diagnostics = not vim.g.treesitter_diagnostics
+
+    local bufnr = vim.api.nvim_get_current_buf()
+
+    -- Reset existing diagnostics
+    vim.diagnostic.reset(require('nuance.core.ts-diagnostics').namespace, bufnr)
+
+    -- If diagnostics are now enabled, run diagnostics immediately
+    if vim.g.treesitter_diagnostics then
+      -- Force run the diagnostics function directly
+      require('nuance.core.ts-diagnostics').diagnostics(bufnr)
+    end
+
+    -- Notify the user about the current state
+    local state = vim.g.treesitter_diagnostics and 'Enabled' or 'Disabled'
+    vim.notify(
+      state .. ' Treesitter diagnostics',
+      vim.g.treesitter_diagnostics and vim.log.levels.INFO or vim.log.levels.WARN,
+      { title = 'Treesitter Diagnostics', timeout = 5000, hide_from_history = false }
+    )
+  end, { nargs = 0 })
+end
 
 -- Define highlight groups
 vim.api.nvim_command 'highlight Filepath gui=underline cterm=underline guifg=#F38BA8'

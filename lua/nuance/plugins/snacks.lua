@@ -105,7 +105,6 @@ M.opts.picker = {
   actions = {
     cd_up = function(picker, _)
       picker:set_cwd(vim.fs.dirname(picker:cwd()))
-      vim.print('New cwd: ' .. picker:cwd())
       picker:find()
     end,
 
@@ -113,7 +112,6 @@ M.opts.picker = {
       local new_cwd = picker.list:current().text:match '([^/]+)/'
       if new_cwd and vim.fn.isdirectory(picker:cwd() .. '/' .. new_cwd) == 1 then
         picker:set_cwd(picker:cwd() .. '/' .. new_cwd)
-        vim.print('New cwd: ' .. picker:cwd())
         picker:find()
       end
     end,

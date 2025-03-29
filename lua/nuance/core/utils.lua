@@ -276,7 +276,13 @@ function M.get_python_path(workspace)
     return venv_alt_path
   end
 
+  -- if workspace has pyproject.toml but not .venv
+  if vim.fn.filereadable(workspace .. '/pyproject.toml') == 1 then
+    vim.notify 'No venv exists for project, create one with "uv" or "poetry"'
+  end
+
   -- Fallback to system Python
+  vim.print 'Falling back to system Python'
   return vim.fn.exepath 'python3' or vim.fn.exepath 'python' or 'python'
 end
 

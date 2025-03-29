@@ -190,7 +190,10 @@ M.config = function()
   -- Create a default session
   create_default()
 
-  local statusline = require 'mini.statusline'
+  local success, statusline = pcall(require, 'mini.statusline')
+  if success == false then
+    return
+  end
   local default_section_filename = statusline.section_filename
   ---@diagnostic disable-next-line: duplicate-set-field
   statusline.section_filename = function(args)
