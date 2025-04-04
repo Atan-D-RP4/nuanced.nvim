@@ -1,6 +1,7 @@
 local M = {
   'folke/snacks.nvim',
   lazy = false,
+  priority = 1010,
 }
 
 M.keys = {
@@ -24,7 +25,7 @@ M.keys = {
   { '<leader>tL', "<cmd>lua Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):toggle()<CR>", desc = '[T]oggle [R]elative Numbers' },
   { '<leader>td', '<cmd>lua Snacks.toggle.diagnostics():toggle()<CR>', desc = '[T]oggle Lsp [D]iagnosticse' },
   { '<leader>tl', '<cmd>lua Snacks.toggle.line_number():toggle()<CR>', desc = '[T]oggle [L]ine Numbers' },
-  { '<leader>tt', '<cmd>lua Snacks.toggle.treesitter():toggle()<CR>', desc = '[T]oggle [T]reesitter' },
+  { '<leader>tt', '<cmd>lua Snacks.toggle.treesitter():toggle()<CR>', desc = '[T]oggle [T]reesitter Highlight' },
   { '<leader>ti', '<cmd>lua Snacks.toggle.indent():toggle()<CR>', desc = '[T]oggle [I]ndent' },
   { '<leader>tf', '<cmd>lua Snacks.toggle.dim():toggle()<CR>', desc = '[T]oggle [F]ocus' },
   { '<leader>tn', '<cmd>lua Snacks.picker.notifications()<CR>', desc = 'Notification History' },
@@ -68,6 +69,8 @@ M.opts = {
   input = { enabled = true },
   rename = { enabled = true },
   image = { enabled = true },
+  explorer = { enabled = true },
+  picker = { enabled = true },
   notifier = { enabled = true, timeout = 1500 },
   styles = { notification = { wo = { wrap = true } } }, -- Wrap notifications
   scroll = { enabled = false },
@@ -149,7 +152,7 @@ M.opts.picker = {
       auto_close = true,
       jump = { close = true },
       layout = {
-        layout = { height = 0.2, position = 'top' },
+        layout = { height = 0.2, position = 'left' },
       },
     },
 

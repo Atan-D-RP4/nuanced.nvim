@@ -20,7 +20,6 @@ function M.is_key_mapped(modes, lhs)
   return false
 end
 
---
 ---@param modes string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
 function M.unmap(modes, lhs)
@@ -31,8 +30,9 @@ function M.unmap(modes, lhs)
 
   -- Delete existing mappings for all specified modes
   for _, mode in ipairs(modes) do
-    if M.is_key_mapped(mode, lhs) then
-      vim.keymap.del(mode, lhs)
+    local key_is_mapped = M.is_key_mapped(mode, lhs)
+    if key_is_mapped then
+      pcall(vim.keymap.del, mode, lhs, { buffer = vim.api.nvim_get_current_buf() })
     end
   end
 end
@@ -52,7 +52,10 @@ function M.map(modes, lhs, rhs, opts)
     end
     options = vim.tbl_extend('force', options, opts)
   end
-  vim.keymap.set(modes, lhs, rhs, options)
+  local suc, res = pcall(vim.keymap.set, modes, lhs, rhs, options)
+  if not suc then
+    vim.notify('Error setting keymap: ' .. res, vim.log.levels.ERROR)
+  end
 end
 
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.

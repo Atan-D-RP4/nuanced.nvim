@@ -34,8 +34,6 @@ end
 -- Separate vim plugins from neovim in case vim still in use
 opt.runtimepath:remove '/usr/share/vim/vimfiles'
 
-opt.foldenable = false
-
 -- Make line numbers default
 opt.number = true
 opt.relativenumber = true
@@ -182,6 +180,36 @@ vim.env.PATH = table.concat({ vim.fn.stdpath 'data', 'mason', 'bin' }, sep) .. d
 
 vim.g.treesitter_diagnostics = true
 vim.g.treesitter_lint_available = vim.fn.has 'nvim-0.11' == 1
+
+vim.diagnostic.config {
+  underline = true,
+  severity_sort = true,
+  signs = vim.g.have_nerd_font and {
+    text = {
+      [vim.diagnostic.severity.ERROR] = '󰅚 ',
+      [vim.diagnostic.severity.WARN] = '󰀪 ',
+      [vim.diagnostic.severity.INFO] = '󰋽 ',
+      [vim.diagnostic.severity.HINT] = '󰌶 ',
+    },
+  } or {},
+  update_in_insert = false,
+  virtual_lines = { current_line = true },
+
+  virtual_text = {
+    source = true,
+    spacing = 2,
+    ---@param diagnostic vim.Diagnostic
+    format = function(diagnostic)
+      local diagnostic_message = {
+        [vim.diagnostic.severity.ERROR] = diagnostic.message,
+        [vim.diagnostic.severity.WARN] = diagnostic.message,
+        [vim.diagnostic.severity.INFO] = diagnostic.message,
+        [vim.diagnostic.severity.HINT] = diagnostic.message,
+      }
+      return string.format('[%s] %s', diagnostic.code, diagnostic_message[diagnostic.severity])
+    end,
+  },
+}
 
 -- vim.g.netrw_banner = 0
 -- vim.g.netrw_fastbrowse = 1

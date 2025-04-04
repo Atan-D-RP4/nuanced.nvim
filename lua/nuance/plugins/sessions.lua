@@ -97,6 +97,9 @@ local session_pick = function()
           })
         end
       end
+      table.sort(items, function(a, b)
+        return a.modify_time > b.modify_time
+      end)
       return items
     end,
     preview = 'preview',

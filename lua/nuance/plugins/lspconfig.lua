@@ -1,7 +1,6 @@
 ---@param event vim.api.keyset.create_autocmd.callback_args
 local function on_attach(event)
   local nmap = require('nuance.core.utils').nmap
-  local vmap = require('nuance.core.utils').vmap
 
   vim.lsp.set_log_level(vim.log.levels.OFF)
   vim.lsp.log.set_format_func(function(a, b)
@@ -29,6 +28,7 @@ local function on_attach(event)
     nmap('gus', cmd:format 'lsp_document_symbols()', { buffer = true, desc = 'Lsp [D]ocument [S]ymbols' })
   else
     cmd = '<cmd>lua Snacks.picker.%s<CR>'
+    nmap('gws', cmd:format 'lsp_workspace_symbols()', { buffer = true, desc = 'Lsp [W]orkspace [S]ymbols' })
     nmap('gd', cmd:format 'lsp_type_definitions()', { buffer = true, desc = 'Lsp [T]ype [D]efinition' })
     nmap('gus', cmd:format 'lsp_symbols()', { buffer = true, desc = 'Lsp [D]ocument [S]ymbols' })
   end
@@ -36,13 +36,6 @@ local function on_attach(event)
   nmap('gd', cmd:format 'lsp_definitions()', { buffer = true, desc = 'Lsp [G]oto [D]efinition' })
   nmap('grr', cmd:format 'lsp_references()', { buffer = true, desc = 'Lsp [G]oto [R]eferences' }) -- override `grr` mapping
   nmap('gri', cmd:format 'lsp_implementations()', { buffer = true, desc = 'Lsp [G]oto [I]mplementation' }) -- override `gri` mapping
-
-  nmap('gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', { buffer = true, desc = '[G]oto [D]eclaration' })
-  nmap('gs', '<cmd>lua vim.lsp.buf.signature_help()<CR>', { buffer = true, desc = '[G]et [S]ignature Help' })
-  nmap('gra', '<cmd>lua vim.lsp.buf.code_action()<CR>', { buffer = true, desc = '[G]et [C]ode [A]ctions' })
-  nmap('grn', '<cmd>lua vim.lsp.buf.rename()<CR>', { buffer = true, desc = '[G]et [C]ode [A]ctions' })
-  vmap('gra', '<cmd>lua vim.lsp.buf.code_action()<CR>', { buffer = true, desc = '[G]et [C]ode [A]ctions' })
-  nmap('K', '<cmd>lua vim.lsp.buf.hover()<CR>', { buffer = true, desc = 'LSP Hover Documentation' })
 
   local client = vim.lsp.get_client_by_id(event.data.client_id)
 
@@ -115,23 +108,118 @@ local mason_servers = {
   emmet_language_server = {},
   vimls = {},
 
-  pyright = {
-    on_init = function(client, _)
-      client.settings.python = vim.tbl_extend('force', client.settings.python, {
-        pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
-      })
-    end,
-  },
+  ruff = {
+    settings = {
+      lint = {
+        codeAction = { fixViolation = { enable = true } },
+        disableRuleComment = { enable = true },
+        select = { 'E', 'F', 'W' },
+        ignore = { 'F401' },
+        enable = true,
+      },
 
-  basedpyright = {
+      format = { enable = true },
+      logLevel = 'debug',
+
+      -- Add organizeImports for better import handling
+      organizeImports = { enable = true },
+    },
+
     on_init = function(client, _)
+      client.server_capabilities.hoverProvider = false
       client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
         pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
       })
     end,
   },
 
-  bacon_ls = {},
+  jedi_language_server = {
+    before_init = function(_, config)
+      local python_path = require('nuance.core.utils').get_python_path(config.root_dir)
+      if python_path then
+        config.init_options.workspace.environmentPath = python_path
+      end
+    end,
+
+    init_options = {
+      codeAction = {
+        nameExtractVariable = 'jls_extract_var',
+        nameExtractFunction = 'jls_extract_def',
+      },
+
+      completion = {
+        disableSnippets = false,
+        resolveEagerly = false,
+        ignorePatterns = {},
+      },
+
+      diagnostics = {
+        enable = true,
+        didOpen = true,
+        didSave = true,
+      },
+
+      hover = {
+        enable = true,
+        disable = {
+          class = { all = false, names = {}, fullNames = {} },
+          ['function'] = { all = false, names = {}, fullNames = {} },
+          instance = { all = false, names = {}, fullNames = {} },
+          keyword = { all = false, names = {}, fullNames = {} },
+          module = { all = false, names = {}, fullNames = {} },
+          param = { all = false, names = {}, fullNames = {} },
+          path = { all = false, names = {}, fullNames = {} },
+          property = { all = false, names = {}, fullNames = {} },
+          statement = { all = false, names = {}, fullNames = {} },
+        },
+      },
+
+      jediSettings = {
+        autoImportModules = {},
+        caseInsensitiveCompletion = true,
+        debug = false,
+      },
+
+      markupKindPreferred = 'markdown',
+
+      workspace = {
+        extraPaths = {},
+        symbols = {
+          ignoreFolders = { '.nox', '.tox', '.venv', '__pycache__', 'venv' },
+          maxSymbols = 20,
+        },
+      },
+    },
+  },
+
+  basedpyright = {
+    enabled = false,
+
+    on_init = function(client, _)
+      client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
+        pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
+      })
+    end,
+
+    settings = {
+      basedpyright = {
+        analysis = {
+          typeCheckingMode = 'strict',
+          deprecateTypingAliases = true,
+          diagnosticSeverityOverrides = {
+            reportDeprecated = 'warning',
+          },
+
+          inlayHints = {
+            variableTypes = true,
+            functionReturnTypes = true,
+            callArgumentNames = true,
+            pytestParameters = true,
+          },
+        },
+      },
+    },
+  },
 }
 
 local external_servers = {
@@ -212,36 +300,6 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
     end,
   })
 
-  vim.diagnostic.config {
-    underline = true,
-    severity_sort = true,
-    signs = vim.g.have_nerd_font and {
-      text = {
-        [vim.diagnostic.severity.ERROR] = '󰅚 ',
-        [vim.diagnostic.severity.WARN] = '󰀪 ',
-        [vim.diagnostic.severity.INFO] = '󰋽 ',
-        [vim.diagnostic.severity.HINT] = '󰌶 ',
-      },
-    } or {},
-    update_in_insert = false,
-    virtual_lines = { current_line = true },
-
-    virtual_text = {
-      source = true,
-      spacing = 2,
-      ---@param diagnostic vim.Diagnostic
-      format = function(diagnostic)
-        local diagnostic_message = {
-          [vim.diagnostic.severity.ERROR] = diagnostic.message,
-          [vim.diagnostic.severity.WARN] = diagnostic.message,
-          [vim.diagnostic.severity.INFO] = diagnostic.message,
-          [vim.diagnostic.severity.HINT] = diagnostic.message,
-        }
-        return string.format('[%s] %s', diagnostic.code, diagnostic_message[diagnostic.severity])
-      end,
-    },
-  }
-
   vim.api.nvim_set_hl(0, 'LspReferenceText', {})
 
   -- NOTE: Extend nvim LSP client capabilities for completion
@@ -273,6 +331,7 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
       --     require('nvim-navic').attach(client, bufnr)
       --   end
       -- end,
+      enabled = config.enabled ~= false,
       autostart = config.autostart or true,
       on_init = function(client, initialize_result)
         vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
@@ -280,11 +339,17 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
           config.on_init(client, initialize_result)
         end
       end,
+      before_init = false or function(params, client_config)
+        if config.before_init then
+          config.before_init(params, client_config)
+        end
+      end,
       cmd = config.cmd,
       capabilities = vim.tbl_extend('force', {}, capabilities, config.capabilities or {}),
       filetypes = config.filetypes,
       settings = config.settings,
       root_dir = config.root_dir,
+      init_options = config.init_options or {},
     }
   end
 end

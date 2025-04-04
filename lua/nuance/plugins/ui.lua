@@ -296,7 +296,8 @@ local noice = {
     cmdline = {
       ---@type table<string, CmdlineFormat>
       format = {
-        selections = { pattern = "'<,'>", title = ' Selections ' },
+        selections = { pattern = ":'<,'>", title = ' Selections ' },
+        filter = { pattern = { '^:%s*!', '^:.!' }, icon = '$', lang = 'bash' },
       },
     },
     presets = {
@@ -389,7 +390,7 @@ local markview = {
 }
 
 local M = {
-  themes.catpuccin,
+  themes.tokyonight,
   statusline,
   tabline,
   icons,

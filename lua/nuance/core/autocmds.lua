@@ -175,7 +175,9 @@ autocmd('BufEnter', {
   callback = function(event)
     local bufnr = event.buf
     local ft = vim.bo[bufnr].filetype
+
     local q_fts = {
+      '',
       'PlenaryTestPopup',
       'checkhealth',
       'dbout',
@@ -208,14 +210,17 @@ autocmd('BufEnter', {
       if is_qft then
         vim.bo[bufnr].buflisted = false
       end
+
       vim.keymap.set('n', 'q', function()
         pcall(vim.api.nvim_exec2, 'close', {})
-        local err, snacks = pcall(require, 'snacks')
-        if err == false then
+
+        local has_snacks, snacks = pcall(require, 'snacks')
+        if has_snacks == false then
           vim.print 'Fallback to default forced buffer deletion'
           pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
+        else
+          snacks.bufdelete.delete(bufnr)
         end
-        snacks.bufdelete.delete(bufnr)
       end, {
         buffer = bufnr,
         silent = true,
@@ -243,7 +248,10 @@ if vim.g.treesitter_lint_available == true then
     group = augroup 'treesitter-diagnostics',
     callback = vim.schedule_wrap(function()
       local bufnr = vim.api.nvim_get_current_buf()
-      if vim.g.treesitter_diagnostics == false then
+      local excluded_filetypes = { 'rust', 'markdown', 'text' } -- Add filetypes to exclude here
+      local ft = vim.bo[bufnr].filetype
+
+      if vim.g.treesitter_diagnostics == false or vim.tbl_contains(excluded_filetypes, ft) then
         vim.diagnostic.reset(require('nuance.core.ts-diagnostics').namespace, bufnr)
         return
       end
@@ -275,6 +283,77 @@ if vim.g.treesitter_lint_available == true then
     )
   end, { nargs = 0 })
 end
+
+if vim.diagnostic.config().virtual_lines then
+  local og_virt_text
+  local og_virt_line
+  autocmd({ 'CursorMoved', 'DiagnosticChanged' }, {
+    group = augroup('diagnostic_only_virtlines', {}),
+    callback = function()
+      if og_virt_line == nil then
+        og_virt_line = vim.diagnostic.config().virtual_lines
+      end
+
+      -- ignore if virtual_lines.current_line is disabled
+      if not (og_virt_line and og_virt_line.current_line) then
+        if og_virt_text then
+          vim.diagnostic.config { virtual_text = og_virt_text }
+          og_virt_text = nil
+        end
+        return
+      end
+
+      if og_virt_text == nil then
+        og_virt_text = vim.diagnostic.config().virtual_text
+      end
+
+      local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
+
+      if #vim.diagnostic.get(0, { lnum = lnum }) < 2 then
+        vim.diagnostic.config { virtual_text = og_virt_text }
+        vim.diagnostic.config { virtual_lines = false }
+      else
+        vim.diagnostic.config { virtual_text = false }
+        vim.diagnostic.config { virtual_lines = og_virt_line }
+      end
+    end,
+  })
+else
+  autocmd('CursorHold', {
+    group = augroup 'diagnostic-float',
+    pattern = '*',
+    callback = function()
+      local bufnr = vim.api.nvim_get_current_buf()
+      local line = vim.api.nvim_win_get_cursor(0)[1] - 1
+      local diagnostics = vim.diagnostic.get(bufnr, { lnum = line })
+
+      if #diagnostics > 0 then
+        local opts = {
+          focusable = false,
+          close_events = { 'CursorMoved', 'InsertEnter', 'FocusLost' },
+          border = 'rounded',
+          source = 'always',
+          prefix = ' ',
+        }
+        vim.diagnostic.open_float({ border = 'rounded', source = 'if_many' }, opts)
+      end
+    end,
+  })
+end
+
+vim.api.nvim_create_user_command('TSFoldToggle', function(_)
+  Snacks.toggle.option('foldenable', { mode = 'search' }):toggle()
+  if vim.o.foldenable then
+    vim.o.foldlevel = 99
+    vim.o.foldmethod = 'expr'
+    vim.o.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+    vim.o.foldtext = ''
+    vim.opt.fillchars:append { fold = ' ' }
+  else
+    vim.o.foldlevel = 0
+    vim.o.foldmethod = 'manual'
+  end
+end, { nargs = 0 })
 
 -- Define highlight groups
 vim.api.nvim_command 'highlight Filepath gui=underline cterm=underline guifg=#F38BA8'
