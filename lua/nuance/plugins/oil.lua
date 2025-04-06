@@ -2,7 +2,6 @@ local M = {
   'stevearc/oil.nvim',
   version = '*',
   cmd = 'Oil',
-  dependencies = { 'folke/snacks.nvim' },
 
   keys = { { '<leader>o', '<cmd>lua require("oil").open()<CR>', mode = 'n', desc = 'Open Oil Window' } },
 
@@ -10,16 +9,6 @@ local M = {
     ---@diagnostic disable-next-line: param-type-mismatch
     if vim.fn.argc() == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1 then
       require('lazy').load { plugins = { 'oil.nvim' } }
-      vim.cmd 'bdelete' -- Close the initial buffer
-      vim.cmd('Oil ' .. vim.fn.argv(0))
-      vim.api.nvim_create_autocmd('User', {
-        pattern = 'OilActionsPost',
-        callback = function(event)
-          if event.data.actions.type == 'move' then
-            require('snacks').rename.on_rename_file(event.data.actions.src_url, event.data.actions.dest_url)
-          end
-        end,
-      })
     end
   end,
 }

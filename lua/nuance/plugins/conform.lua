@@ -4,6 +4,11 @@ local M = {
 
   event = { 'BufWritePre' },
   cmd = { 'ConformInfo' },
+  init = function()
+    vim.api.nvim_create_user_command('ConformFormat', function(opts)
+      require('conform').format { async = false, lsp_format = opts.fargs[1] }
+    end, { nargs = 0, desc = 'Format buffer' })
+  end,
 }
 
 M.keys = {
@@ -13,7 +18,7 @@ M.keys = {
       require('conform').format { async = false, lsp_format = 'fallback' }
     end,
     mode = '',
-    desc = '[F]ormat buffer',
+    desc = '[C]onform [F]ormat buffer',
   },
 }
 

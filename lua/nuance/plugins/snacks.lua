@@ -5,21 +5,18 @@ local M = {
 }
 
 M.keys = {
-  { '<leader>z', '<cmd>lua Snacks.zen()<CR>', desc = 'Toggle Zen Mode' },
-  { '<leader>Z', '<cmd>lua Snacks.zen.zoom()<CR>', desc = 'Toggle Zoom' },
   { '<leader>.', '<cmd>lua Snacks.scratch()<CR>', desc = 'Toggle Scratch Buffer' },
   { '<leader>S', '<cmd>lua Snacks.scratch.select()<CR>', desc = 'Select Scratch Buffer' },
   { '<leader>dn', '<cmd>lua Snacks.notifier.hide()<CR>', desc = 'Dismiss All Notifications' },
   { '<leader>cR', '<cmd>lua Snacks.rename.rename_file()<CR>', desc = 'Rename File' },
   { '<leader>gB', '<cmd>lua Snacks.gitbrowse()<CR>', desc = 'Git Browse', mode = { 'n', 'v' } },
 
-  { '<leader>ed', '<cmd>lua Snacks.bufdelete()<CR>', desc = 'Delete Buffer' },
-  { '<leader>eD', '<cmd>lua Snacks.bufdelete.all()<CR>', desc = 'Delete Buffer' },
-
   { '<C-w>t', '<cmd>lua Snacks.terminal()<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
   { '<C-w><C-t>', '<cmd>lua Snacks.terminal()<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
 
   -- Create some toggle mappings
+  { '<leader>tz', '<cmd>lua Snacks.zen()<CR>', desc = 'Toggle Zen Mode' },
+  { '<leader>tZ', '<cmd>lua Snacks.zen.zoom()<CR>', desc = 'Toggle Zoom' },
   { '<leader>ts', "<cmd>lua Snacks.toggle.option('spell', { name = 'Spelling' }):toggle()<CR>", desc = '[T]oggle [S]pell' },
   { '<leader>tw', "<cmd>lua Snacks.toggle.option('wrap', { name = 'Wrap' }):toggle()<CR>", desc = 'Toggle [W]rap' },
   { '<leader>tL', "<cmd>lua Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):toggle()<CR>", desc = '[T]oggle [R]elative Numbers' },
@@ -31,7 +28,7 @@ M.keys = {
   { '<leader>tn', '<cmd>lua Snacks.picker.notifications()<CR>', desc = 'Notification History' },
 
   -- Picker maps
-  { '<leader>u', '<cmd>lua Snacks.picker.undo()<CR>', desc = 'Toggle Snacks undotree' },
+  { '<leader>u', '<cmd>lua Snacks.picker.undo()<CR>', desc = 'Snacks undotree' },
   { '<leader>ef', '<cmd>lua Snacks.picker.buffers({sort_lastused=true})<CR>', desc = '[E]xisting Buffers [F]zf', mode = 'n' },
   { '<leader>eo', '<cmd>lua Snacks.picker.explorer()<CR>', desc = '[E]xplorer [O]pen', mode = 'n' },
 
@@ -197,6 +194,15 @@ M.init = function()
         Snacks.debug.backtrace()
       end
       vim.print = _G.dd -- Override print to use snacks for `:=` command
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('User', {
+    pattern = 'OilActionsPost',
+    callback = function(event)
+      if event.data.actions.type == 'move' then
+        require('snacks').rename.on_rename_file(event.data.actions.src_url, event.data.actions.dest_url)
+      end
     end,
   })
 end

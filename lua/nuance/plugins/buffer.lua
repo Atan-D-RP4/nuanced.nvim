@@ -35,7 +35,7 @@ local grugfar = {
     },
   },
   keys = {
-    { 'g/', '<cmd>lua require("grug-far").open()<CR>', desc = 'local lti-[file|line] search', mode = { 'n', 'x' } },
+    { 'g/', '<cmd>lua require("grug-far").open()<CR>', desc = 'Grug Far Search/Replace', mode = { 'n', 'x' } },
   },
 }
 

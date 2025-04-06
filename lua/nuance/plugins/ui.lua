@@ -368,13 +368,12 @@ local which_key = { -- Useful plugin to show you pending keybinds.
 
     -- Document existing key chains
     spec = {
-      { '<leader>d', group = '[D]ocument' },
       { '<leader>f', group = '[F]uzzy Find' },
       { '<leader>t', group = '[T]oggle' },
       { '<leader>s', group = '[S]urround', mode = 'n' },
       { '<leader>g', group = '[G]it', mode = 'n' },
       { '<leader>x', group = '[x] Trouble' },
-      { '<leader>a', group = '[a] Session', mode = 'n' },
+      { '<leader>a', group = '[a] Session/Avante', mode = 'n' },
       { '<leader>e', group = '[e] Buffer-Switching', mode = 'n' },
     },
   },

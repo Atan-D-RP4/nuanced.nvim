@@ -117,6 +117,42 @@ local maps = {
   -- { 'n', '<leader>ed', ':bdelete! %<CR>', { desc = 'Delete Buffer' } },
   { 'n', '<leader>en', '<cmd>enew<CR>', 'New Buffer' },
   { 'n', '<leader>eu', ':update! <CR>', 'Refresh Buffer' },
+
+  {
+    'n',
+    '<leader>ed',
+    function()
+      local has_snacks, snacks = pcall(require, 'snacks')
+      if has_snacks then
+        snacks.bufdelete()
+      else
+        local bufnr = vim.api.nvim_get_current_buf()
+        if vim.api.nvim_buf_is_valid(bufnr) then
+          vim.api.nvim_buf_delete(bufnr, { force = true })
+        end
+      end
+    end,
+    'Delete Buffer',
+  },
+
+  {
+    'n',
+    '<leader>eD',
+    function()
+      local has_snacks, snacks = pcall(require, 'snacks')
+      if has_snacks then
+        snacks.bufdelete.all()
+      else
+        for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+          if vim.api.nvim_buf_is_valid(bufnr) then
+            vim.api.nvim_buf_delete(bufnr, { force = true })
+          end
+        end
+      end
+    end,
+    'Delete All Buffers',
+  },
+
   { 'n', '<Tab>', ':bnext<CR>', 'Next Buffer' },
   { 'n', '<S-Tab>', ':bprevious<CR>', 'Previous Buffer' },
 

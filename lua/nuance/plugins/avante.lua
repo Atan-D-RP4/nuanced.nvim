@@ -4,6 +4,7 @@ M.avante = {
   'yetone/avante.nvim',
   event = 'VeryLazy',
   version = false, -- Never set this value to "*"! Never!
+  ---@type avante.Config
   opts = {
     -- add any opts here
     -- for example
@@ -50,6 +51,10 @@ M.copilot = {
         auto_trigger = true,
       },
       copilot_node_command = 'node', -- Node.js version must be > 18.x
+      workspace_folders = {
+        vim.fn.expand '~' .. '/Develop/repos/',
+        vim.fn.expand '~' .. '/Notes/',
+      },
     }
   end,
 }

@@ -104,13 +104,9 @@ opt.list = true
 opt.listchars = { tab = '» ', trail = '·', nbsp = '␣', extends = '›', precedes = '‹' }
 opt.fillchars = {
   vert = '│',
-  fold = '·',
   eob = ' ',
   diff = '─',
   msgsep = '‾',
-  foldopen = '▾',
-  foldsep = '│',
-  foldclose = '▸',
 }
 
 -- go to previous/next line with h,l,left arrow and right arrow
@@ -172,14 +168,15 @@ opt.directory = vim.fn.stdpath 'cache' .. '/swap/'
 opt.backup = true
 opt.backupdir = vim.fn.stdpath 'cache' .. '/backup/'
 
--- add binaries installed by mason.nvim to path
-local is_windows = vim.fn.has 'win32' ~= 0
-local sep = is_windows and '\\' or '/'
-local delim = is_windows and ';' or ':'
-vim.env.PATH = table.concat({ vim.fn.stdpath 'data', 'mason', 'bin' }, sep) .. delim .. vim.env.PATH
-
 vim.g.treesitter_diagnostics = true
 vim.g.treesitter_lint_available = vim.fn.has 'nvim-0.11' == 1
+vim.g.treesitter_folding_enabled = true
+
+opt.foldmethod = 'expr'
+opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+opt.foldtext = ''
+opt.foldlevel = vim.g.treesitter_folding_enabled and 99 or 0
+opt.fillchars:append { fold = ' ', foldopen = '▾', foldclose = '▸', foldsep = '│' }
 
 vim.diagnostic.config {
   underline = true,
@@ -210,6 +207,12 @@ vim.diagnostic.config {
     end,
   },
 }
+
+-- add binaries installed by mason.nvim to path
+local is_windows = vim.fn.has 'win32' ~= 0
+local sep = is_windows and '\\' or '/'
+local delim = is_windows and ';' or ':'
+vim.env.PATH = table.concat({ vim.fn.stdpath 'data', 'mason', 'bin' }, sep) .. delim .. vim.env.PATH
 
 -- vim.g.netrw_banner = 0
 -- vim.g.netrw_fastbrowse = 1

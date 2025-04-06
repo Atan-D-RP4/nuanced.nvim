@@ -19,7 +19,13 @@ local autocmd = vim.api.nvim_create_autocmd
 autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = augroup 'highlight-yank',
-  callback = (vim.hl or vim.highlight).on_yank,
+  callback = function()
+    (vim.highlight or vim.hl).on_yank { timeout = 200, on_visual = true }
+    if vim.g.cur_yank_pre then
+      vim.api.nvim_win_set_cursor(0, vim.g.cur_yank_pre)
+      vim.g.cur_yank_pre = nil
+    end
+  end,
 })
 
 -- Automatically restore the previous cursor position when entering a new buffer.
@@ -34,39 +40,8 @@ autocmd('BufWinEnter', {
   end,
 })
 
--- NOTE: DO NOT NEED THIS WITH snacks.nvim in use
--- autocmd({ 'CursorMoved', 'InsertEnter' }, {
---   group = augroup 'toggle-hl-search' ,
---   callback = function(ev)
---     if ev.event == 'InsertEnter' then
---       vim.schedule(function()
---         vim.cmd 'nohlsearch'
---       end)
---     end
---     -- No bloat lua adpatation of: https://github.com/romainl/vim-cool
---     local view, rpos = vim.fn.winsaveview(), vim.fn.getpos '.'
---     -- Move the cursor to a position where (whereas in active search) pressing `n`
---     -- brings us to the original cursor position, in a forward search / that means
---     -- one column before the match, in a backward search ? we move one col forward
---     vim.cmd(string.format('silent! keepjumps go%s', (vim.fn.line2byte(view.lnum) + view.col + 1 - (vim.v.searchforward == 1 and 2 or 0))))
---     -- Attempt to goto next match, if we're in an active search cursor position
---     -- should be equal to original cursor position
---     local ok, _ = pcall(vim.cmd, 'silent! keepjumps norm! n')
---     local insearch = ok and (function()
---       local npos = vim.fn.getpos '.'
---       return npos[2] == rpos[2] and npos[3] == rpos[3]
---     end)()
---     -- restore original view and position
---     vim.fn.winrestview(view)
---     if not insearch then
---       vim.schedule(function()
---         vim.cmd 'nohlsearch'
---       end)
---     end
---   end,
--- })
-
 autocmd({ 'RecordingEnter', 'RecordingLeave' }, {
+  desc = 'Notify when recording a macro',
   callback = function(ev)
     local msg
     if ev.event == 'RecordingEnter' then
@@ -89,6 +64,7 @@ autocmd('VimResized', {
 
 -- Check if we need to reload the file when it changed
 vim.api.nvim_create_autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
+  desc = 'Check if we need to reload the file when it changed',
   group = augroup 'checktime',
   callback = function()
     if vim.o.buftype ~= 'nofile' then
@@ -129,33 +105,18 @@ autocmd({ 'TermClose', 'TermOpen' }, {
 })
 
 -- don't auto comment new line
-autocmd('BufEnter', { command = [[set formatoptions-=cro]] })
-
--- NOTE: (This works but needs to be improved for Cmdwin)
--- Toggle relative number on the basis of mode
--- local number_toggle_group = autocmd('NumberToggle', { clear = true })
--- autocmd({ 'BufEnter', 'FocusGained', 'InsertLeave' }, {
---   pattern = '*',
---   callback = function()
---     vim.wo.relativenumber = true
---     vim.wo.number = true
---   end,
---   group = number_toggle_group,
--- })
--- autocmd({ 'BufLeave', 'FocusLost', 'InsertEnter' }, {
---   pattern = '*',
---   callback = function()
---     vim.wo.relativenumber = false
---     vim.wo.number = false
---   end,
---   group = number_toggle_group,
--- })
+autocmd('BufEnter', {
+  desc = 'Disable auto comment on new line',
+  group = augroup 'disable-auto-comment',
+  pattern = '*',
+  command = [[set formatoptions-=cro]],
+})
 
 -- NOTE: Originally tried to put this in FileType event autocmd but it is apparently
 -- too early for `set modifiable` to take effect
 autocmd('BufWinEnter', {
+  desc = 'Allow editing of quickfix window',
   group = augroup 'edit-quickfix',
-  desc = 'allow updating quickfix window',
   pattern = 'quickfix',
   callback = function()
     vim.bo.modifiable = true
@@ -171,6 +132,7 @@ autocmd('BufWinEnter', {
 })
 
 autocmd('BufEnter', {
+  desc = 'Close miscellaneous buffers with q',
   group = augroup 'close-with-q',
   callback = function(event)
     local bufnr = event.buf
@@ -231,6 +193,7 @@ autocmd('BufEnter', {
 })
 
 autocmd({ 'BufWritePre' }, {
+  desc = 'Auto-create directory for file',
   group = augroup 'auto-create-dir',
   callback = function(event)
     if event.match:match '^%w%w+:[\\/][\\/]' then
@@ -281,13 +244,14 @@ if vim.g.treesitter_lint_available == true then
       vim.g.treesitter_diagnostics and vim.log.levels.INFO or vim.log.levels.WARN,
       { title = 'Treesitter Diagnostics', timeout = 5000, hide_from_history = false }
     )
-  end, { nargs = 0 })
+  end, { nargs = 0, desc = 'Toggle Treesitter diagnostics' })
 end
 
 if vim.diagnostic.config().virtual_lines then
   local og_virt_text
   local og_virt_line
   autocmd({ 'CursorMoved', 'DiagnosticChanged' }, {
+    desc = 'Toggle virtual lines based on diagnostics count',
     group = augroup('diagnostic_only_virtlines', {}),
     callback = function()
       if og_virt_line == nil then
@@ -320,6 +284,7 @@ if vim.diagnostic.config().virtual_lines then
   })
 else
   autocmd('CursorHold', {
+    desc = 'Toggle Diagnostic Float based on diagnostic count',
     group = augroup 'diagnostic-float',
     pattern = '*',
     callback = function()
@@ -341,25 +306,114 @@ else
   })
 end
 
+autocmd({ 'BufEnter' }, {
+  desc = 'Treesitter Folding',
+  group = augroup 'treesitter-folding',
+  pattern = '*',
+  callback = function(e)
+    vim.defer_fn(function()
+      if vim.g.treesitter_folding_enabled then
+        vim.opt.foldenable = true
+        vim.opt.foldlevel = 99
+        vim.opt.foldmethod = 'expr'
+      else
+        vim.opt.foldenable = false
+        vim.opt.foldlevel = 0
+        vim.opt.foldmethod = 'manual'
+      end
+    end, 100)
+  end,
+})
+
+autocmd('FileType', {
+  desc = 'Disable Treesitter folding for certain filetypes',
+  group = augroup 'disable-treesitter-folding',
+  pattern = { 'markdown', 'text', 'gitcommit', 'gitrebase', 'help' }, -- Add filetypes to exclude here
+  callback = function()
+    vim.g.treesitter_folding_enabled = false
+    vim.opt.foldenable = false
+    vim.opt.foldlevel = 0
+    vim.opt.foldmethod = 'manual'
+  end,
+})
+
 vim.api.nvim_create_user_command('TSFoldToggle', function(_)
-  Snacks.toggle.option('foldenable', { mode = 'search' }):toggle()
-  if vim.o.foldenable then
-    vim.o.foldlevel = 99
-    vim.o.foldmethod = 'expr'
-    vim.o.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-    vim.o.foldtext = ''
-    vim.opt.fillchars:append { fold = ' ' }
+  vim.g.treesitter_folding_enabled = not vim.g.treesitter_folding_enabled
+  local state = vim.g.treesitter_folding_enabled and 'Enabled' or 'Disabled'
+  vim.notify(
+    state .. ' Treesitter folding',
+    state == 'Enabled' and vim.log.levels.INFO or vim.log.levels.WARN,
+    { title = 'Treesitter Folding', timeout = 5000, hide_from_history = false }
+  )
+  if vim.g.treesitter_folding_enabled then
+    vim.opt.foldenable = true
+    vim.opt.foldlevel = 99
+    vim.opt.foldmethod = 'expr'
   else
-    vim.o.foldlevel = 0
-    vim.o.foldmethod = 'manual'
+    vim.opt.foldenable = false
+    vim.opt.foldlevel = 0
+    vim.opt.foldmethod = 'manual'
+    vim.cmd 'normal! zE' -- Recalculate folds
   end
-end, { nargs = 0 })
+end, { nargs = 0, desc = 'Toggle Treesitter folding' })
 
 -- Define highlight groups
 vim.api.nvim_command 'highlight Filepath gui=underline cterm=underline guifg=#F38BA8'
 
 -- Match filepaths (fixed regex)
 vim.cmd 'match Filepath /\\v(\\~\\/|\\.\\.\\/|\\.\\/|\\/)([^\\/ ]+\\/)*[^\\/ ]+(\\.[a-zA-Z0-9]+)*(:\\d+){0,2}/'
+
+-- NOTE: (This works but needs to be improved for Cmdwin)
+-- Toggle relative number on the basis of mode
+-- local number_toggle_group = autocmd('NumberToggle', { clear = true })
+-- autocmd({ 'BufEnter', 'FocusGained', 'InsertLeave' }, {
+--   pattern = '*',
+--   callback = function()
+--     vim.wo.relativenumber = true
+--     vim.wo.number = true
+--   end,
+--   group = number_toggle_group,
+-- })
+-- autocmd({ 'BufLeave', 'FocusLost', 'InsertEnter' }, {
+--   pattern = '*',
+--   callback = function()
+--     vim.wo.relativenumber = false
+--     vim.wo.number = false
+--   end,
+--   group = number_toggle_group,
+-- })
+
+-- NOTE: DO NOT NEED THIS WITH snacks.nvim in use
+-- autocmd({ 'CursorMoved', 'InsertEnter' }, {
+--   group = augroup 'toggle-hl-search' ,
+--   callback = function(ev)
+--     if ev.event == 'InsertEnter' then
+--       vim.schedule(function()
+--         vim.cmd 'nohlsearch'
+--       end)
+--     end
+--     -- No bloat lua adpatation of: https://github.com/romainl/vim-cool
+--     local view, rpos = vim.fn.winsaveview(), vim.fn.getpos '.'
+--     -- Move the cursor to a position where (whereas in active search) pressing `n`
+--     -- brings us to the original cursor position, in a forward search / that means
+--     -- one column before the match, in a backward search ? we move one col forward
+--     vim.cmd(string.format('silent! keepjumps go%s', (vim.fn.line2byte(view.lnum) + view.col + 1 - (vim.v.searchforward == 1 and 2 or 0))))
+--     -- Attempt to goto next match, if we're in an active search cursor position
+--     -- should be equal to original cursor position
+--     local ok, _ = pcall(vim.cmd, 'silent! keepjumps norm! n')
+--     local insearch = ok and (function()
+--       local npos = vim.fn.getpos '.'
+--       return npos[2] == rpos[2] and npos[3] == rpos[3]
+--     end)()
+--     -- restore original view and position
+--     vim.fn.winrestview(view)
+--     if not insearch then
+--       vim.schedule(function()
+--         vim.cmd 'nohlsearch'
+--       end)
+--     end
+--   end,
+-- })
 
 -- local ns = vim.api.nvim_create_namespace 'filepath_highlighter'
 --

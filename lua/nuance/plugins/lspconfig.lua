@@ -16,6 +16,7 @@ local function on_attach(event)
   local cmd
   local has_fzf, _ = pcall(require, 'fzf-lua')
   local has_telescope, _ = pcall(require, 'telescope')
+  local has_snacks, _ = pcall(require, 'snacks')
   if has_fzf then
     cmd = '<cmd>lua require("fzf-lua").%s<CR>'
     nmap('gws', cmd:format 'lsp_live_workspace_symbols()', { buffer = true, desc = 'Lsp [W]orkspace [S]ymbols' })
@@ -26,7 +27,7 @@ local function on_attach(event)
     nmap('gws', cmd:format 'lsp_dynamic_workspace_symbols()', { buffer = true, desc = 'Lsp [W]orkspace [S]ymbols' })
     nmap('gd', cmd:format 'lsp_typedefs()', { buffer = true, desc = 'Lsp [T]ype [D]efinition' })
     nmap('gus', cmd:format 'lsp_document_symbols()', { buffer = true, desc = 'Lsp [D]ocument [S]ymbols' })
-  else
+  elseif has_snacks then
     cmd = '<cmd>lua Snacks.picker.%s<CR>'
     nmap('gws', cmd:format 'lsp_workspace_symbols()', { buffer = true, desc = 'Lsp [W]orkspace [S]ymbols' })
     nmap('gd', cmd:format 'lsp_type_definitions()', { buffer = true, desc = 'Lsp [T]ype [D]efinition' })
@@ -252,10 +253,7 @@ local external_servers = {
   },
 }
 
--- LSP Plugins
-local M = {}
-
-M.lspconfig = {
+local lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspLog' },
   ft = {
@@ -272,7 +270,7 @@ M.lspconfig = {
   opts = {},
 }
 
-M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
+lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
   opts.on_attach = on_attach
 
   vim.api.nvim_create_autocmd('LspAttach', {
@@ -354,7 +352,7 @@ M.lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.n
   end
 end
 
-M.lazydev = {
+local lazydev = {
   -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
   -- used for completion, annotations and signatures of Neovim apis
   'folke/lazydev.nvim',
@@ -371,7 +369,7 @@ M.lazydev = {
   },
 }
 
-M.mason = {
+local mason = {
   'williamboman/mason.nvim',
   config = function()
     require('mason').setup()
@@ -380,9 +378,9 @@ M.mason = {
 } -- NOTE: Must be loaded before dependants
 
 return {
-  M.mason,
-  M.lazydev,
-  M.lspconfig,
+  mason,
+  lazydev,
+  lspconfig,
 }
 
 -- vim: ts=2 sts=2 sw=2 et
