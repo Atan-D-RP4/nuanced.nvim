@@ -79,10 +79,11 @@ local function on_attach(event)
 end
 
 local mason_servers = {
-  -- See `:help lspconfig-all` for a list of all the pre-configured LSPs
+
   lua_ls = {
     -- cmd = {...},
     -- capabilities = {},
+    enabled = true,
     filetypes = { 'lua' },
     settings = {
       Lua = {
@@ -90,12 +91,15 @@ local mason_servers = {
         completion = {
           callSnippet = 'Replace',
         },
-        diagnostics = { disable = { 'missing-fields' } },
+        diagnostics = {
+          disable = { 'missing-fields' },
+        },
       },
     },
   },
 
   harper_ls = {
+    enabled = false,
     filetypes = { 'markdown', 'text', 'gitcommit', 'html', 'norg' },
     settings = {
       ['harper-ls'] = {
@@ -104,12 +108,34 @@ local mason_servers = {
     },
   },
 
-  bashls = {},
-  html = {},
-  emmet_language_server = {},
-  vimls = {},
+  bashls = { enabled = false },
+  html = {
+    enabled = true,
+    filetypes = { 'html', 'htmldjango' },
+  },
+  emmet_language_server = {
+    enabled = true,
+    filetypes = { 'html', 'css', 'scss', 'less', 'javascriptreact', 'typescriptreact' },
+  },
+  vimls = {
+    enabled = false,
+    filetypes = { 'vim' },
+    settings = {
+      vim = {
+        format = {
+          enable = true,
+          options = {
+            tabSize = 2,
+            expandtab = true,
+            shiftwidth = 2,
+          },
+        },
+      },
+    },
+  },
 
   ruff = {
+    enabled = true,
     settings = {
       lint = {
         codeAction = { fixViolation = { enable = true } },
@@ -135,6 +161,7 @@ local mason_servers = {
   },
 
   jedi_language_server = {
+    enabled = false,
     before_init = function(_, config)
       local python_path = require('nuance.core.utils').get_python_path(config.root_dir)
       if python_path then
@@ -194,7 +221,7 @@ local mason_servers = {
   },
 
   basedpyright = {
-    enabled = false,
+    enabled = true,
 
     on_init = function(client, _)
       client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
@@ -221,12 +248,56 @@ local mason_servers = {
       },
     },
   },
+
+  jdtls = {
+    enabled = false,
+  },
+
+  texlab = {
+    enabled = true,
+    settings = {
+      texlab = {
+        build = {
+          executable = 'latexmk',
+          args = {
+            '-pdf',
+            '-interaction=nonstopmode',
+            '-synctex=1',
+            '%f',
+          },
+          onSave = true,
+          forwardSearchAfter = true,
+        },
+        forwardSearch = {
+          executable = 'zathura', -- or "sioyek", "evince", etc.
+          args = {
+            '--synctex-forward',
+            '%l:1:%f',
+            '%p',
+          },
+        },
+        chktex = {
+          onEdit = true,
+          onOpenAndSave = true,
+        },
+        diagnosticsDelay = 300,
+        latexFormatter = 'latexindent',
+        latexindent = {
+          modifyLineBreaks = true,
+        },
+      },
+    },
+  },
 }
 
 local external_servers = {
-  denols = {},
+  denols = {
+    enabled = true,
+    filetypes = { 'typescript', 'javascript' },
+  },
 
   rust_analyzer = {
+    enabled = true,
     settings = {
       ['rust-analyzer'] = {
         cargo = {
@@ -249,6 +320,7 @@ local external_servers = {
   },
 
   clangd = {
+    enabled = true,
     filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
   },
 }
@@ -257,12 +329,18 @@ local lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspLog' },
   ft = {
-    'typescript', 'javascript',
-    'html', 'css',
-    'vim', 'lua',
-    'sh', 'python',
-    'c', 'cpp',
-    'rust', 'java',
+    'typescript',
+    'javascript',
+    'html',
+    'css',
+    'vim',
+    'lua',
+    'sh',
+    'python',
+    'c',
+    'cpp',
+    'rust',
+    'java',
   },
 
   ---@module 'lspconfig'
@@ -357,7 +435,6 @@ local lazydev = {
   -- used for completion, annotations and signatures of Neovim apis
   'folke/lazydev.nvim',
   ft = 'lua',
-  events = 'VeryLazy',
   dependencies = {
     { 'Bilal2453/luvit-meta', lazy = true },
   },

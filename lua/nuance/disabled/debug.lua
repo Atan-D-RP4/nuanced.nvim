@@ -38,7 +38,7 @@ local nvim_dap_ui = {
 
 nvim_dap_ui.config = function()
   -- Dap UI setup
-  -- For more information, see |:help nvim-dap-ui|
+
   require('dapui').setup {
     -- Set icons to characters that are more likely to work in every terminal.
     --    Feel free to remove or use ones that you like more! :)

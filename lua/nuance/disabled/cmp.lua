@@ -37,7 +37,7 @@ return {
     },
 
     config = function()
-      -- See `:help cmp`
+
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
       require 'nuance.core.luasnips'
@@ -80,9 +80,9 @@ return {
         completion = { completeopt = 'menu,menuone,noinsert' },
 
         -- For an understanding of why these mappings were
-        -- chosen, you will need to read `:help ins-completion`
+
         --
-        -- No, but seriously. Please read `:help ins-completion`, it is really good!
+
         mapping = cmp.mapping.preset.insert {
           -- This will auto-import if your LSP supports it.
           -- This will expand snippets if the LSP sent a snippet.

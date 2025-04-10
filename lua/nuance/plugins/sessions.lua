@@ -247,6 +247,10 @@ M.keys = {
   {
     '<leader>ac',
     function()
+      if vim.g.active_session == '' then
+        print 'No session loaded'
+        return
+      end
       require('mini.sessions').read('default', {})
       vim.g.active_session = ''
       vim.notify('Cleared Session', vim.log.levels.INFO, { title = 'Session' })

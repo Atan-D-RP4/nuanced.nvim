@@ -4,6 +4,7 @@ local gitcore = {
   keys = {
     { '<leader>gg', '<cmd>Git ++curwin<CR>', desc = '[G]it', mode = 'n' },
     { '<leader>gl', '<cmd>Git ++curwin log<CR>', desc = '[G]it log', mode = 'n' },
+    { '<leader>gh', '<cmd>Git ++curwin reflog<CR>', desc = '[G]it log', mode = 'n' },
     { '<leader>gs', '<cmd>Git status -s<CR>', desc = '[G]it log', mode = 'n' },
   },
 }

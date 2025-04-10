@@ -387,6 +387,15 @@ local markview = {
   ---@type mkv.config
   opts = {},
 }
+-- Highlight todo, notes, etc in comments
+local todo_comments = {
+  'folke/todo-comments.nvim',
+  lazy = true,
+  event = { 'BufRead' },
+  dependencies = { 'nvim-lua/plenary.nvim' },
+  opts = { signs = false },
+}
+
 
 local M = {
   themes.tokyonight,
@@ -395,6 +404,7 @@ local M = {
   icons,
   noice,
   which_key,
+  todo_comments,
   -- notify,
   -- transparent,
   -- markview,

@@ -1,5 +1,5 @@
 -- [[ Basic Autocommands ]]
---  See `:help lua-guide-autocommands`
+
 
 ---@param name string
 ---@param opts? vim.keymap.set.Opts|string
@@ -14,8 +14,6 @@ end
 local autocmd = vim.api.nvim_create_autocmd
 
 -- Highlight when yanking (copying) text
---  Try it with `yap` in normal mode
---  See `:help vim.highlight.on_yank()`
 autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = augroup 'highlight-yank',
@@ -28,6 +26,18 @@ autocmd('TextYankPost', {
   end,
 })
 
+-- Create autocmd for TextYankPost event
+autocmd('TextYankPost', {
+  group = augroup 'yank-ring',
+  callback = function()
+    local event = vim.v.event
+    if event.operator == 'y' then
+      for i = 9, 1, -1 do
+        vim.fn.setreg(tostring(i), vim.fn.getreg(tostring(i - 1)))
+      end
+    end
+  end,
+})
 -- Automatically restore the previous cursor position when entering a new buffer.
 autocmd('BufWinEnter', {
   desc = 'Restore Cursor position when entering a buffer',
@@ -42,6 +52,7 @@ autocmd('BufWinEnter', {
 
 autocmd({ 'RecordingEnter', 'RecordingLeave' }, {
   desc = 'Notify when recording a macro',
+  group = augroup 'macro-notify',
   callback = function(ev)
     local msg
     if ev.event == 'RecordingEnter' then
@@ -161,6 +172,8 @@ autocmd('BufEnter', {
       'qf',
       'startuptime',
       'tsplayground',
+      -- Cmdline window
+      'cmdwin',
     }
 
     -- Check if it's a special filetype or an empty buffer
@@ -174,6 +187,11 @@ autocmd('BufEnter', {
       end
 
       vim.keymap.set('n', 'q', function()
+        if vim.fn.getcmdwintype() ~= '' then
+          vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<C-c>', true, false, true), 'n', false)
+          return
+        end
+
         pcall(vim.api.nvim_exec2, 'close', {})
 
         local has_snacks, snacks = pcall(require, 'snacks')
@@ -357,31 +375,55 @@ vim.api.nvim_create_user_command('TSFoldToggle', function(_)
   end
 end, { nargs = 0, desc = 'Toggle Treesitter folding' })
 
+vim.api.nvim_create_user_command('SearchEngineQuery', function(opts)
+  local engines = {
+    google = { prompt = ' Google: ', url = 'https://www.google.com/search?q=' },
+    ddg = { prompt = ' DuckDuckGo: ', url = 'https://duckduckgo.com/?q=' },
+  }
+
+  local selected = engines[opts.args or 'google']
+  local input = vim.fn.input(selected.prompt)
+  local response = not (input == nil or input == '')
+
+  local query = vim.bo.filetype
+  if response then
+    query = query .. ' ' .. input
+  else
+    query = query .. ' ' .. vim.fn.expand '<cword>'
+  end
+  vim.ui.open(selected.url .. query)
+end, { nargs = '?', desc = 'Search using a specified engine' })
+
 -- Define highlight groups
 vim.api.nvim_command 'highlight Filepath gui=underline cterm=underline guifg=#F38BA8'
 
 -- Match filepaths (fixed regex)
 vim.cmd 'match Filepath /\\v(\\~\\/|\\.\\.\\/|\\.\\/|\\/)([^\\/ ]+\\/)*[^\\/ ]+(\\.[a-zA-Z0-9]+)*(:\\d+){0,2}/'
 
+vim.keymap.set('c', '<C-;>', function()
+  vim.print(vim.fn.winnr '$' == 0)
+end, { desc = 'Check if command window is open' })
+
 -- NOTE: (This works but needs to be improved for Cmdwin)
 -- Toggle relative number on the basis of mode
--- local number_toggle_group = autocmd('NumberToggle', { clear = true })
--- autocmd({ 'BufEnter', 'FocusGained', 'InsertLeave' }, {
---   pattern = '*',
---   callback = function()
---     vim.wo.relativenumber = true
---     vim.wo.number = true
---   end,
---   group = number_toggle_group,
--- })
--- autocmd({ 'BufLeave', 'FocusLost', 'InsertEnter' }, {
---   pattern = '*',
---   callback = function()
---     vim.wo.relativenumber = false
---     vim.wo.number = false
---   end,
---   group = number_toggle_group,
--- })
+autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusLost', 'CmdwinEnter' }, {
+  group = augroup('NumberToggle', { clear = true }),
+  pattern = '*',
+  callback = function(ev)
+    if vim.bo[ev.buf].buftype ~= 'snacks_dashboard' then
+      return
+    end
+    -- Check if the event is one of the specified events or if the window is a command window
+    if vim.tbl_contains({ 'WinEnter', 'BufEnter', 'FocusGained', 'CmdwinLeave' }, ev.event) then
+      vim.wo.relativenumber = true
+      vim.wo.number = true
+    end
+    if vim.tbl_contains({ 'WinLeave', 'BufLeave', 'FocusLost', 'CmdwinEnter' }, ev.event) then
+      vim.wo.relativenumber = false
+      vim.wo.number = false
+    end
+  end,
+})
 
 -- NOTE: DO NOT NEED THIS WITH snacks.nvim in use
 -- autocmd({ 'CursorMoved', 'InsertEnter' }, {

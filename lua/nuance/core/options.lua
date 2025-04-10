@@ -1,7 +1,7 @@
 -- [[ Setting options ]]
--- See `:help opt`
+
 -- NOTE: You can change these options as you wish!
---  For more options, you can see `:help option-list`
+
 
 local opt = vim.opt
 
@@ -98,8 +98,8 @@ opt.splitright = true
 opt.splitbelow = true
 
 -- Sets how neovim will display certain whitespace characters in the editor.
---  See `:help 'list'`
---  and `:help 'listchars'`
+
+
 opt.list = true
 opt.listchars = { tab = '» ', trail = '·', nbsp = '␣', extends = '›', precedes = '‹' }
 opt.fillchars = {
