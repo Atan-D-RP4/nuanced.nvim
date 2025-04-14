@@ -13,26 +13,10 @@ local function on_attach(event)
   -- over LSP semantic tokens.
   vim.highlight.priorities.semantic_tokens = 95
 
-  local cmd
-  local has_fzf, _ = pcall(require, 'fzf-lua')
-  local has_telescope, _ = pcall(require, 'telescope')
-  local has_snacks, _ = pcall(require, 'snacks')
-  if has_fzf then
-    cmd = '<cmd>lua require("fzf-lua").%s<CR>'
-    nmap('gws', cmd:format 'lsp_live_workspace_symbols()', { buffer = true, desc = 'Lsp [W]orkspace [S]ymbols' })
-    nmap('gd', cmd:format 'lsp_typedefs()', { buffer = true, desc = 'Lsp [T]ype [D]efinition' })
-    nmap('gus', cmd:format 'lsp_document_symbols()', { buffer = true, desc = 'Lsp [D]ocument [S]ymbols' })
-  elseif has_telescope then
-    cmd = '<cmd>lua require("telescope.builtin").%s<CR>'
-    nmap('gws', cmd:format 'lsp_dynamic_workspace_symbols()', { buffer = true, desc = 'Lsp [W]orkspace [S]ymbols' })
-    nmap('gd', cmd:format 'lsp_typedefs()', { buffer = true, desc = 'Lsp [T]ype [D]efinition' })
-    nmap('gus', cmd:format 'lsp_document_symbols()', { buffer = true, desc = 'Lsp [D]ocument [S]ymbols' })
-  elseif has_snacks then
-    cmd = '<cmd>lua Snacks.picker.%s<CR>'
-    nmap('gws', cmd:format 'lsp_workspace_symbols()', { buffer = true, desc = 'Lsp [W]orkspace [S]ymbols' })
-    nmap('gd', cmd:format 'lsp_type_definitions()', { buffer = true, desc = 'Lsp [T]ype [D]efinition' })
-    nmap('gus', cmd:format 'lsp_symbols()', { buffer = true, desc = 'Lsp [D]ocument [S]ymbols' })
-  end
+  local cmd = '<cmd>lua Snacks.picker.%s<CR>'
+  nmap('gws', cmd:format 'lsp_workspace_symbols()', { buffer = true, desc = 'Lsp [W]orkspace [S]ymbols' })
+  nmap('gd', cmd:format 'lsp_type_definitions()', { buffer = true, desc = 'Lsp [T]ype [D]efinition' })
+  nmap('gus', cmd:format 'lsp_symbols()', { buffer = true, desc = 'Lsp [D]ocument [S]ymbols' })
 
   nmap('gd', cmd:format 'lsp_definitions()', { buffer = true, desc = 'Lsp [G]oto [D]efinition' })
   nmap('grr', cmd:format 'lsp_references()', { buffer = true, desc = 'Lsp [G]oto [R]eferences' }) -- override `grr` mapping
@@ -254,7 +238,7 @@ local mason_servers = {
   },
 
   texlab = {
-    enabled = true,
+    enabled = false,
     settings = {
       texlab = {
         build = {
@@ -286,6 +270,15 @@ local mason_servers = {
           modifyLineBreaks = true,
         },
       },
+    },
+  },
+
+  tinymist = {
+    enabled = true,
+    settings = {
+      formatterMode = 'typstyle',
+      exportPdf = 'onType',
+      semanticTokens = 'disable',
     },
   },
 }
@@ -401,32 +394,26 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
 
   -- Configure the LSP servers with nvim-lspconfig
   for name, config in pairs(servers) do
-    require('lspconfig')[name].setup {
-      -- on_attach = function(client, bufnr)
-      --   if client.server_capabilities.documentSymbolProvider then
-      --     require('nvim-navic').attach(client, bufnr)
-      --   end
-      -- end,
-      enabled = config.enabled ~= false,
-      autostart = config.autostart or true,
-      on_init = function(client, initialize_result)
-        vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
-        if config.on_init then
-          config.on_init(client, initialize_result)
-        end
-      end,
-      before_init = false or function(params, client_config)
-        if config.before_init then
-          config.before_init(params, client_config)
-        end
-      end,
-      cmd = config.cmd,
-      capabilities = vim.tbl_extend('force', {}, capabilities, config.capabilities or {}),
-      filetypes = config.filetypes,
-      settings = config.settings,
-      root_dir = config.root_dir,
-      init_options = config.init_options or {},
-    }
+    local server_conf = vim.tbl_deep_extend('force', {}, config)
+    server_conf.on_init = function(client, initialize_result)
+      vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
+      if config.on_init then
+        config.on_init(client, initialize_result)
+      end
+    end
+    server_conf.before_init = function(params, client_config)
+      if config.before_init then
+        config.before_init(params, client_config)
+      end
+    end
+    server_conf.capabilities = vim.tbl_extend('force', {}, capabilities, config.capabilities or {})
+    -- server_conf.on_attach = function(client, bufnr)
+    --   if client.server_capabilities.documentSymbolProvider then
+    --     require('nvim-navic').attach(client, bufnr)
+    --   end
+    --   config.on_attach(client, bufnr)
+    -- end,
+    require('lspconfig')[name].setup(server_conf)
   end
 end
 
