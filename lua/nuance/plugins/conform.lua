@@ -1,12 +1,14 @@
 local M = {
   -- Autoformat
   'stevearc/conform.nvim',
-
-  event = { 'BufWritePre' },
   cmd = { 'ConformInfo' },
+
   init = function()
-    vim.api.nvim_create_user_command('ConformFormat', function(opts)
-      require('conform').format { async = false, lsp_format = opts.fargs[1] }
+    vim.api.nvim_create_user_command('ConformFormat', function(_)
+      require('conform').format({ async = true, lsp_format = 'fallback' }, function()
+        vim.notify('Buffer Formatted', vim.log.levels.INFO, { title = 'Conform' })
+        vim.cmd 'write'
+      end)
     end, { nargs = 0, desc = 'Format buffer' })
   end,
 }
@@ -15,15 +17,17 @@ M.keys = {
   {
     '<leader>cf',
     function()
-      require('conform').format { async = false, lsp_format = 'fallback' }
+      require('conform').format({ async = true, lsp_format = 'fallback' }, function()
+        vim.notify('Buffer Formatted', vim.log.levels.INFO, { title = 'Conform' })
+        vim.cmd 'write'
+      end)
     end,
     mode = '',
-    desc = '[C]onform [F]ormat buffer',
-  },
+    desc = '[C]onform [F]ormat buffer', },
 }
 
 M.opts = {
-  notify_on_error = false,
+  notify_on_error = true,
 
   -- format_on_save = function(bufnr)
   --   -- Disable "format_on_save lsp_fallback" for languages that don't
@@ -44,8 +48,8 @@ M.opts = {
 
   formatters_by_ft = {
     lua = { 'stylua' },
-    -- python = { 'ruff_format', 'black' },
-    -- rust = { 'rustfmt' },
+    python = { 'ruff_format' },
+    rust = { 'rustfmt' },
     sh = { 'shfmt' },
     -- Conform can also run multiple formatters sequentially
     -- python = { "isort", "black" },

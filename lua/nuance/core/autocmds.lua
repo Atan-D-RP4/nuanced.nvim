@@ -381,7 +381,7 @@ vim.api.nvim_create_user_command('SearchEngineQuery', function(opts)
     ddg = { prompt = ' DuckDuckGo: ', url = 'https://duckduckgo.com/?q=' },
   }
 
-  local selected = engines[opts.args or 'google']
+  local selected = engines[opts.args == '' and 'ddg' or opts.args]
   local input = vim.fn.input(selected.prompt)
   local response = not (input == nil or input == '')
 

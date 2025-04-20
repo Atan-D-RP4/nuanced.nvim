@@ -149,6 +149,8 @@ local session_pick = function()
       local msg = ''
       if vim.g.active_session == '' then
         msg = 'Loaded Session: ' .. item.name
+      elseif vim.g.active_session == item.name then
+        msg = 'Already Loaded Session: ' .. item.name
       else
         msg = 'Switched From Session: ' .. vim.g.active_session .. '\nTo: ' .. item.name
       end

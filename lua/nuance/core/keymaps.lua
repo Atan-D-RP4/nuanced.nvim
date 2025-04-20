@@ -35,6 +35,37 @@ local maps = {
   --   end,
   --   'Treesitter % Motion',
   -- },
+  {
+    { 'n', 'i' },
+    '<C-j>',
+    function()
+      local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+      line = line - 1
+      local node = vim.treesitter.get_node()
+      if node ~= nil then
+        local row
+        row, col = node:end_()
+        vim.api.nvim_win_set_cursor(0, { row + 1, col })
+      end
+    end,
+    'Treesitter Jump to Node-End',
+  },
+
+  {
+    { 'n', 'i' },
+    '<C-k>',
+    function()
+      local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+      line = line + 1
+      local node = vim.treesitter.get_node()
+      if node ~= nil then
+        local row
+        row, col = node:start()
+        vim.api.nvim_win_set_cursor(0, { row, col })
+      end
+    end,
+    'Treesitter Jump to Node-Start',
+  },
 
   -- Better Escape
   { 'n', '<Esc>', '<C-c><C-c>', 'Better Escape' },
@@ -220,7 +251,20 @@ local maps = {
     'p',
     function()
       local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-      vim.cmd 'normal! p'
+      vim.cmd 'normal! ]p'
+      local new_row = vim.api.nvim_win_get_cursor(0)[1]
+      if not (new_row == row) then
+        vim.api.nvim_win_set_cursor(0, { new_row, col })
+      end
+    end,
+    'Better Paste Action',
+  },
+  {
+    'n',
+    'P',
+    function()
+      local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+      vim.cmd 'normal! [p'
       local new_row = vim.api.nvim_win_get_cursor(0)[1]
       if not (new_row == row) then
         vim.api.nvim_win_set_cursor(0, { new_row, col })

@@ -381,11 +381,33 @@ local which_key = { -- Useful plugin to show you pending keybinds.
 
 local markview = {
   'OXY2DEV/markview.nvim',
-  lazy = false,
   ft = { 'markdown', 'typst' },
+  keys = {
+    {
+      '<leader>tm',
+      function()
+        local markview = require 'markview'
+        local msg = 'Markview '
+        if not vim.g.markview then
+          vim.cmd 'Markview attach'
+          msg = msg .. 'enabled'
+        else
+          vim.cmd 'Markview detach'
+          msg = msg .. 'disabled'
+        end
+        vim.notify(msg, vim.g.markview and vim.log.levels.WARN or vim.log.levels.INFO, { title = 'Markview' })
+        vim.g.markview = not vim.g.markview
+      end,
+      desc = '[T]oggle [M]arkview',
+    },
+  },
   ---@module 'markview.nvim'
   ---@type mkv.config
   opts = {},
+  config = function()
+    vim.g.markview = false
+    vim.cmd 'Markview Stop'
+  end,
 }
 -- Highlight todo, notes, etc in comments
 local todo_comments = {
@@ -396,18 +418,17 @@ local todo_comments = {
   opts = { signs = false },
 }
 
-
 local M = {
-  themes.tokyonight,
+  which_key,
   statusline,
   tabline,
+  themes.tokyonight,
   icons,
   noice,
-  which_key,
-  todo_comments,
+  markview,
+  -- todo_comments,
   -- notify,
   -- transparent,
-  -- markview,
 }
 
 return M

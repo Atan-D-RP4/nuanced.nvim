@@ -1,5 +1,13 @@
 local M = {}
 
+M.augment = {
+  'augmentcode/augment.vim',
+  event = 'VeryLazy',
+  config = function()
+    vim.g.augment_workspace_folders = { '/path/to/project', '~/another-project' }
+  end,
+}
+
 M.avante = {
   'yetone/avante.nvim',
   event = 'VeryLazy',
@@ -19,9 +27,7 @@ M.avante = {
     -- },
 
     mappings = {
-      files = {
-        add_current = '<leader>ab',
-      },
+      files = { add_current = '<leader>ab', },
     },
   },
 
@@ -62,4 +68,5 @@ M.copilot = {
 return {
   M.copilot,
   M.avante,
+  -- M.augment
 }

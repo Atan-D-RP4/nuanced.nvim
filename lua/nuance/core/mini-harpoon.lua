@@ -3,10 +3,11 @@ vim.tbl_map(
     require('nuance.core.utils').nmap(keys.cmd, keys.callback, keys.desc)
   end,
   vim.tbl_map(function(index)
-    local mark_char = string.char(64 + index + index == 0 and 10 or 0) -- A=65, B=66, etc.
+    local mark_char = string.char(64 + index + (index == 0 and 10 or 0)) -- A=65, B=66, etc.
     return {
       cmd = '<leader>m' .. index,
       callback = function()
+        vim.print('Toggling mark ' .. mark_char)
         local mark_pos = vim.api.nvim_get_mark(mark_char, {})
         if mark_pos[1] == 0 then
           vim.cmd [[ normal! gg ]]
@@ -24,8 +25,8 @@ vim.tbl_map(
 
 -- Delete mark from current buffer
 require('nuance.core.utils').nmap('<leader>md', function()
-  for i = 1, 9 do
-    local mark_char = string.char(64 + i)
+  for i = 0, 9 do
+    local mark_char = string.char(64 + i + (i == 0 and 10 or 0))
     local mark_pos = vim.api.nvim_get_mark(mark_char, {})
 
     -- Check if mark is in current buffer

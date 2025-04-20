@@ -1,73 +1,8 @@
----@param event vim.api.keyset.create_autocmd.callback_args
-local function on_attach(event)
-  local nmap = require('nuance.core.utils').nmap
-
-  vim.lsp.set_log_level(vim.log.levels.OFF)
-  vim.lsp.log.set_format_func(function(a, b)
-    vim.inspect(a, b)
-    vim.cmd 's/\\n/\\r/g'
-  end)
-
-  -- Set the priority of the semantic tokens to be lower than
-  -- that of Treesitter, so that Treesitter is always highlighting
-  -- over LSP semantic tokens.
-  vim.highlight.priorities.semantic_tokens = 95
-
-  local cmd = '<cmd>lua Snacks.picker.%s<CR>'
-  nmap('gws', cmd:format 'lsp_workspace_symbols()', { buffer = true, desc = 'Lsp [W]orkspace [S]ymbols' })
-  nmap('gd', cmd:format 'lsp_type_definitions()', { buffer = true, desc = 'Lsp [T]ype [D]efinition' })
-  nmap('gus', cmd:format 'lsp_symbols()', { buffer = true, desc = 'Lsp [D]ocument [S]ymbols' })
-
-  nmap('gd', cmd:format 'lsp_definitions()', { buffer = true, desc = 'Lsp [G]oto [D]efinition' })
-  nmap('grr', cmd:format 'lsp_references()', { buffer = true, desc = 'Lsp [G]oto [R]eferences' }) -- override `grr` mapping
-  nmap('gri', cmd:format 'lsp_implementations()', { buffer = true, desc = 'Lsp [G]oto [I]mplementation' }) -- override `gri` mapping
-
-  local client = vim.lsp.get_client_by_id(event.data.client_id)
-
-  ---@diagnostic disable-next-line: param-type-mismatch
-  if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, { bufnr = event.buf }) then
-    nmap('<leader>th', function()
-      vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
-    end, '[T]oggle Inlay [H]ints')
-  end
-
-  -- The following two autocommands are used to highlight references of the
-  -- word under your cursor when your cursor rests there for a little while.
-  -- When you move your cursor, the highlights will be cleared (the second autocommand).
-  if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
-    local highlight_augroup = vim.api.nvim_create_augroup('nuance-lsp-highlight', { clear = true })
-    vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-      buffer = event.buf,
-      group = highlight_augroup,
-      callback = vim.lsp.buf.document_highlight,
-    })
-
-    vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-      buffer = event.buf,
-      group = highlight_augroup,
-      callback = vim.lsp.buf.clear_references,
-    })
-
-    vim.api.nvim_create_autocmd('LspDetach', {
-      group = highlight_augroup,
-      callback = function(ev)
-        vim.lsp.buf.clear_references()
-        vim.api.nvim_clear_autocmds { group = 'nuance-lsp-highlight', buffer = ev.buf }
-      end,
-    })
-  end
-
-  -- vim.opt_local.foldmethod = 'expr'
-  -- vim.opt_local.foldexpr = 'v:lua.vim.lsp.foldexpr()'
-  -- vim.opt_local.foldtext = 'v:lua.vim.lsp.foldtext()'
-end
-
 local mason_servers = {
-
   lua_ls = {
     -- cmd = {...},
     -- capabilities = {},
-    enabled = true,
+    enabled = vim.fn.executable 'lua-language-server' == 1,
     filetypes = { 'lua' },
     settings = {
       Lua = {
@@ -83,7 +18,7 @@ local mason_servers = {
   },
 
   harper_ls = {
-    enabled = false,
+    enabled = vim.fn.executable 'harper-ls' == 1,
     filetypes = { 'markdown', 'text', 'gitcommit', 'html', 'norg' },
     settings = {
       ['harper-ls'] = {
@@ -92,17 +27,20 @@ local mason_servers = {
     },
   },
 
-  bashls = { enabled = false },
+  bashls = { enabled = vim.fn.executable 'bash-language-server' == 1 },
+
   html = {
-    enabled = true,
+    enabled = vim.fn.executable 'vscode-html-language-server' == 1,
     filetypes = { 'html', 'htmldjango' },
   },
+
   emmet_language_server = {
-    enabled = true,
+    enabled = vim.fn.executable 'emmet-ls' == 1,
     filetypes = { 'html', 'css', 'scss', 'less', 'javascriptreact', 'typescriptreact' },
   },
+
   vimls = {
-    enabled = false,
+    enabled = vim.fn.executable 'vim-language-server' == 1,
     filetypes = { 'vim' },
     settings = {
       vim = {
@@ -119,7 +57,7 @@ local mason_servers = {
   },
 
   ruff = {
-    enabled = true,
+    enabled = vim.fn.executable 'ruff' == 1,
     settings = {
       lint = {
         codeAction = { fixViolation = { enable = true } },
@@ -145,7 +83,8 @@ local mason_servers = {
   },
 
   jedi_language_server = {
-    enabled = false,
+    enabled = vim.fn.executable 'jedi-language-server' == 1,
+
     before_init = function(_, config)
       local python_path = require('nuance.core.utils').get_python_path(config.root_dir)
       if python_path then
@@ -173,6 +112,7 @@ local mason_servers = {
 
       hover = {
         enable = true,
+
         disable = {
           class = { all = false, names = {}, fullNames = {} },
           ['function'] = { all = false, names = {}, fullNames = {} },
@@ -196,6 +136,7 @@ local mason_servers = {
 
       workspace = {
         extraPaths = {},
+
         symbols = {
           ignoreFolders = { '.nox', '.tox', '.venv', '__pycache__', 'venv' },
           maxSymbols = 20,
@@ -205,7 +146,7 @@ local mason_servers = {
   },
 
   basedpyright = {
-    enabled = true,
+    enabled = vim.fn.executable 'basedpyright' == 1,
 
     on_init = function(client, _)
       client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
@@ -233,39 +174,45 @@ local mason_servers = {
     },
   },
 
-  jdtls = {
-    enabled = false,
-  },
+  jdtls = { enabled = vim.fn.executable 'jdtls' == 1 },
+
+  hyprls = { enabled = vim.fn.executable 'hyprls' == 1 },
 
   texlab = {
-    enabled = false,
+    enabled = vim.fn.executable 'texlab' == 1,
+
     settings = {
       texlab = {
         build = {
-          executable = 'latexmk',
+          executable = 'tectonic',
+
           args = {
-            '-pdf',
-            '-interaction=nonstopmode',
-            '-synctex=1',
-            '%f',
+            '-X',
+            'build',
           },
+
           onSave = true,
           forwardSearchAfter = true,
         },
+
         forwardSearch = {
           executable = 'zathura', -- or "sioyek", "evince", etc.
+
           args = {
             '--synctex-forward',
             '%l:1:%f',
             '%p',
           },
         },
+
         chktex = {
           onEdit = true,
           onOpenAndSave = true,
         },
+
         diagnosticsDelay = 300,
         latexFormatter = 'latexindent',
+
         latexindent = {
           modifyLineBreaks = true,
         },
@@ -274,84 +221,154 @@ local mason_servers = {
   },
 
   tinymist = {
-    enabled = true,
+    enabled = vim.fn.executable 'tinymist' == 1,
+
     settings = {
       formatterMode = 'typstyle',
       exportPdf = 'onType',
       semanticTokens = 'disable',
     },
   },
-}
 
-local external_servers = {
   denols = {
-    enabled = true,
+    enabled = vim.fn.executable 'deno' == 1,
     filetypes = { 'typescript', 'javascript' },
   },
 
   rust_analyzer = {
-    enabled = true,
+    enabled = vim.fn.executable 'rust-analyzer' == 1,
+
     settings = {
       ['rust-analyzer'] = {
         cargo = {
           allFeatures = true,
           loadOutDirsFromCheck = true,
-          buildScripts = {
-            enable = true,
-          },
+          buildScripts = { enable = true },
         },
+
         imports = { granularity = { group = 'module' }, prefix = 'self' },
-        checkOnSave = {
-          -- enabled = false,
-          command = 'clippy',
-        },
-        diagnostics = {
-          -- enabled = false,
-        },
+        -- Add "enabled = false", if you want to disable it
+        checkOnSave = { command = 'clippy' },
+        -- Add "enabled = false", if you want to disable them
+        diagnostics = {},
       },
     },
   },
 
-  clangd = {
-    enabled = true,
-    filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
-  },
+  clangd = { enabled = vim.fn.executable 'clangd' == 1 },
 }
 
 local lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspLog' },
+
   ft = {
-    'typescript',
-    'javascript',
-    'html',
-    'css',
-    'vim',
-    'lua',
-    'sh',
-    'python',
-    'c',
-    'cpp',
-    'rust',
-    'java',
+    -- Web Languages
+    'typescript', 'javascript', 'html', 'css',
+    -- Script Languages
+    'vim', 'lua', 'sh', 'python',
+    -- Compiled Languages
+    'c', 'cpp', 'rust', 'java',
+    -- Document Filetypes
+    'tex',
   },
 
   ---@module 'lspconfig'
   ---@type lspconfig.Config
   opts = {},
 }
+---@param client vim.lsp.Client
+---@param bufnr number
+lspconfig.opts.on_attach = function(client, bufnr)
+  -- Set the priority of the semantic tokens to be lower than
+  -- that of Treesitter, so that Treesitter is always highlighting
+  -- over LSP semantic tokens.
+  vim.highlight.priorities.semantic_tokens = 95
 
+  vim.lsp.set_log_level(vim.log.levels.INFO)
+  vim.lsp.log.set_format_func(function(args)
+    local msg = vim.inspect(args)
+    msg = msg:gsub('\t', '  ')
+    return msg:gsub('\n', '\n')
+  end)
+
+  vim.tbl_map(function(map)
+    local key = map[1]
+    local rhs = '<cmd>lua Snacks.picker.' .. map[2] .. '<CR>'
+    local opts = map[3] or {}
+    require('nuance.core.utils').nmap(key, rhs, opts)
+  end, {
+    { 'gws', 'lsp_workspace_symbols()', { buffer = true, desc = 'LSP [W]orkspace [S]ymbols' } },
+    { 'gd', 'lsp_type_definitions()', { buffer = true, desc = 'LSP [T]ype [D]efinition' } },
+    { 'gus', 'lsp_symbols()', { buffer = true, desc = 'LSP [D]ocument [S]ymbols' } },
+
+    { 'gd', 'lsp_definitions()', { buffer = true, desc = 'LSP [G]oto [D]efinition' } },
+    { 'grr', 'lsp_references()', { buffer = true, desc = 'LSP [G]oto [R]eferences' } }, -- override `grr` mapping
+    { 'gri', 'lsp_implementations()', { buffer = true, desc = 'LSP [G]oto [I]mplementation' } }, -- override `gri` mapping
+  })
+
+  ---@diagnostic disable-next-line: param-type-mismatch
+  if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, { bufnr = bufnr }) then
+    require('nuance.core.utils').nmap('<leader>th', function()
+      vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = bufnr })
+    end, 'LSP [T]oggle Inlay [H]ints')
+  end
+
+  if not client or not client.server_capabilities then
+    vim.notify('LSP client not found or does not have server capabilities', vim.log.levels.WARN, { title = 'LSP' })
+    return
+  end
+
+  -- The following two autocommands are used to highlight references of the
+  -- word under your cursor when your cursor rests there for a little while.
+  -- When you move your cursor, the highlights will be cleared (the second autocommand).
+  if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, bufnr) then
+    local highlight_augroup = vim.api.nvim_create_augroup('nuance-lsp-highlight', { clear = true })
+    vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+      buffer = bufnr,
+      group = highlight_augroup,
+      callback = vim.lsp.buf.document_highlight,
+    })
+
+    vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+      buffer = bufnr,
+      group = highlight_augroup,
+      callback = vim.lsp.buf.clear_references,
+    })
+
+    vim.api.nvim_create_autocmd('LspDetach', {
+      group = highlight_augroup,
+      callback = function(ev)
+        vim.lsp.buf.clear_references()
+        vim.api.nvim_clear_autocmds { group = 'nuance-lsp-highlight', buffer = ev.buf }
+      end,
+    })
+  end
+
+  -- vim.opt_local.foldmethod = 'expr'
+  -- vim.opt_local.foldexpr = 'v:lua.vim.lsp.foldexpr()'
+  -- vim.opt_local.foldtext = 'v:lua.vim.lsp.foldtext()'
+end
+
+---@module 'lspconfig'
+---@param opts lspconfig.Config
 lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
-  opts.on_attach = on_attach
-
   vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('nuance-lsp-attach', { clear = false }),
-    callback = on_attach,
+    ---@param event vim.api.keyset.create_autocmd.callback_args
+    callback = function(event)
+      local client = vim.lsp.get_client_by_id(event.data.client_id)
+      if client == nil then
+        return
+      end
+      opts.on_attach(client, event.buf)
+    end,
   })
 
   vim.api.nvim_create_autocmd('LspDetach', {
     group = vim.api.nvim_create_augroup('nuance-lsp-detach', { clear = false }),
     callback = function(event)
+      -- vim.api.clear_autocmds { group = detach_augroup, buffer = event.buf }
       vim.defer_fn(function()
         -- Kill the LS process if no buffers are attached to the client
         local cur_client = vim.lsp.get_client_by_id(event.data.client_id)
@@ -360,9 +377,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         end
         local attached_buffers_count = vim.tbl_count(cur_client.attached_buffers)
         if attached_buffers_count == 0 then
-          local msg = 'No attached buffers to client: ' .. cur_client.name .. '\n'
-          msg = msg .. 'Stopping language server: ' .. cur_client.name
-          vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
+          vim.notify('No attached buffers to client: ' .. cur_client.name, vim.log.levels.INFO, { title = 'LSP' })
           cur_client:stop(true)
         end
       end, 200)
@@ -389,7 +404,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   )
 
   -- Merge Mason installed servers list with external servers list
-  local servers = vim.tbl_deep_extend('force', mason_servers, external_servers)
+  local servers = mason_servers
   vim.g.configured_language_servers = servers
 
   -- Configure the LSP servers with nvim-lspconfig
@@ -404,6 +419,12 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     server_conf.before_init = function(params, client_config)
       if config.before_init then
         config.before_init(params, client_config)
+      end
+    end
+    server_conf.on_exit = function(client, exit_code)
+      vim.notify('De-Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
+      if config.on_exit then
+        config.on_exit(client, exit_code)
       end
     end
     server_conf.capabilities = vim.tbl_extend('force', {}, capabilities, config.capabilities or {})
