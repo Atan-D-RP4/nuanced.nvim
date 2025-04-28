@@ -172,15 +172,25 @@ vim.g.treesitter_diagnostics = true
 vim.g.treesitter_lint_available = vim.fn.has 'nvim-0.11' == 1
 vim.g.treesitter_folding_enabled = true
 
+vim.g.loaded_node_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_ruby_provider = 0
+vim.g.loaded_python3_provider = 0
+
 opt.foldmethod = 'expr'
 opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
 opt.foldtext = ''
 opt.foldlevel = vim.g.treesitter_folding_enabled and 99 or 0
 opt.fillchars:append { fold = ' ', foldopen = '▾', foldclose = '▸', foldsep = '│' }
 
+-- opt.winborder = 'rounded'
+
 vim.diagnostic.config {
   underline = true,
   severity_sort = true,
+  float = {
+    border = 'rounded',
+  },
   signs = vim.g.have_nerd_font and {
     text = {
       [vim.diagnostic.severity.ERROR] = '󰅚 ',
@@ -207,12 +217,6 @@ vim.diagnostic.config {
     end,
   },
 }
-
--- add binaries installed by mason.nvim to path
-local is_windows = vim.fn.has 'win32' ~= 0
-local sep = is_windows and '\\' or '/'
-local delim = is_windows and ';' or ':'
-vim.env.PATH = table.concat({ vim.fn.stdpath 'data', 'mason', 'bin' }, sep) .. delim .. vim.env.PATH
 
 -- vim.g.netrw_banner = 0
 -- vim.g.netrw_fastbrowse = 1

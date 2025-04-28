@@ -55,7 +55,6 @@ M.opts.lsp_file_methods = {
 }
 
 M.opts.keymaps = {
-  ['<leader>ff'] = { "<cmd>lua Snacks.picker.files({ cwd = require('oil').get_current_dir(), follow = true })<CR>" },
   ['<CR>'] = {},
   ['<C-l>'] = 'actions.refresh',
   -- Append to a register (Primitive impl for marking files)
@@ -72,9 +71,7 @@ M.opts.keymaps = {
   ['<Right>'] = 'actions.select',
   ['l'] = { 'actions.select', mode = 'n' },
   ['q'] = 'actions.close',
-  ['='] = function()
-    vim.cmd 'write'
-  end, -- Save the current buffer
+  ['='] = function() vim.cmd 'write' end, -- Save the current buffer
   ['-'] = 'actions.parent',
   ['_'] = 'actions.open_cwd',
   ['`'] = 'actions.cd',

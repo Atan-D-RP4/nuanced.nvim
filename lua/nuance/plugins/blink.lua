@@ -45,7 +45,7 @@ M.opts = {
     return vim.bo.buftype ~= 'prompt' and vim.b.completion ~= false
   end,
   -- experimental signature help support
-  -- signature = { enabled = true, window = { border = 'rounded' } },
+  signature = { enabled = true, window = { border = 'rounded' } },
 
   appearance = {
     -- Sets the fallback highlight groups to nvim-cmp's highlight groups

@@ -1,276 +1,26 @@
-local mason_servers = {
-  lua_ls = {
-    -- cmd = {...},
-    -- capabilities = {},
-    enabled = vim.fn.executable 'lua-language-server' == 1,
-    filetypes = { 'lua' },
-    settings = {
-      Lua = {
-        telemetry = { enable = false },
-        completion = {
-          callSnippet = 'Replace',
-        },
-        diagnostics = {
-          disable = { 'missing-fields' },
-        },
-      },
-    },
-  },
-
-  harper_ls = {
-    enabled = vim.fn.executable 'harper-ls' == 1,
-    filetypes = { 'markdown', 'text', 'gitcommit', 'html', 'norg' },
-    settings = {
-      ['harper-ls'] = {
-        userDictPath = vim.fn.stdpath 'config' .. '/user.dict',
-      },
-    },
-  },
-
-  bashls = { enabled = vim.fn.executable 'bash-language-server' == 1 },
-
-  html = {
-    enabled = vim.fn.executable 'vscode-html-language-server' == 1,
-    filetypes = { 'html', 'htmldjango' },
-  },
-
-  emmet_language_server = {
-    enabled = vim.fn.executable 'emmet-ls' == 1,
-    filetypes = { 'html', 'css', 'scss', 'less', 'javascriptreact', 'typescriptreact' },
-  },
-
-  vimls = {
-    enabled = vim.fn.executable 'vim-language-server' == 1,
-    filetypes = { 'vim' },
-    settings = {
-      vim = {
-        format = {
-          enable = true,
-          options = {
-            tabSize = 2,
-            expandtab = true,
-            shiftwidth = 2,
-          },
-        },
-      },
-    },
-  },
-
-  ruff = {
-    enabled = vim.fn.executable 'ruff' == 1,
-    settings = {
-      lint = {
-        codeAction = { fixViolation = { enable = true } },
-        disableRuleComment = { enable = true },
-        select = { 'E', 'F', 'W' },
-        ignore = { 'F401' },
-        enable = true,
-      },
-
-      format = { enable = true },
-      logLevel = 'debug',
-
-      -- Add organizeImports for better import handling
-      organizeImports = { enable = true },
-    },
-
-    on_init = function(client, _)
-      client.server_capabilities.hoverProvider = false
-      client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
-        pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
-      })
-    end,
-  },
-
-  jedi_language_server = {
-    enabled = vim.fn.executable 'jedi-language-server' == 1,
-
-    before_init = function(_, config)
-      local python_path = require('nuance.core.utils').get_python_path(config.root_dir)
-      if python_path then
-        config.init_options.workspace.environmentPath = python_path
-      end
-    end,
-
-    init_options = {
-      codeAction = {
-        nameExtractVariable = 'jls_extract_var',
-        nameExtractFunction = 'jls_extract_def',
-      },
-
-      completion = {
-        disableSnippets = false,
-        resolveEagerly = false,
-        ignorePatterns = {},
-      },
-
-      diagnostics = {
-        enable = true,
-        didOpen = true,
-        didSave = true,
-      },
-
-      hover = {
-        enable = true,
-
-        disable = {
-          class = { all = false, names = {}, fullNames = {} },
-          ['function'] = { all = false, names = {}, fullNames = {} },
-          instance = { all = false, names = {}, fullNames = {} },
-          keyword = { all = false, names = {}, fullNames = {} },
-          module = { all = false, names = {}, fullNames = {} },
-          param = { all = false, names = {}, fullNames = {} },
-          path = { all = false, names = {}, fullNames = {} },
-          property = { all = false, names = {}, fullNames = {} },
-          statement = { all = false, names = {}, fullNames = {} },
-        },
-      },
-
-      jediSettings = {
-        autoImportModules = {},
-        caseInsensitiveCompletion = true,
-        debug = false,
-      },
-
-      markupKindPreferred = 'markdown',
-
-      workspace = {
-        extraPaths = {},
-
-        symbols = {
-          ignoreFolders = { '.nox', '.tox', '.venv', '__pycache__', 'venv' },
-          maxSymbols = 20,
-        },
-      },
-    },
-  },
-
-  basedpyright = {
-    enabled = vim.fn.executable 'basedpyright' == 1,
-
-    on_init = function(client, _)
-      client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
-        pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
-      })
-    end,
-
-    settings = {
-      basedpyright = {
-        analysis = {
-          typeCheckingMode = 'strict',
-          deprecateTypingAliases = true,
-          diagnosticSeverityOverrides = {
-            reportDeprecated = 'warning',
-          },
-
-          inlayHints = {
-            variableTypes = true,
-            functionReturnTypes = true,
-            callArgumentNames = true,
-            pytestParameters = true,
-          },
-        },
-      },
-    },
-  },
-
-  jdtls = { enabled = vim.fn.executable 'jdtls' == 1 },
-
-  hyprls = { enabled = vim.fn.executable 'hyprls' == 1 },
-
-  texlab = {
-    enabled = vim.fn.executable 'texlab' == 1,
-
-    settings = {
-      texlab = {
-        build = {
-          executable = 'tectonic',
-
-          args = {
-            '-X',
-            'build',
-          },
-
-          onSave = true,
-          forwardSearchAfter = true,
-        },
-
-        forwardSearch = {
-          executable = 'zathura', -- or "sioyek", "evince", etc.
-
-          args = {
-            '--synctex-forward',
-            '%l:1:%f',
-            '%p',
-          },
-        },
-
-        chktex = {
-          onEdit = true,
-          onOpenAndSave = true,
-        },
-
-        diagnosticsDelay = 300,
-        latexFormatter = 'latexindent',
-
-        latexindent = {
-          modifyLineBreaks = true,
-        },
-      },
-    },
-  },
-
-  tinymist = {
-    enabled = vim.fn.executable 'tinymist' == 1,
-
-    settings = {
-      formatterMode = 'typstyle',
-      exportPdf = 'onType',
-      semanticTokens = 'disable',
-    },
-  },
-
-  denols = {
-    enabled = vim.fn.executable 'deno' == 1,
-    filetypes = { 'typescript', 'javascript' },
-  },
-
-  rust_analyzer = {
-    enabled = vim.fn.executable 'rust-analyzer' == 1,
-
-    settings = {
-      ['rust-analyzer'] = {
-        cargo = {
-          allFeatures = true,
-          loadOutDirsFromCheck = true,
-          buildScripts = { enable = true },
-        },
-
-        imports = { granularity = { group = 'module' }, prefix = 'self' },
-        -- Add "enabled = false", if you want to disable it
-        checkOnSave = { command = 'clippy' },
-        -- Add "enabled = false", if you want to disable them
-        diagnostics = {},
-      },
-    },
-  },
-
-  clangd = { enabled = vim.fn.executable 'clangd' == 1 },
-}
-
 local lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspLog' },
 
   ft = {
     -- Web Languages
-    'typescript', 'javascript', 'html', 'css',
+    'typescript',
+    'javascript',
+    'html',
+    'css',
     -- Script Languages
-    'vim', 'lua', 'sh', 'python',
+    'vim',
+    'lua',
+    'sh',
+    'python',
     -- Compiled Languages
-    'c', 'cpp', 'rust', 'java',
+    'c',
+    'cpp',
+    'rust',
+    'java',
     -- Document Filetypes
     'tex',
+    'typst',
   },
 
   ---@module 'lspconfig'
@@ -345,6 +95,24 @@ lspconfig.opts.on_attach = function(client, bufnr)
     })
   end
 
+  if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentColor, bufnr) then
+    local color_augroup = vim.api.nvim_create_augroup('nuance-lsp-color', { clear = true })
+    vim.api.nvim_create_autocmd('ColorScheme', {
+      group = color_augroup,
+      callback = function()
+        vim.lsp.buf.clear_references()
+        vim.lsp.buf.document_color()
+      end,
+    })
+    vim.api.nvim_create_autocmd('LspDetach', {
+      group = color_augroup,
+      callback = function(ev)
+        vim.lsp.buf.clear_references()
+        vim.api.nvim_clear_autocmds { group = 'nuance-lsp-color', buffer = ev.buf }
+      end,
+    })
+  end
+
   -- vim.opt_local.foldmethod = 'expr'
   -- vim.opt_local.foldexpr = 'v:lua.vim.lsp.foldexpr()'
   -- vim.opt_local.foldtext = 'v:lua.vim.lsp.foldtext()'
@@ -404,11 +172,10 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   )
 
   -- Merge Mason installed servers list with external servers list
-  local servers = mason_servers
-  vim.g.configured_language_servers = servers
+  vim.g.configured_language_servers = require 'nuance.core.lsps'
 
   -- Configure the LSP servers with nvim-lspconfig
-  for name, config in pairs(servers) do
+  for name, config in pairs(vim.g.servers) do
     local server_conf = vim.tbl_deep_extend('force', {}, config)
     server_conf.on_init = function(client, initialize_result)
       vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
@@ -456,10 +223,17 @@ local lazydev = {
 
 local mason = {
   'williamboman/mason.nvim',
-  config = function()
-    require('mason').setup()
+  init = function()
+    -- add binaries installed by mason.nvim to path
+    local is_windows = vim.fn.has 'win32' ~= 0
+    local sep = is_windows and '\\' or '/'
+    local delim = is_windows and ';' or ':'
+    vim.env.PATH = table.concat({ vim.fn.stdpath 'data', 'mason', 'bin' }, sep) .. delim .. vim.env.PATH
   end,
-  cmd = { 'Mason', 'MasonLog' },
+  config = function(_, opts)
+    require('mason').setup(opts)
+  end,
+  cmd = { 'Mason', 'MasonInstall', 'MasonLog' },
 } -- NOTE: Must be loaded before dependants
 
 return {

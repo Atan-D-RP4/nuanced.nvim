@@ -1,6 +1,5 @@
 -- [[ Basic Autocommands ]]
 
-
 ---@param name string
 ---@param opts? vim.keymap.set.Opts|string
 local function augroup(name, opts)
@@ -22,6 +21,24 @@ autocmd('TextYankPost', {
     if vim.g.cur_yank_pre then
       vim.api.nvim_win_set_cursor(0, vim.g.cur_yank_pre)
       vim.g.cur_yank_pre = nil
+    end
+  end,
+})
+
+vim.api.nvim_create_autocmd('Colorscheme', {
+  desc = 'Set custom colors for diff highlighting',
+  group = augroup('diffcolors', { clear = true }),
+  callback = function()
+    if vim.o.background == 'dark' then
+      vim.api.nvim_set_hl(0, 'DiffAdd', { bold = true, fg = 'none', bg = '#2e4b2e' })
+      vim.api.nvim_set_hl(0, 'DiffDelete', { bold = true, fg = 'none', bg = '#4c1e15' })
+      vim.api.nvim_set_hl(0, 'DiffChange', { bold = true, fg = 'none', bg = '#45565c' })
+      vim.api.nvim_set_hl(0, 'DiffText', { bold = true, fg = 'none', bg = '#996d74' })
+    else
+      vim.api.nvim_set_hl(0, 'DiffAdd', { bold = true, fg = 'none', bg = 'palegreen' })
+      vim.api.nvim_set_hl(0, 'DiffDelete', { bold = true, fg = 'none', bg = 'tomato' })
+      vim.api.nvim_set_hl(0, 'DiffChange', { bold = true, fg = 'none', bg = 'lightblue' })
+      vim.api.nvim_set_hl(0, 'DiffText', { bold = true, fg = 'none', bg = 'lightpink' })
     end
   end,
 })
@@ -271,7 +288,7 @@ if vim.diagnostic.config().virtual_lines then
   autocmd({ 'CursorMoved', 'DiagnosticChanged' }, {
     desc = 'Toggle virtual lines based on diagnostics count',
     group = augroup('diagnostic_only_virtlines', {}),
-    callback = function()
+    callback = function(ev)
       if og_virt_line == nil then
         og_virt_line = vim.diagnostic.config().virtual_lines
       end
@@ -291,7 +308,7 @@ if vim.diagnostic.config().virtual_lines then
 
       local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
 
-      if #vim.diagnostic.get(0, { lnum = lnum }) < 2 then
+      if #vim.diagnostic.get(ev.buf, { lnum = lnum }) < 2 then
         vim.diagnostic.config { virtual_text = og_virt_text }
         vim.diagnostic.config { virtual_lines = false }
       else
@@ -305,20 +322,21 @@ else
     desc = 'Toggle Diagnostic Float based on diagnostic count',
     group = augroup 'diagnostic-float',
     pattern = '*',
-    callback = function()
-      local bufnr = vim.api.nvim_get_current_buf()
+    callback = function(ev)
       local line = vim.api.nvim_win_get_cursor(0)[1] - 1
-      local diagnostics = vim.diagnostic.get(bufnr, { lnum = line })
+      local diagnostics = vim.diagnostic.get(ev.buf, { lnum = line })
 
-      if #diagnostics > 0 then
-        local opts = {
+      if #diagnostics < 2 then
+        vim.diagnostic.config { virtual_text = true }
+      else
+        vim.diagnostic.config { virtual_text = false }
+        vim.diagnostic.open_float {
           focusable = false,
           close_events = { 'CursorMoved', 'InsertEnter', 'FocusLost' },
           border = 'rounded',
-          source = 'always',
+          source = 'if_many',
           prefix = ' ',
         }
-        vim.diagnostic.open_float({ border = 'rounded', source = 'if_many' }, opts)
       end
     end,
   })
@@ -328,7 +346,7 @@ autocmd({ 'BufEnter' }, {
   desc = 'Treesitter Folding',
   group = augroup 'treesitter-folding',
   pattern = '*',
-  callback = function(e)
+  callback = function()
     vim.defer_fn(function()
       if vim.g.treesitter_folding_enabled then
         vim.opt.foldenable = true
@@ -394,23 +412,15 @@ vim.api.nvim_create_user_command('SearchEngineQuery', function(opts)
   vim.ui.open(selected.url .. query)
 end, { nargs = '?', desc = 'Search using a specified engine' })
 
--- Define highlight groups
-vim.api.nvim_command 'highlight Filepath gui=underline cterm=underline guifg=#F38BA8'
-
--- Match filepaths (fixed regex)
-vim.cmd 'match Filepath /\\v(\\~\\/|\\.\\.\\/|\\.\\/|\\/)([^\\/ ]+\\/)*[^\\/ ]+(\\.[a-zA-Z0-9]+)*(:\\d+){0,2}/'
-
 vim.keymap.set('c', '<C-;>', function()
   vim.print(vim.fn.winnr '$' == 0)
 end, { desc = 'Check if command window is open' })
 
--- NOTE: (This works but needs to be improved for Cmdwin)
--- Toggle relative number on the basis of mode
 autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusLost', 'CmdwinEnter' }, {
   group = augroup('NumberToggle', { clear = true }),
   pattern = '*',
   callback = function(ev)
-    if vim.bo[ev.buf].buftype ~= 'snacks_dashboard' then
+    if vim.bo[ev.buf].filetype:match '^snacks_' then
       return
     end
     -- Check if the event is one of the specified events or if the window is a command window
@@ -456,6 +466,12 @@ autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusL
 --     end
 --   end,
 -- })
+
+-- Define highlight groups
+-- vim.api.nvim_command 'highlight Filepath gui=underline cterm=underline guifg=#F38BA8'
+
+-- Match filepaths (fixed regex)
+-- vim.cmd 'match Filepath /\\v(\\~\\/|\\.\\.\\/|\\.\\/|\\/)([^\\/ ]+\\/)*[^\\/ ]+(\\.[a-zA-Z0-9]+)*(:\\d+){0,2}/'
 
 -- local ns = vim.api.nvim_create_namespace 'filepath_highlighter'
 --

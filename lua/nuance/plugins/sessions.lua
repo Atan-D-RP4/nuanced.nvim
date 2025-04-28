@@ -170,11 +170,7 @@ M = {
   dependencies = {
     'folke/snacks.nvim',
   },
-}
-
----@diagnostic disable-next-line: duplicate-set-field
-M.config = function()
-  require('mini.sessions').setup {
+  opts = {
     autoread = false,
     directory = vim.fn.stdpath 'data' .. '/sessions',
     file = '', -- File for local session (use `''` to disable)
@@ -185,7 +181,32 @@ M.config = function()
         end,
       },
     },
-  }
+  },
+}
+
+---@diagnostic disable-next-line: duplicate-set-field
+M.config = function(_, opts)
+  require('mini.sessions').setup(opts)
+
+  local session_read = require('mini.sessions').read
+  require('mini.sessions').read = function(name, read_opts)
+    -- Use vim.loop (libuv) for async operations
+    local timer = vim.loop.new_timer()
+    if timer == nil then
+      print 'Failed to create timer'
+      return
+    end
+
+    -- This will run in the background without blocking the editor
+    timer:start(
+      0,
+      10,
+      vim.schedule_wrap(function()
+        session_read(name, read_opts)
+        timer:close()
+      end)
+    )
+  end
 
   -- Check if session dir exists and if not create it
   if vim.fn.isdirectory(require('mini.sessions').config.directory) == 0 then
@@ -203,10 +224,11 @@ M.config = function()
   ---@diagnostic disable-next-line: duplicate-set-field
   statusline.section_filename = function(args)
     local session = vim.g.active_session
-    if session == nil then
-      session = 'None'
+    if session == '' then
+      -- use an icon for default session
+      session = '■'
     else
-      session = '■ ' .. session
+      session = ' ' .. session
     end
     return session .. ' ' .. default_section_filename(args)
   end

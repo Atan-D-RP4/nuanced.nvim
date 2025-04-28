@@ -138,6 +138,7 @@ M.opts.picker = {
         action = function(match)
           local idx = picker.list:row2idx(match.pos[1])
           picker.list:_move(idx, true, true)
+          picker:action 'confirm'
         end,
       }
     end,

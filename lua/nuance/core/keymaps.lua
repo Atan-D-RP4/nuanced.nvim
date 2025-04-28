@@ -35,6 +35,7 @@ local maps = {
   --   end,
   --   'Treesitter % Motion',
   -- },
+
   {
     { 'n', 'i' },
     '<C-j>',
@@ -66,17 +67,6 @@ local maps = {
     end,
     'Treesitter Jump to Node-Start',
   },
-
-  -- Better Escape
-  { 'n', '<Esc>', '<C-c><C-c>', 'Better Escape' },
-  { 'i', '<Esc>', '<Esc><Esc>', 'Better Escape' },
-
-  -- Clear highlights on search when pressing <Esc> in normal mode
-
-  { 'n', '<Esc>', '<cmd>nohlsearch<CR>', 'Clear highlights on search' },
-
-  -- Diagnostic keymaps
-  { 'n', '<leader>q', vim.diagnostic.setloclist, 'Open diagnostic [Q]uickfix list' },
 
   -- {
   --   { 'n', 't' },
@@ -119,11 +109,23 @@ local maps = {
   --   'Toggle float terminal',
   -- },
 
+  { 'x', '/', '<Esc>/\\%V', 'Search in Visual Selection' },
+
   -- NOTE: This won't work in all terminal emulators/tmux/etc. Try other mappings
   -- or just use <C-\><C-n> to exit terminal mode
   { 't', '<C-w>q', '<C-\\><C-n>', 'Exit terminal mode' },
   { 't', '<C-w><C-q>', '<C-\\><C-n>', 'Exit terminal mode' },
   { 't', '<M-r>', [['<C-\><C-N>"'.nr2char(getchar()).'pi']], { desc = 'Vim Register Select in Terminal Mode', expr = true } },
+
+  -- Better Escape
+  { 'n', '<Esc>', '<C-c><C-c>', 'Better Escape' },
+  { 'i', '<Esc>', '<Esc><Esc>', 'Better Escape' },
+
+  -- Clear highlights on search when pressing <Esc> in normal mode
+  { 'n', '<Esc>', '<cmd>nohlsearch<CR>', 'Clear highlights on search' },
+
+  -- Diagnostic keymaps
+  { 'n', '<leader>q', vim.diagnostic.setloclist, 'Open diagnostic [Q]uickfix list' },
 
   -- Custom Floating Togglable Terminal
   -- { { 'n', 't' }, '<C-w>t', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
@@ -143,46 +145,6 @@ local maps = {
 
   -- My Keybinds
   { 'i', '<C-U>', '<C-G>u<C-U>' },
-
-  -- Buffer Management
-  -- { 'n', '<leader>ed', ':bdelete! %<CR>', { desc = 'Delete Buffer' } },
-  { 'n', '<leader>en', '<cmd>enew<CR>', 'New Buffer' },
-  { 'n', '<leader>eu', ':update! <CR>', 'Refresh Buffer' },
-
-  {
-    'n',
-    '<leader>ed',
-    function()
-      local has_snacks, snacks = pcall(require, 'snacks')
-      if has_snacks then
-        snacks.bufdelete()
-      else
-        local bufnr = vim.api.nvim_get_current_buf()
-        if vim.api.nvim_buf_is_valid(bufnr) then
-          vim.api.nvim_buf_delete(bufnr, { force = true })
-        end
-      end
-    end,
-    'Delete Buffer',
-  },
-
-  {
-    'n',
-    '<leader>eD',
-    function()
-      local has_snacks, snacks = pcall(require, 'snacks')
-      if has_snacks then
-        snacks.bufdelete.all()
-      else
-        for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-          if vim.api.nvim_buf_is_valid(bufnr) then
-            vim.api.nvim_buf_delete(bufnr, { force = true })
-          end
-        end
-      end
-    end,
-    'Delete All Buffers',
-  },
 
   { 'n', '<Tab>', ':bnext<CR>', 'Next Buffer' },
   { 'n', '<S-Tab>', ':bprevious<CR>', 'Previous Buffer' },
@@ -245,6 +207,46 @@ local maps = {
   -- map('x', '<leader>P', '"_dP', 'Paste without yanking')
 
   { { 'n', 'v' }, '-', 'g$', 'Move to the first non-blank character of the line' },
+
+  -- Buffer Management
+  -- { 'n', '<leader>ed', ':bdelete! %<CR>', { desc = 'Delete Buffer' } },
+  { 'n', '<leader>en', '<cmd>enew<CR>', 'New Buffer' },
+  { 'n', '<leader>eu', ':update! <CR>', 'Refresh Buffer' },
+
+  {
+    'n',
+    '<leader>ed',
+    function()
+      local has_snacks, snacks = pcall(require, 'snacks')
+      if has_snacks then
+        snacks.bufdelete()
+      else
+        local bufnr = vim.api.nvim_get_current_buf()
+        if vim.api.nvim_buf_is_valid(bufnr) then
+          vim.api.nvim_buf_delete(bufnr, { force = true })
+        end
+      end
+    end,
+    'Delete Buffer',
+  },
+
+  {
+    'n',
+    '<leader>eD',
+    function()
+      local has_snacks, snacks = pcall(require, 'snacks')
+      if has_snacks then
+        snacks.bufdelete.all()
+      else
+        for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+          if vim.api.nvim_buf_is_valid(bufnr) then
+            vim.api.nvim_buf_delete(bufnr, { force = true })
+          end
+        end
+      end
+    end,
+    'Delete All Buffers',
+  },
 
   {
     'n',
@@ -326,23 +328,27 @@ vim.tbl_map(
 )
 
 vim.tbl_map(function(map)
-  local lhs = '<C-w>' .. map[2]
-  local rhs = function()
+  require('nuance.core.utils').map(map[1], '<C-w>' .. map[2], function()
     vim.api.nvim_command('wincmd ' .. map[2])
     vim.api.nvim_input '<C-W>'
-  end
-  require('nuance.core.utils').map(map[1], lhs, rhs or '', map[3] or {})
+  end or '', map[3] or {})
 end, {
-  { 'n', 'w', 'Window: Go to previous' },
   { 'n', 'j', 'Window: Go down' },
   { 'n', 'k', 'Window: Go up' },
   { 'n', 'h', 'Window: Go left' },
   { 'n', 'l', 'Window: Go right' },
+
+  { 'n', 'w', 'Window: Go to previous' },
   { 'n', 's', 'Window: Split horizontal' },
   { 'n', 'v', 'Window: Split vertical' },
+
   { 'n', 'q', 'Window: Delete' },
   { 'n', 'o', 'Window: Only (close rest)' },
-  { 'n', '=', 'Balance windows' },
+
+  { 'n', '_', 'Window: Maximize Height' },
+  { 'n', '|', 'Window: Maximize Width' },
+  { 'n', '=', 'Window: Equalize' },
+
   -- move
   { 'n', 'K', 'Window: Move to top' },
   { 'n', 'J', 'Window: Move to bottom' },
@@ -351,29 +357,17 @@ end, {
 })
 
 vim.tbl_map(function(map)
-  local lhs = '<C-w>' .. map[2]
-  local rhs = function()
+  require('nuance.core.utils').map(map[1], '<C-w>' .. map[2][1], function()
     local saved_cmdheight = vim.o.cmdheight
-
-    if map[2] == '+' then
-      vim.api.nvim_command 'resize +5'
-    elseif map[2] == '-' then
-      vim.api.nvim_command 'resize -5'
-    elseif map[2] == '<' then
-      vim.api.nvim_command 'vertical resize -5'
-    elseif map[2] == '>' then
-      vim.api.nvim_command 'vertical resize +5'
-    end
-
+    vim.api.nvim_command(map[2][2])
     vim.o.cmdheight = saved_cmdheight
     vim.api.nvim_input '<C-w>'
-  end
-  require('nuance.core.utils').map(map[1], lhs, rhs, map[4] or {})
+  end, map[4] or {})
 end, {
-  { 'n', '+', 'Window: Grow vertical' },
-  { 'n', '-', 'Window: Shrink vertical' },
-  { 'n', '<', 'Window: Shrink horizontal' },
-  { 'n', '>', 'Window: Grow horizontal' },
+  { 'n', { '+', 'resize +5' }, 'Window: Grow vertical' },
+  { 'n', { '-', 'resize -5' }, 'Window: Shrink vertical' },
+  { 'n', { '<', 'vertical resize +5' }, 'Window: Shrink horizontal' },
+  { 'n', { '>', 'vertical resize -5' }, 'Window: Grow horizontal' },
 })
 
 -- vim: ts=2 sts=2 sw=2 et

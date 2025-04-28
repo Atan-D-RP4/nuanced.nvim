@@ -6,6 +6,8 @@ local gitcore = {
     { '<leader>gl', '<cmd>Git ++curwin log<CR>', desc = '[G]it log', mode = 'n' },
     { '<leader>gh', '<cmd>Git ++curwin reflog<CR>', desc = '[G]it log', mode = 'n' },
     { '<leader>gs', '<cmd>Git status -s<CR>', desc = '[G]it log', mode = 'n' },
+    { '<leader>gd', '<cmd>Gdiffsplit<CR>', desc = '[G]it [d]iff against index', mode = 'n' },
+    { '<leader>gD', '<cmd>Gdiffsplit!<CR>', desc = '[G]it [D]iff against last commit', mode = 'n' },
   },
 }
 
@@ -90,7 +92,6 @@ gitsigns.opts.on_attach = function(bufnr)
   map('n', '<leader>gR', signs.reset_buffer, { desc = '[G]it [R]eset buffer' })
   map('n', '<leader>gp', signs.preview_hunk, { desc = '[G]it [p]review hunk' })
   map('n', '<leader>gb', signs.blame_line, { desc = '[G]it [b]lame line' })
-  map('n', '<leader>gd', signs.diffthis, { desc = '[G]it [d]iff against index' })
   map('n', '<leader>gD', function()
     signs.diffthis '@'
   end, { desc = 'git [D]iff against last commit' })
@@ -107,7 +108,7 @@ gitsigns.opts.on_attach = function(bufnr)
       state = 1
     end
     signs.toggle_signs()
-  end, { desc = '[T]oggle [g]it signs' })
+  end, { desc = '[T]oggle [G]it signs' })
 end
 
 return {

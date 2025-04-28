@@ -47,6 +47,7 @@ M.opts = {
   -- end,
 
   formatters_by_ft = {
+    markdown = { 'mdformat' },
     lua = { 'stylua' },
     python = { 'ruff_format' },
     rust = { 'rustfmt' },

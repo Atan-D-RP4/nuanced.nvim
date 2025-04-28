@@ -61,7 +61,7 @@ local statusline = {
         active = function()
           local mode, mode_hl = statusline.section_mode { trunc_width = 50 }
           local git = statusline.section_git { trunc_width = 40 }
-          local diff = statusline.section_diff { trunc_width = 75 }
+          -- local diff = statusline.section_diff { trunc_width = 75 }
           local diagnostics = statusline.section_diagnostics { trunc_width = 75 }
           local lsp = statusline.section_lsp { trunc_width = 75 }
           local filename = statusline.section_filename { trunc_width = 140 }
@@ -81,7 +81,7 @@ local statusline = {
           }
           if table.concat({ git, diff }):len() > 0 then
             table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
-            table.insert(tab, { hl = 'MiniStatuslineDevinfo', strings = { git, diff } })
+            table.insert(tab, { hl = 'MiniStatuslineDevinfo', strings = { git } })
             table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
             table.insert(tab, '%<') -- Mark general truncate point
           end
@@ -273,7 +273,7 @@ local noice = {
         ['cmp.entry.get_documentation'] = true,
       },
       signature = {
-        enabled = true,
+        enabled = false,
         view = nil, -- when nil, use defaults from documentation
         ---@type NoiceViewOptions
         opts = {}, -- merged with defaults from documentation
@@ -301,7 +301,7 @@ local noice = {
       },
     },
     presets = {
-      lsp_doc_border = true,
+      lsp_doc_border = vim.o.winborder == '' and false or true, -- add a border to hover docs and signature help
       command_palette = true,
       bottom_search = true, -- use a classic bottom cmdline for search
     },
@@ -424,8 +424,8 @@ local M = {
   tabline,
   themes.tokyonight,
   icons,
-  noice,
   markview,
+  noice,
   -- todo_comments,
   -- notify,
   -- transparent,
