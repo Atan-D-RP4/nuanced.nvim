@@ -109,6 +109,24 @@ local maps = {
   --   'Toggle float terminal',
   -- },
 
+  {
+    'n',
+    '<C-a>',
+    function()
+      require('nuance.core.lsp_dial').lsp_dial(true)
+    end,
+    { noremap = true },
+  },
+
+  {
+    'n',
+    '<C-x>',
+    function()
+      require('nuance.core.lsp_dial').lsp_dial(false)
+    end,
+    { noremap = true },
+  },
+
   { 'x', '/', '<Esc>/\\%V', 'Search in Visual Selection' },
 
   -- NOTE: This won't work in all terminal emulators/tmux/etc. Try other mappings

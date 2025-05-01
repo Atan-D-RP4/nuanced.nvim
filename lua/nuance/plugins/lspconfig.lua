@@ -27,6 +27,7 @@ local lspconfig = {
   ---@type lspconfig.Config
   opts = {},
 }
+
 ---@param client vim.lsp.Client
 ---@param bufnr number
 lspconfig.opts.on_attach = function(client, bufnr)
@@ -171,11 +172,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     opts.capabilities or {}
   )
 
-  -- Merge Mason installed servers list with external servers list
-  vim.g.configured_language_servers = require 'nuance.core.lsps'
-
-  -- Configure the LSP servers with nvim-lspconfig
-  for name, config in pairs(vim.g.servers) do
+  for name, config in pairs(vim.g.configured_language_servers) do
     local server_conf = vim.tbl_deep_extend('force', {}, config)
     server_conf.on_init = function(client, initialize_result)
       vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })

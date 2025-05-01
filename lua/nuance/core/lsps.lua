@@ -1,4 +1,4 @@
-return {
+vim.g.configured_language_servers = {
   lua_ls = {
     enabled = vim.fn.executable 'lua-language-server' == 1,
     filetypes = { 'lua' },

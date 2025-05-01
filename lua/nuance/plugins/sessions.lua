@@ -180,6 +180,14 @@ M = {
           vim.cmd [[ silent! %bwipeout! ]]
         end,
       },
+      post = {
+        read = function()
+          -- Exit insert mode if we are in it
+          if vim.fn.mode() == 'i' then
+            vim.cmd [[ stopinsert ]]
+          end
+        end,
+      },
     },
   },
 }
@@ -189,23 +197,9 @@ M.config = function(_, opts)
   require('mini.sessions').setup(opts)
 
   local session_read = require('mini.sessions').read
+  ---@diagnostic disable-next-line: duplicate-set-field
   require('mini.sessions').read = function(name, read_opts)
-    -- Use vim.loop (libuv) for async operations
-    local timer = vim.loop.new_timer()
-    if timer == nil then
-      print 'Failed to create timer'
-      return
-    end
-
-    -- This will run in the background without blocking the editor
-    timer:start(
-      0,
-      10,
-      vim.schedule_wrap(function()
-        session_read(name, read_opts)
-        timer:close()
-      end)
-    )
+    require('nuance.core.utils').async_do(100, 0, session_read, name, read_opts)
   end
 
   -- Check if session dir exists and if not create it
