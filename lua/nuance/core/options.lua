@@ -2,10 +2,7 @@
 
 -- NOTE: You can change these options as you wish!
 
-
 local opt = vim.opt
-
-opt.scrolloff = 10
 
 opt.isfname:append '@-@'
 
@@ -99,7 +96,6 @@ opt.splitbelow = true
 
 -- Sets how neovim will display certain whitespace characters in the editor.
 
-
 opt.list = true
 opt.listchars = { tab = '» ', trail = '·', nbsp = '␣', extends = '›', precedes = '‹' }
 opt.fillchars = {
@@ -126,7 +122,7 @@ opt.cursorline = true
 opt.cursorlineopt = 'both'
 
 -- Minimal number of screen lines to keep above and below the cursor.
-opt.scrolloff = 10
+opt.scrolloff = 999
 
 opt.hidden = true
 opt.encoding = 'utf-8'
@@ -164,9 +160,9 @@ end
 
 -- Backup and Swap Files
 opt.swapfile = true
-opt.directory = vim.fn.stdpath 'cache' .. '/swap/'
+opt.directory = cache_dir .. '/swap/'
 opt.backup = true
-opt.backupdir = vim.fn.stdpath 'cache' .. '/backup/'
+opt.backupdir = cache_dir .. '/backup/'
 
 vim.g.treesitter_diagnostics = true
 vim.g.treesitter_lint_available = vim.fn.has 'nvim-0.11' == 1
@@ -179,7 +175,7 @@ vim.g.loaded_python3_provider = 0
 
 opt.foldmethod = 'expr'
 opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-opt.foldtext = ''
+opt.foldtext = 'v:lua.require("nuance.core.utils").custom_foldtext()'
 opt.foldlevel = vim.g.treesitter_folding_enabled and 99 or 0
 opt.fillchars:append { fold = ' ', foldopen = '▾', foldclose = '▸', foldsep = '│' }
 

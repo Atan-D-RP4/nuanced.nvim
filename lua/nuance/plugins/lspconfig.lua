@@ -30,7 +30,7 @@ local lspconfig = {
 
 ---@param client vim.lsp.Client
 ---@param bufnr number
-lspconfig.opts.on_attach = function(client, bufnr)
+local on_attach = function(client, bufnr)
   -- Set the priority of the semantic tokens to be lower than
   -- that of Treesitter, so that Treesitter is always highlighting
   -- over LSP semantic tokens.
@@ -122,18 +122,6 @@ end
 ---@module 'lspconfig'
 ---@param opts lspconfig.Config
 lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
-  vim.api.nvim_create_autocmd('LspAttach', {
-    group = vim.api.nvim_create_augroup('nuance-lsp-attach', { clear = false }),
-    ---@param event vim.api.keyset.create_autocmd.callback_args
-    callback = function(event)
-      local client = vim.lsp.get_client_by_id(event.data.client_id)
-      if client == nil then
-        return
-      end
-      opts.on_attach(client, event.buf)
-    end,
-  })
-
   vim.api.nvim_create_autocmd('LspDetach', {
     group = vim.api.nvim_create_augroup('nuance-lsp-detach', { clear = false }),
     callback = function(event)
@@ -146,7 +134,9 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         end
         local attached_buffers_count = vim.tbl_count(cur_client.attached_buffers)
         if attached_buffers_count == 0 then
-          vim.notify('No attached buffers to client: ' .. cur_client.name, vim.log.levels.INFO, { title = 'LSP' })
+          local msg = 'No attached buffers to client: ' .. cur_client.name .. '\n'
+          msg = msg .. 'Stopping Server: ' .. cur_client.name
+          vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
           cur_client:stop(true)
         end
       end, 200)
@@ -155,12 +145,10 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
 
   vim.api.nvim_set_hl(0, 'LspReferenceText', {})
 
-  -- NOTE: Extend nvim LSP client capabilities for completion
   -- LSP servers and clients are able to communicate to each other what features they support.
-  --  By default, Neovim doesn't support everything that is in the LSP specification.
-  --  When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
-  --  So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
-  --
+  -- By default, Neovim doesn't support everything that is in the LSP specification.
+  -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
+  -- So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
   local has_cmp, cmp_nvim_lsp = pcall(require, 'cmp_nvim_lsp')
   local has_blink, blink = pcall(require, 'blink.cmp')
   local capabilities = vim.tbl_deep_extend(
@@ -172,34 +160,38 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     opts.capabilities or {}
   )
 
-  for name, config in pairs(vim.g.configured_language_servers) do
-    local server_conf = vim.tbl_deep_extend('force', {}, config)
-    server_conf.on_init = function(client, initialize_result)
-      vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
-      if config.on_init then
-        config.on_init(client, initialize_result)
+  require('nuance.core.utils').async_do(100, 0, function()
+    for name, config in pairs(vim.g.configured_language_servers) do
+      local server_conf = vim.tbl_deep_extend('force', {}, config)
+      server_conf.on_init = function(client, initialize_result)
+        vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
+        if config.on_init then
+          config.on_init(client, initialize_result)
+        end
       end
-    end
-    server_conf.before_init = function(params, client_config)
-      if config.before_init then
-        config.before_init(params, client_config)
+      server_conf.before_init = function(params, client_config)
+        if config.before_init then
+          config.before_init(params, client_config)
+        end
       end
-    end
-    server_conf.on_exit = function(client, exit_code)
-      vim.notify('De-Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
-      if config.on_exit then
-        config.on_exit(client, exit_code)
+      server_conf.on_exit = function(client, exit_code)
+        vim.notify('De-Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
+        if config.on_exit then
+          config.on_exit(client, exit_code)
+        end
       end
+      server_conf.capabilities = vim.tbl_extend('force', {}, capabilities, config.capabilities or {})
+      server_conf.on_attach = on_attach
+      -- server_conf.on_attach = function(client, bufnr)
+      --   if client.server_capabilities.documentSymbolProvider then
+      --     require('nvim-navic').attach(client, bufnr)
+      --   end
+      --   config.on_attach(client, bufnr)
+      -- end,
+      require('lspconfig')[name].setup(server_conf)
     end
-    server_conf.capabilities = vim.tbl_extend('force', {}, capabilities, config.capabilities or {})
-    -- server_conf.on_attach = function(client, bufnr)
-    --   if client.server_capabilities.documentSymbolProvider then
-    --     require('nvim-navic').attach(client, bufnr)
-    --   end
-    --   config.on_attach(client, bufnr)
-    -- end,
-    require('lspconfig')[name].setup(server_conf)
-  end
+    vim.cmd [[ exec 'LspStart' ]]
+  end)
 end
 
 local lazydev = {

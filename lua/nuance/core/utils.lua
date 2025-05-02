@@ -1,5 +1,78 @@
 local M = {}
 
+---@return table
+function M.custom_foldtext()
+  local start = vim.fn.getline(vim.v.foldstart):gsub('\t', string.rep(' ', vim.o.tabstop))
+  local end_str = vim.fn.getline(vim.v.foldend)
+  local end_ = vim.trim(end_str)
+  local result = {}
+
+  ---@param items table
+  ---@param s string
+  ---@param lnum integer
+  ---@param coloff? integer
+  local function fold_virt_text(items, s, lnum, coloff)
+    if not coloff then
+      coloff = 0
+    end
+    local text = ''
+    local hl
+    for i = 1, #s do
+      local char = s:sub(i, i)
+      local hls = vim.treesitter.get_captures_at_pos(0, lnum, coloff + i - 1)
+      local _hl = hls[#hls]
+      if _hl then
+        local new_hl = '@' .. _hl.capture
+        if new_hl ~= hl then
+          table.insert(items, { text, hl })
+          text = ''
+          hl = nil
+        end
+        text = text .. char
+        hl = new_hl
+      else
+        text = text .. char
+      end
+    end
+    table.insert(items, { text, hl })
+  end
+
+  fold_virt_text(result, start, vim.v.foldstart - 1)
+  table.insert(result, { ' ... ', 'Delimiter' })
+  fold_virt_text(result, end_, vim.v.foldend - 1, #(end_str:match '^(%s+)' or ''))
+  return result
+end
+
+-- I don't really know if this works
+---@param timeout? integer
+---@param repeat_? integer
+---@param callback function
+---@param arg1? any
+---@param ... any
+function M.async_do(timeout, repeat_, callback, arg1, ...)
+  -- Use vim.loop (libuv) for async operations
+  local timer = vim.loop.new_timer()
+  if timer == nil then
+    print 'Failed to create timer'
+    return
+  end
+
+  local args = { ... }
+  timeout = timeout or 100
+  repeat_ = repeat_ or 200
+
+  -- This will run in the background without blocking the editor
+  timer:start(
+    timeout,
+    repeat_,
+    vim.schedule_wrap(function()
+      -- Call the callback function with the provided arguments
+      callback(arg1, unpack(args))
+      timer:close()
+    end)
+  )
+end
+
 ---@param modes string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
 function M.is_key_mapped(modes, lhs)
@@ -217,23 +290,20 @@ function M.buftab_setup()
     group = vim.api.nvim_create_augroup('nuance-buftabs', { clear = true }),
     pattern = '*',
     callback = function()
-      vim.g.nuance_buftabs_count = vim.g.nuance_buftabs_count or 0
-      vim.g.nuance_buftabs_count = vim.g.nuance_buftabs_count + 1
-      vim.schedule(function()
-        vim.g.tab_idx_map = nil
-        local bufs = vim.api.nvim_exec2('buffers', { output = true }).output
-        bufs = vim.split(bufs, '\n', { trimempty = true })
-        bufs = vim.tbl_map(function(s)
-          return tonumber(vim.split(s, ' ', { trimempty = true })[1])
-        end, bufs)
-        local tab_idx_map = {}
-        local idx = 1
-        for _, bufnr in ipairs(bufs) do
-          tab_idx_map[bufnr] = idx
-          idx = idx + 1
-        end
-        vim.g.tab_idx_map = tab_idx_map
-      end)
+      vim.g.nuance_buftabs_count = vim.g.nuance_buftabs_count or 1
+      vim.g.tab_idx_map = nil
+      local bufs = vim.api.nvim_exec2('buffers', { output = true }).output
+      bufs = vim.split(bufs, '\n', { trimempty = true })
+      bufs = vim.tbl_map(function(s)
+        return tonumber(vim.split(s, ' ', { trimempty = true })[1])
+      end, bufs)
+      local tab_idx_map = {}
+      local idx = 1
+      for _, bufnr in ipairs(bufs) do
+        tab_idx_map[bufnr] = idx
+        idx = idx + 1
+      end
+      vim.g.tab_idx_map = tab_idx_map
     end,
   })
 end

@@ -53,11 +53,7 @@ gitsigns.opts = {
 gitsigns.opts.on_attach = function(bufnr)
   local signs = require 'gitsigns'
 
-  local function map(mode, l, r, opts)
-    opts = opts or {}
-    opts.buffer = bufnr
-    vim.keymap.set(mode, l, r, opts)
-  end
+  local map = require('nuance.core.utils').map
 
   -- Navigation
   map('n', ']c', function()
@@ -75,6 +71,8 @@ gitsigns.opts.on_attach = function(bufnr)
       signs.nav_hunk 'prev'
     end
   end, { desc = 'Jump to previous git [c]hange' })
+
+  map({ 'o', 'x' }, 'ih', '<cmd>Gitsigns select_hunk<CR>', { desc = 'Select git hunk' })
 
   -- Actions
   -- visual mode

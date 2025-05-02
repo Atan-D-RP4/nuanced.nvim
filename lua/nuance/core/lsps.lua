@@ -144,7 +144,7 @@ vim.g.configured_language_servers = {
   },
 
   basedpyright = {
-    enabled = false and vim.fn.executable 'basedpyright' == 1,
+    enabled = vim.fn.executable 'basedpyright' == 1,
 
     on_init = function(client, _)
       client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {

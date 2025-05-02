@@ -1,7 +1,8 @@
 require 'nuance.core.clipboard'
 require 'nuance.core.keymaps'
-require 'nuance.core.utils'
 require 'nuance.core.options'
+
+require('nuance.core.utils').async_do(100, 0, require, 'nuance.core.lsps')
 
 -- NOTE: This is for when I convert the nuance.core directory into a Neovim-Lua plugin
 vim.api.nvim_create_autocmd('User', {

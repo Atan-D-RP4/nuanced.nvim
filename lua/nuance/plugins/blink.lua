@@ -59,7 +59,7 @@ M.opts = {
 }
 
 M.opts.completion = {
-  trigger = { show_on_insert_on_trigger_character = false },
+  trigger = { show_on_insert_on_trigger_character = true },
 
   list = {
     selection = {
@@ -167,7 +167,7 @@ M.opts.keymap = {
   ['<C-f>'] = { 'scroll_documentation_down', 'fallback' }, -- Scroll the documentation window [f]orward
 
   ['<C-e>'] = { 'hide' }, -- Hide the completion menu
-  -- ['<CR>'] = { 'select_and_accept', 'fallback' }, -- Accept the completion.
+  ['<CR>'] = { 'select_and_accept', 'fallback' }, -- Accept the completion.
   -- ['<C-y>'] = { 'select_and_accept', 'fallback' }, -- Accept ([y]es) the completion.
 
   ['<C-n>'] = { 'select_next', 'snippet_forward', 'fallback' }, -- Select the [n]ext item

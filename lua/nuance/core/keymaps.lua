@@ -189,23 +189,6 @@ local maps = {
   { 'i', '[,', '[<CR>],<Esc>O' },
   { 'i', '{<CR>', '{<CR>}<Esc>O' },
 
-  -- Have Navigation Keys always center the cursor with zz
-  { 'n', '<C-d>', '<C-d>zz' },
-  { 'n', '<C-u>', '<C-u>zz' },
-  { 'n', '<C-f>', '<C-f>zz' },
-  { 'n', '<C-b>', '<C-b>zz' },
-  { 'n', '<C-t>', '<C-t>zz' },
-  { 'n', '{', '{zz' },
-  { 'n', '}', '}zz' },
-  { 'n', 'n', 'nzz' },
-  { 'n', 'N', 'Nzz' },
-  { 'n', '[c', '[czz' },
-  { 'n', ']c', ']czz' },
-  { 'n', '[m', '[mzz' },
-  { 'n', ']m', ']mzz' },
-  { 'n', '[s', '[szz' },
-  { 'n', ']s', ']szz' },
-
   -- { 'i', '<C-v>', '<C-r>+', {} },
   { { 'n', 'v' }, '<C-q>', '<C-u>' },
 
