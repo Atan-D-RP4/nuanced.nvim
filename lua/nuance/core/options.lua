@@ -124,6 +124,8 @@ opt.cursorlineopt = 'both'
 -- Minimal number of screen lines to keep above and below the cursor.
 opt.scrolloff = 999
 
+opt.jumpoptions:append('view')
+
 opt.hidden = true
 opt.encoding = 'utf-8'
 opt.fileencoding = 'utf-8'

@@ -53,66 +53,67 @@ local statusline = {
       ---@diagnostic disable-next-line: param-type-mismatch
       vim.api.nvim_set_hl(0, hl_fg .. '2', fghl)
     end
+    require('nuance.core.utils').async_do(100, 0, function(opts)
+      statusline.setup {
 
-    statusline.setup {
+        content = {
+          -- Content for active window
+          active = function()
+            local mode, mode_hl = statusline.section_mode { trunc_width = 50 }
+            local git = statusline.section_git { trunc_width = 40 }
+            -- local diff = statusline.section_diff { trunc_width = 75 }
+            local diagnostics = statusline.section_diagnostics { trunc_width = 75 }
+            local lsp = statusline.section_lsp { trunc_width = 75 }
+            local filename = statusline.section_filename { trunc_width = 140 }
+            local fileinfo = statusline.section_fileinfo { trunc_width = 120 }
+            local location = statusline.section_location { trunc_width = 75 }
+            local search = statusline.section_searchcount { trunc_width = 75 }
 
-      content = {
-        -- Content for active window
-        active = function()
-          local mode, mode_hl = statusline.section_mode { trunc_width = 50 }
-          local git = statusline.section_git { trunc_width = 40 }
-          -- local diff = statusline.section_diff { trunc_width = 75 }
-          local diagnostics = statusline.section_diagnostics { trunc_width = 75 }
-          local lsp = statusline.section_lsp { trunc_width = 75 }
-          local filename = statusline.section_filename { trunc_width = 140 }
-          local fileinfo = statusline.section_fileinfo { trunc_width = 120 }
-          local location = statusline.section_location { trunc_width = 75 }
-          local search = statusline.section_searchcount { trunc_width = 75 }
+            make_color(mode_hl, 'MiniStatuslineFilename')
+            make_color('MiniStatuslineDevinfo', 'MiniStatuslineFilename')
+            make_color('MiniStatuslineFileInfo', 'MiniStatuslineFilename')
 
-          make_color(mode_hl, 'MiniStatuslineFilename')
-          make_color('MiniStatuslineDevinfo', 'MiniStatuslineFilename')
-          make_color('MiniStatuslineFileInfo', 'MiniStatuslineFilename')
+            local tab = {
+              { hl = mode_hl .. '2', strings = { '█' } },
+              { hl = mode_hl, strings = { mode } },
+              { hl = mode_hl .. '2', strings = { '█' } },
+              '%<', -- Mark general truncate point
+            }
+            -- if table.concat({ git, diff }):len() > 0 then
+            if table.concat({ git }):len() > 0 then
+              table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
+              table.insert(tab, { hl = 'MiniStatuslineDevinfo', strings = { git } })
+              table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
+              table.insert(tab, '%<') -- Mark general truncate point
+            end
+            table.insert(tab, { hl = 'MiniStatuslineFilename', strings = { ' ', filename, ' ' } })
+            table.insert(tab, '%=')
+            if table.concat({ diagnostics, lsp }):len() > 0 then
+              table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
+              table.insert(tab, { hl = 'MiniStatuslineDevinfo', strings = { diagnostics, lsp } })
+              table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
+            end
+            if fileinfo:len() > 0 then
+              table.insert(tab, { hl = 'MiniStatuslineFileinfo2', strings = { '█' } })
+              table.insert(tab, { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } })
+              table.insert(tab, { hl = 'MiniStatuslineFileinfo2', strings = { '█' } })
+            end
 
-          local tab = {
-            { hl = mode_hl .. '2', strings = { '█' } },
-            { hl = mode_hl, strings = { mode } },
-            { hl = mode_hl .. '2', strings = { '█' } },
-            '%<', -- Mark general truncate point
-          }
-          if table.concat({ git, diff }):len() > 0 then
-            table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
-            table.insert(tab, { hl = 'MiniStatuslineDevinfo', strings = { git } })
-            table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
-            table.insert(tab, '%<') -- Mark general truncate point
-          end
-          table.insert(tab, { hl = 'MiniStatuslineFilename', strings = { ' ', filename, ' ' } })
-          table.insert(tab, '%=')
-          if table.concat({ diagnostics, lsp }):len() > 0 then
-            table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
-            table.insert(tab, { hl = 'MiniStatuslineDevinfo', strings = { diagnostics, lsp } })
-            table.insert(tab, { hl = 'MiniStatuslineDevinfo2', strings = { '█' } })
-          end
-          if fileinfo:len() > 0 then
-            table.insert(tab, { hl = 'MiniStatuslineFileinfo2', strings = { '█' } })
-            table.insert(tab, { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } })
-            table.insert(tab, { hl = 'MiniStatuslineFileinfo2', strings = { '█' } })
-          end
-
-          table.insert(tab, { hl = mode_hl .. '2', strings = { '█' } })
-          table.insert(tab, { hl = mode_hl, strings = { search, location } })
-          table.insert(tab, { hl = mode_hl .. '2', strings = { '█' } })
-          -- Usage of `MiniStatusline.combine_groups()` ensures highlighting and
-          -- correct padding with spaces between groups (accounts for 'missing'
-          -- sections, etc.)
-          return combine_groups(tab)
-        end,
-        -- Content for inactive window(s)
-        inactive = nil,
-      },
-      use_icons = vim.g.have_nerd_font,
-      set_vim_settings = true,
-    }
-
+            table.insert(tab, { hl = mode_hl .. '2', strings = { '█' } })
+            table.insert(tab, { hl = mode_hl, strings = { search, location } })
+            table.insert(tab, { hl = mode_hl .. '2', strings = { '█' } })
+            -- Usage of `MiniStatusline.combine_groups()` ensures highlighting and
+            -- correct padding with spaces between groups (accounts for 'missing'
+            -- sections, etc.)
+            return combine_groups(tab)
+          end,
+          -- Content for inactive window(s)
+          inactive = nil,
+        },
+        use_icons = vim.g.have_nerd_font,
+        set_vim_settings = true,
+      }
+    end)
     -- You can configure sections in the statusline by overriding their
     -- default behavior.
     ---@diagnostic disable-next-line: duplicate-set-field
@@ -377,6 +378,12 @@ local which_key = { -- Useful plugin to show you pending keybinds.
       { '<leader>e', group = '[e] Buffer-Switching', mode = 'n' },
     },
   },
+
+  config = function(_, opts)
+    require('nuance.core.utils').async_do(100, 0, function(opts)
+      require('which-key').setup(opts)
+    end, opts)
+  end,
 }
 
 local markview = {

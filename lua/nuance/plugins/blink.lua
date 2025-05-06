@@ -155,7 +155,7 @@ M.opts.snippets = {
     if filter and filter.direction then
       return require('luasnip').jumpable(filter.direction)
     end
-    return require('luasnip').in_snippet()
+    return require('luasnip').in_snippet() or false
   end,
   jump = function(direction)
     require('luasnip').jump(direction)
@@ -172,6 +172,9 @@ M.opts.keymap = {
 
   ['<C-n>'] = { 'select_next', 'snippet_forward', 'fallback' }, -- Select the [n]ext item
   ['<C-p>'] = { 'select_prev', 'snippet_backward', 'fallback' }, -- Select the [p]revious item
+
+  ['<Tab>'] = { 'snippet_forward', 'fallback' },
+  ['<S-Tab>'] = { 'snippet_backward', 'fallback' },
 
   -- Manually Trigger completions and toggle documentation window
   ['<C-Space>'] = { 'show', 'show_documentation', 'hide_documentation' },

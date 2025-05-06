@@ -50,6 +50,12 @@ gitsigns.opts = {
   },
 }
 
+gitsigns.config = function(_, opts)
+  require('nuance.core.utils').async_do(100, 0, function(opts)
+    require('gitsigns').setup(opts)
+  end, opts)
+end
+
 gitsigns.opts.on_attach = function(bufnr)
   local signs = require 'gitsigns'
 

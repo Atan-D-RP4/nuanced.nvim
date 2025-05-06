@@ -139,6 +139,8 @@ local maps = {
   { 'n', '<Esc>', '<C-c><C-c>', 'Better Escape' },
   { 'i', '<Esc>', '<Esc><Esc>', 'Better Escape' },
 
+  { 'n', '<C-I>', '<C-I>' },
+
   -- Clear highlights on search when pressing <Esc> in normal mode
   { 'n', '<Esc>', '<cmd>nohlsearch<CR>', 'Clear highlights on search' },
 

@@ -225,9 +225,25 @@ local mason = {
   cmd = { 'Mason', 'MasonInstall', 'MasonLog' },
 } -- NOTE: Must be loaded before dependants
 
+local rustowl = {
+  'cordx56/rustowl',
+  -- lazy = false, -- This plugin is already lazy
+  ft = 'rust',
+  opts = {
+    client = {
+      on_attach = function(_, buffer)
+        vim.keymap.set('n', "<leader>'", function()
+          require('rustowl').toggle(buffer)
+        end, { buffer = buffer, desc = 'Toggle RustOwl' })
+      end,
+    },
+  },
+}
+
 return {
   mason,
   lazydev,
+  rustowl,
   lspconfig,
 }
 

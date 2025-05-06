@@ -177,7 +177,7 @@ M = {
     hooks = {
       pre = {
         read = function()
-          vim.cmd [[ silent! %bwipeout! ]]
+          vim.cmd [[ exec 'silent! %bwipeout!' ]]
         end,
       },
       post = {

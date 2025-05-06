@@ -28,7 +28,6 @@ require('luasnip.session.snippet_collection').clear_snippets 'lua'
 ls.add_snippets('lua', {
   parse('if', 'if $1 then\n\t$0\nend'),
   parse('lf', 'local $1 = function($2)\n\t$0 \nend'),
-  parse('for', 'for $1 = $2, $3 do\n\t$0\nend'),
   s('req', fmt("local {} = require('{}')", { i(2), i(1) })),
 })
 

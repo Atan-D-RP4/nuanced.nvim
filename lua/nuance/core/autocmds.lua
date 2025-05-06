@@ -96,7 +96,7 @@ vim.api.nvim_create_autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
   group = augroup 'checktime',
   callback = function()
     if vim.o.buftype ~= 'nofile' then
-      vim.cmd 'checktime'
+      vim.cmd 'exec "checktime"'
     end
   end,
 })
@@ -393,24 +393,50 @@ vim.api.nvim_create_user_command('TSFoldToggle', function(_)
   end
 end, { nargs = 0, desc = 'Toggle Treesitter folding' })
 
-vim.api.nvim_create_user_command('SearchEngineQuery', function(opts)
+vim.api.nvim_create_user_command('SearchEngineQuery', function(args)
   local engines = {
     google = { prompt = ' Google: ', url = 'https://www.google.com/search?q=' },
     ddg = { prompt = ' DuckDuckGo: ', url = 'https://duckduckgo.com/?q=' },
   }
 
-  local selected = engines[opts.args == '' and 'ddg' or opts.args]
-  local input = vim.fn.input(selected.prompt)
-  local response = not (input == nil or input == '')
+  local selected_engine = engines[args.args == '' and 'ddg' or args.args]
+  local query = ''
 
-  local query = vim.bo.filetype
-  if response then
-    query = query .. ' ' .. input
+  -- Check if a range is specified (visual selection)
+  if args.range > 0 then
+    -- Get the selected text
+    local start_line, start_col = unpack(vim.api.nvim_buf_get_mark(0, '<'))
+    local end_line, end_col = unpack(vim.api.nvim_buf_get_mark(0, '>'))
+
+    -- Make end_col inclusive to exclusive
+    end_col = end_col + 1
+
+    -- Get the selected text
+    local lines = vim.api.nvim_buf_get_text(0, start_line - 1, start_col, end_line - 1, end_col, {})
+
+    query = table.concat(lines, ' ')
   else
-    query = query .. ' ' .. vim.fn.expand '<cword>'
+    -- No selection, use input or current word
+    local input = vim.fn.input(selected_engine.prompt)
+    local response = not (input == nil or input == '')
+
+    if args.fargs[1] == 'ft' then
+      query = vim.bo.filetype
+    end
+
+    if response then
+      query = query .. ' ' .. input
+    else
+      query = query .. ' ' .. vim.fn.expand '<cword>'
+    end
   end
-  vim.ui.open(selected.url .. query)
-end, { nargs = '?', desc = 'Search using a specified engine' })
+
+  -- Encode the query for URL
+  query = vim.fn.shellescape(query)
+
+  -- Open the URL
+  vim.ui.open(selected_engine.url .. query)
+end, { nargs = '?', range = true, desc = 'Search using a specified engine' })
 
 vim.keymap.set('c', '<C-;>', function()
   vim.print(vim.fn.winnr '$' == 0)
