@@ -1,5 +1,15 @@
 local M = {}
 
+---@param name string
+---@param opts? vim.keymap.set.Opts|string
+function M.augroup(name, opts)
+  local options = { clear = true }
+  if opts then
+    options = vim.tbl_extend('force', options, opts)
+  end
+  return vim.api.nvim_create_augroup('nuance-' .. name, options)
+end
+
 ---@param modes string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
 function M.is_key_mapped(modes, lhs)

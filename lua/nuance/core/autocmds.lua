@@ -1,15 +1,6 @@
 -- [[ Basic Autocommands ]]
 
----@param name string
----@param opts? vim.keymap.set.Opts|string
-local function augroup(name, opts)
-  local options = { clear = true }
-  if opts then
-    options = vim.tbl_extend('force', options, opts)
-  end
-  return vim.api.nvim_create_augroup('nuance-' .. name, options)
-end
-
+local augroup = require('nuance.core.utils').augroup
 local autocmd = vim.api.nvim_create_autocmd
 
 -- Highlight when yanking (copying) text
@@ -239,108 +230,31 @@ autocmd({ 'BufWritePre' }, {
   end,
 })
 
-if vim.g.treesitter_lint_available == true then
-  autocmd({ 'FileType', 'TextChanged', 'InsertLeave' }, {
-    desc = 'Treesitter-based Diagnostics',
-    pattern = '*',
-    group = augroup 'treesitter-diagnostics',
-    callback = vim.schedule_wrap(function()
-      local bufnr = vim.api.nvim_get_current_buf()
-      local excluded_filetypes = { 'rust', 'markdown', 'text' } -- Add filetypes to exclude here
-      local ft = vim.bo[bufnr].filetype
+-- ref: https://vi.stackexchange.com/a/169/15292
+autocmd('BufReadPre', {
+  group = augroup 'bigfile-optimization',
+  pattern = '*',
+  desc = 'Optimize for large file',
+  callback = function(ev)
+    local file_size_limit = 524288 -- 0.5MB
+    local f = ev.file
 
-      if vim.g.treesitter_diagnostics == false or vim.tbl_contains(excluded_filetypes, ft) then
-        vim.diagnostic.reset(require('nuance.core.ts-diagnostics').namespace, bufnr)
-        return
-      end
-      require('nuance.core.ts-diagnostics').diagnostics(bufnr)
-    end),
-  })
+    if vim.fn.getfsize(f) > file_size_limit or vim.fn.getfsize(f) == -2 then
+      vim.o.eventignore = 'all'
 
-  vim.api.nvim_create_user_command('TSDiagnosticsToggle', function(_)
-    -- Toggle the global flag
-    vim.g.treesitter_diagnostics = not vim.g.treesitter_diagnostics
+      -- show ruler
+      vim.o.ruler = true
 
-    local bufnr = vim.api.nvim_get_current_buf()
+      --  turning off relative number helps a lot
+      vim.wo.relativenumber = false
+      vim.wo.number = false
 
-    -- Reset existing diagnostics
-    vim.diagnostic.reset(require('nuance.core.ts-diagnostics').namespace, bufnr)
-
-    -- If diagnostics are now enabled, run diagnostics immediately
-    if vim.g.treesitter_diagnostics then
-      -- Force run the diagnostics function directly
-      require('nuance.core.ts-diagnostics').diagnostics(bufnr)
+      vim.bo.swapfile = false
+      vim.bo.bufhidden = 'unload'
+      vim.bo.undolevels = -1
     end
-
-    -- Notify the user about the current state
-    local state = vim.g.treesitter_diagnostics and 'Enabled' or 'Disabled'
-    vim.notify(
-      state .. ' Treesitter diagnostics',
-      vim.g.treesitter_diagnostics and vim.log.levels.INFO or vim.log.levels.WARN,
-      { title = 'Treesitter Diagnostics', timeout = 5000, hide_from_history = false }
-    )
-  end, { nargs = 0, desc = 'Toggle Treesitter diagnostics' })
-end
-
-if vim.diagnostic.config().virtual_lines then
-  local og_virt_text
-  local og_virt_line
-  autocmd({ 'CursorMoved', 'DiagnosticChanged' }, {
-    desc = 'Toggle virtual lines based on diagnostics count',
-    group = augroup('diagnostic_only_virtlines', {}),
-    callback = function(ev)
-      if og_virt_line == nil then
-        og_virt_line = vim.diagnostic.config().virtual_lines
-      end
-
-      -- ignore if virtual_lines.current_line is disabled
-      if not (og_virt_line and og_virt_line.current_line) then
-        if og_virt_text then
-          vim.diagnostic.config { virtual_text = og_virt_text }
-          og_virt_text = nil
-        end
-        return
-      end
-
-      if og_virt_text == nil then
-        og_virt_text = vim.diagnostic.config().virtual_text
-      end
-
-      local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
-
-      if #vim.diagnostic.get(ev.buf, { lnum = lnum }) < 2 then
-        vim.diagnostic.config { virtual_text = og_virt_text }
-        vim.diagnostic.config { virtual_lines = false }
-      else
-        vim.diagnostic.config { virtual_text = false }
-        vim.diagnostic.config { virtual_lines = og_virt_line }
-      end
-    end,
-  })
-else
-  autocmd('CursorHold', {
-    desc = 'Toggle Diagnostic Float based on diagnostic count',
-    group = augroup 'diagnostic-float',
-    pattern = '*',
-    callback = function(ev)
-      local line = vim.api.nvim_win_get_cursor(0)[1] - 1
-      local diagnostics = vim.diagnostic.get(ev.buf, { lnum = line })
-
-      if #diagnostics < 2 then
-        vim.diagnostic.config { virtual_text = true }
-      else
-        vim.diagnostic.config { virtual_text = false }
-        vim.diagnostic.open_float {
-          focusable = false,
-          close_events = { 'CursorMoved', 'InsertEnter', 'FocusLost' },
-          border = 'rounded',
-          source = 'if_many',
-          prefix = ' ',
-        }
-      end
-    end,
-  })
-end
+  end,
+})
 
 autocmd({ 'BufEnter' }, {
   desc = 'Treesitter Folding',

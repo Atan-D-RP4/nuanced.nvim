@@ -124,7 +124,7 @@ opt.cursorlineopt = 'both'
 -- Minimal number of screen lines to keep above and below the cursor.
 opt.scrolloff = 999
 
-opt.jumpoptions:append('view')
+opt.jumpoptions:append 'view'
 
 opt.hidden = true
 opt.encoding = 'utf-8'
@@ -182,39 +182,6 @@ opt.foldlevel = vim.g.treesitter_folding_enabled and 99 or 0
 opt.fillchars:append { fold = ' ', foldopen = '▾', foldclose = '▸', foldsep = '│' }
 
 -- opt.winborder = 'rounded'
-
-vim.diagnostic.config {
-  underline = true,
-  severity_sort = true,
-  float = {
-    border = 'rounded',
-  },
-  signs = vim.g.have_nerd_font and {
-    text = {
-      [vim.diagnostic.severity.ERROR] = '󰅚 ',
-      [vim.diagnostic.severity.WARN] = '󰀪 ',
-      [vim.diagnostic.severity.INFO] = '󰋽 ',
-      [vim.diagnostic.severity.HINT] = '󰌶 ',
-    },
-  } or {},
-  update_in_insert = false,
-  virtual_lines = { current_line = true },
-
-  virtual_text = {
-    source = true,
-    spacing = 2,
-    ---@param diagnostic vim.Diagnostic
-    format = function(diagnostic)
-      local diagnostic_message = {
-        [vim.diagnostic.severity.ERROR] = diagnostic.message,
-        [vim.diagnostic.severity.WARN] = diagnostic.message,
-        [vim.diagnostic.severity.INFO] = diagnostic.message,
-        [vim.diagnostic.severity.HINT] = diagnostic.message,
-      }
-      return string.format('[%s] %s', diagnostic.code, diagnostic_message[diagnostic.severity])
-    end,
-  },
-}
 
 -- vim.g.netrw_banner = 0
 -- vim.g.netrw_fastbrowse = 1
