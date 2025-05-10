@@ -49,7 +49,7 @@ require('lazy').setup({
   },
 
   spec = {
-    { 'vuciv/golf', enabled = true },
+    -- { 'vuciv/golf', enabled = true },
     { import = 'nuance.plugins' },
   },
 

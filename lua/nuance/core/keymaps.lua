@@ -194,10 +194,26 @@ local maps = {
   -- { 'i', '<C-v>', '<C-r>+', {} },
   { { 'n', 'v' }, '<C-q>', '<C-u>' },
 
-  { 'n', 'J', 'mzJ`z', 'Join line without moving the cursor' },
+  {
+    'n',
+    'J',
+    function()
+      ---@diagnostic disable-next-line: unused-local, unused-function
+      _G.operatorJ = function(mode)
+        vim.cmd [[ exec "'[,']join" ]]
+      end
+      vim.o.operatorfunc = 'v:lua.operatorJ'
+      return 'g@'
+    end,
+    { expr = true, silent = true, desc = 'Join Operator' },
+  },
 
-  { 'v', 'K', ":m '<-2<CR>gv=gv", 'Move selected lines up' },
-  { 'v', 'J', ":m '>+1<CR>gv=gv", 'Move selected lines down' },
+  { 'o', 'J', 'j', { desc = 'Join Operator', silent = true } },
+
+  -- { 'n', 'J', 'mzJ`z', 'Join line without moving the cursor' },
+
+  -- { 'v', 'K', ":m '<-2<CR>gv=gv", 'Move selected lines up' },
+  -- { 'v', 'J', ":m '>+1<CR>gv=gv", 'Move selected lines down' },
 
   -- nmap('<leader>gwr', ':%s/\\<<C-r><C-w>\\>//g<Left><Left>', '[G]lobal Current [W]ord [R]eplace')
   -- nmap('<leader>gsr', ':%s//g<left><left>', '[G]lobal [S]earch and [R]eplace')

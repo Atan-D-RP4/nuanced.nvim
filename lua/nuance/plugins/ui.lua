@@ -380,9 +380,9 @@ local which_key = { -- Useful plugin to show you pending keybinds.
   },
 
   config = function(_, opts)
-    require('nuance.core.utils').async_do(100, 0, function(opts)
+    require('nuance.core.utils').async_do(100, 0, function()
       require('which-key').setup(opts)
-    end, opts)
+    end)
   end,
 }
 
@@ -431,8 +431,8 @@ local M = {
   tabline,
   themes.tokyonight,
   icons,
-  markview,
   noice,
+  -- markview,
   -- todo_comments,
   -- notify,
   -- transparent,

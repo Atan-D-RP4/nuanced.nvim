@@ -51,15 +51,23 @@ gitsigns.opts = {
 }
 
 gitsigns.config = function(_, opts)
-  require('nuance.core.utils').async_do(100, 0, function(opts)
+  require('nuance.core.utils').async_do(100, 0, function()
     require('gitsigns').setup(opts)
-  end, opts)
+  end)
 end
 
 gitsigns.opts.on_attach = function(bufnr)
   local signs = require 'gitsigns'
 
-  local map = require('nuance.core.utils').map
+  local map = function(modes, lhs, rhs, opts)
+    if opts then
+      if type(opts) == 'string' then
+        opts = { desc = opts }
+      end
+      opts.buffer = bufnr
+    end
+    require('nuance.core.utils').map(modes, lhs, rhs, opts)
+  end
 
   -- Navigation
   map('n', ']c', function()
@@ -68,7 +76,7 @@ gitsigns.opts.on_attach = function(bufnr)
     else
       signs.nav_hunk 'next'
     end
-  end, { desc = 'Jump to next git [c]hange' })
+  end, 'Jump to next git [c]hange')
 
   map('n', '[c', function()
     if vim.wo.diff then
@@ -76,32 +84,32 @@ gitsigns.opts.on_attach = function(bufnr)
     else
       signs.nav_hunk 'prev'
     end
-  end, { desc = 'Jump to previous git [c]hange' })
+  end, 'Jump to previous git [c]hange')
 
-  map({ 'o', 'x' }, 'ih', '<cmd>Gitsigns select_hunk<CR>', { desc = 'Select git hunk' })
+  map({ 'o', 'x' }, 'ih', '<cmd>Gitsigns select_hunk<CR>', 'Select git hunk')
 
   -- Actions
   -- visual mode
   map('v', '<leader>gs', function()
     signs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
-  end, { desc = 'stage git hunk' })
+  end, '[G]it stage hunk')
   map('v', '<leader>gr', function()
     signs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
-  end, { desc = 'reset git hunk' })
+  end, '[G]it rest hunk')
 
   -- normal mode
-  map('n', '<leader>ga', signs.stage_hunk, { desc = '[G]it [t]oggle hunk stage status' })
-  map('n', '<leader>gr', signs.reset_hunk, { desc = '[G]it [r]eset hunk' })
-  map('n', '<leader>gA', signs.stage_buffer, { desc = '[G]it [S]tage buffer' })
-  map('n', '<leader>gR', signs.reset_buffer, { desc = '[G]it [R]eset buffer' })
-  map('n', '<leader>gp', signs.preview_hunk, { desc = '[G]it [p]review hunk' })
-  map('n', '<leader>gb', signs.blame_line, { desc = '[G]it [b]lame line' })
-  map('n', '<leader>gD', function()
-    signs.diffthis '@'
-  end, { desc = 'git [D]iff against last commit' })
+  map('n', '<leader>ga', signs.stage_hunk, '[G]it [t]oggle hunk stage status')
+  map('n', '<leader>gr', signs.reset_hunk, '[G]it [r]eset hunk')
+  map('n', '<leader>gA', signs.stage_buffer, '[G]it [S]tage buffer')
+  map('n', '<leader>gR', signs.reset_buffer, '[G]it [R]eset buffer')
+  map('n', '<leader>gp', signs.preview_hunk, '[G]it [p]review hunk')
+  map('n', '<leader>gb', signs.blame_line, '[G]it [b]lame line')
+  -- map('n', '<leader>gD', function()
+  --   signs.diffthis '@'
+  -- end, 'git [D]iff against last commit')
   -- Toggles
-  map('n', '<leader>tb', signs.toggle_current_line_blame, { desc = '[T]oggle git show [b]lame line' })
-  map('n', '<leader>tD', signs.preview_hunk_inline, { desc = '[T]oggle git show [D]eleted' })
+  map('n', '<leader>tb', signs.toggle_current_line_blame, '[T]oggle git show [b]lame line')
+  map('n', '<leader>tD', signs.preview_hunk_inline, '[T]oggle git show [D]eleted')
   local state = 1
   map('n', '<leader>tg', function()
     if state == 1 then
@@ -112,7 +120,7 @@ gitsigns.opts.on_attach = function(bufnr)
       state = 1
     end
     signs.toggle_signs()
-  end, { desc = '[T]oggle [G]it signs' })
+  end, '[T]oggle [G]it signs')
 end
 
 return {
