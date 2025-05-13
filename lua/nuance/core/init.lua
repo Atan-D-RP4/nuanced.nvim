@@ -17,4 +17,5 @@ vim.api.nvim_create_autocmd('User', {
 require('nuance.core.diagnostics').conf()
 require('nuance.core.diagnostics').setup()
 
+require('nuance.core.tabline').setup()
 -- vim: ts=2 sts=2 sw=2 et

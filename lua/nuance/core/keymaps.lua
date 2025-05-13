@@ -303,7 +303,10 @@ local maps = {
     { desc = 'Set Cursor Pos and Yank', expr = true },
   },
 
-  { { 'n', 'i' }, '<M-a>', '<cmd>%y<CR>', 'Select All' },
+  { { 'n', 'i' }, '<M-a>', '<cmd>%y<CR>', 'Yank All Text in Buffer' },
+
+  { { 'i' }, '<C-g>', '<C-g>u<ESC>1z=`]a<C-g>u', 'Fix Current Word Under Cursor' },
+
 }
 
 vim.tbl_map(function(map)

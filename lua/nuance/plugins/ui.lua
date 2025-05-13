@@ -144,7 +144,7 @@ local statusline = {
       local encoding = vim.bo.fileencoding or vim.bo.encoding
       local format = vim.bo.fileformat
       local word = vim.fn.wordcount()
-      local words = string.format('%d-%d', word.words, word.chars)
+      local words = string.format('%dW', word.words)
 
       return string.format('%s %s[%s] %s %s', filetype, encoding, format, size_fn(), words)
     end
@@ -428,10 +428,10 @@ local todo_comments = {
 local M = {
   which_key,
   statusline,
-  tabline,
   themes.tokyonight,
   icons,
   noice,
+  -- tabline,
   -- markview,
   -- todo_comments,
   -- notify,
