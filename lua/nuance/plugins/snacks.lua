@@ -165,6 +165,7 @@ M.opts.picker = {
         },
       },
     },
+
     grep = {
       win = {
         input = {

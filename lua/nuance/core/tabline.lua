@@ -1,19 +1,13 @@
--- *buftabline.lua* Theovim Buftabline
--- $ figlet -f tinker-joy theovim
---  o  o
---  |  |                  o
--- -o- O--o o-o o-o o   o   o-O-o
---  |  |  | |-' | |  \ /  | | | |
---  o  o  o o-o o-o   o   | o o o
---
--- Initialize buftabline with:
--- - Clickable buffer list
--- - Buffer index from nuance_buftabs_count
--- - Highlights for active/inactive buffers
+-- Inspired by: https://www.reddit.com/r/neovim/comments/1kkuu5h/wow_i_just_wrote_my_own_tabline_in_lua_with/
+-- Nuance Buftabline
+
+-- Clickable buffer list
+-- Buffer index from vim.g.tab_idx_map
+-- Highlights for active/inactive buffers
 
 Buftabline = {}
 
-local logo = vim.g.have_nerd_font and "  " or "Nuance"
+local logo = vim.g.have_nerd_font and "  " or " [B] "
 
 ---Get a list of all listed buffers
 ---@return table List of buffer numbers

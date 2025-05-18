@@ -4,23 +4,13 @@ local lspconfig = {
 
   ft = {
     -- Web Languages
-    'typescript',
-    'javascript',
-    'html',
-    'css',
+    'typescript', 'javascript', 'html', 'css',
     -- Script Languages
-    'vim',
-    'lua',
-    'sh',
-    'python',
+    'vim', 'lua', 'sh', 'python',
     -- Compiled Languages
-    'c',
-    'cpp',
-    'rust',
-    'java',
+    'c', 'cpp', 'rust', 'java',
     -- Document Filetypes
-    'tex',
-    'typst',
+    'tex', 'typst',
   },
 
   ---@module 'lspconfig'
@@ -160,8 +150,6 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     opts.capabilities or {}
   )
 
-  local current_ft = vim.bo.filetype
-  local start_server = {}
   for name, config in pairs(vim.g.configured_language_servers) do
     local server_conf = vim.tbl_deep_extend('force', {}, config)
     server_conf.on_init = function(client, initialize_result)
@@ -198,9 +186,9 @@ local lazydev = {
   -- used for completion, annotations and signatures of Neovim apis
   'folke/lazydev.nvim',
   ft = 'lua',
-  dependencies = {
-    { 'Bilal2453/luvit-meta', lazy = true },
-  },
+  -- dependencies = {
+  --   { 'Bilal2453/luvit-meta', lazy = true },
+  -- },
   opts = {
     library = {
       -- Load luvit types when the `vim.uv` word is found
@@ -227,11 +215,13 @@ local mason = {
 local rustowl = {
   'cordx56/rustowl',
   -- lazy = false, -- This plugin is already lazy
+  enabled = vim.fn.executable 'rustowl' == 1,
   ft = 'rust',
   opts = {
     client = {
       on_attach = function(_, buffer)
-        vim.keymap.set('n', "<leader>'", function()
+        vim.keymap.set('n', '<C-l>', function()
+          vim.cmd [[ exec 'silent! redraw' ]]
           require('rustowl').toggle(buffer)
         end, { buffer = buffer, desc = 'Toggle RustOwl' })
       end,
@@ -242,8 +232,8 @@ local rustowl = {
 return {
   mason,
   lazydev,
-  rustowl,
   lspconfig,
+  rustowl,
 }
 
 -- vim: ts=2 sts=2 sw=2 et

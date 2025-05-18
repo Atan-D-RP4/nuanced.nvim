@@ -217,7 +217,7 @@ function M.async_do(timeout, repeat_, callback, arg1, ...)
   -- Use vim.loop (libuv) for async operations
   local timer = vim.loop.new_timer()
   if timer == nil then
-    print 'Failed to create timer'
+    vim.print 'Failed to create timer'
     return
   end
 
@@ -225,16 +225,70 @@ function M.async_do(timeout, repeat_, callback, arg1, ...)
   timeout = timeout or 100
   repeat_ = repeat_ or 200
 
+  -- Create a promise-like interface
+  local promise = {}
+  promise.pending = true
+  promise.result = nil
+  promise.error = nil
+
+  -- Store callbacks
+  local then_callbacks = {}
+  local catch_callbacks = {}
+
+  -- Add then method
+  function promise.after(fn)
+    if promise.pending then
+      table.insert(then_callbacks, fn)
+    else
+      if not promise.error then
+        fn(promise.result)
+      end
+    end
+    return promise
+  end
+
+  -- Add catch method
+  function promise.catch(fn)
+    if promise.pending then
+      table.insert(catch_callbacks, fn)
+    else
+      if promise.error then
+        fn(promise.error)
+      end
+    end
+    return promise
+  end
+
   -- This will run in the background without blocking the editor
   timer:start(
     timeout,
     repeat_,
     vim.schedule_wrap(function()
-      -- Call the callback function with the provided arguments
-      callback(arg1, unpack(args))
+      -- Call the callback function with the provided arguments and capture result
+      local success, result = pcall(callback, arg1, unpack(args))
+
+      -- Update promise status
+      promise.pending = false
+
+      if success then
+        promise.result = result
+        -- Execute then callbacks
+        for _, fn in ipairs(then_callbacks) do
+          fn(result)
+        end
+      else
+        promise.error = result
+        -- Execute catch callbacks
+        for _, fn in ipairs(catch_callbacks) do
+          fn(result)
+        end
+      end
+
       timer:close()
     end)
   )
+
+  return promise
 end
 
 ---@return table
@@ -315,5 +369,82 @@ function M.get_python_path(workspace)
   vim.print 'Falling back to system Python'
   return vim.fn.exepath 'python3' or vim.fn.exepath 'python' or 'python'
 end
+
+-- Test function with multiple cases to demonstrate the async_do2 functionality
+-- (function()
+--   vim.print '\n--- Testing async_do function ---'
+--
+--   -- Test Case 1: Successful operation with simple return value
+--   vim.print '\nTest Case 1: Successful operation'
+--   local result
+--   M.async_do(100, 0, function(result)
+--     vim.print 'Running success case...'
+--     result = 'Success result'
+--     return 'Success result'
+--   end, result)
+--     .after(function(result)
+--       vim.print('Success callback received:', result)
+--       result = 'Manually set result'
+--       return 'Chained result' -- Test that we can chain results
+--     end)
+--     .after(function(result)
+--       vim.print('Chained callback received:', result or 'nil')
+--     end)
+--     .catch(function(err)
+--       vim.print('This should not run for success case:', err)
+--     end)
+--
+--   -- Test Case 2: Error handling
+--   vim.print '\nTest Case 2: Error handling'
+--   M.async_do(200, 0, function()
+--     vim.print 'Running error case...'
+--     error 'Deliberate error'
+--     return "This won't return"
+--   end)
+--     .after(function(result)
+--       vim.print('This should not run for error case:', result)
+--     end)
+--     .catch(function(err)
+--       vim.print('Error caught:', err)
+--       return 'Recovered from error'
+--     end)
+--     .after(function(result)
+--       vim.print('After error handling:', result or 'nil')
+--     end)
+--
+--   -- Test Case 3: Multiple return values
+--   vim.print '\nTest Case 3: Multiple return values'
+--   M.async_do(300, 0, function()
+--     vim.print 'Running multiple returns case...'
+--     return true, { data = 'some data' }, 'extra info'
+--   end).after(function(ok, data, extra)
+--     vim.print('Multiple returns - first value:', ok)
+--     vim.print 'Multiple returns - other values may be nil due to Lua limitations'
+--     return ok
+--   end)
+--
+--   -- Test Case 4: Testing with arguments
+--   vim.print '\nTest Case 4: Passing arguments'
+--   local test_arg = 'test argument'
+--   M.async_do(400, 0, function(arg)
+--     vim.print('Received argument:', arg)
+--     return 'Processed ' .. arg
+--   end, test_arg).after(function(result)
+--     vim.print('Result with argument:', result)
+--   end)
+--
+--   -- Test Case 5: Timing test
+--   vim.print '\nTest Case 5: Timing test (500ms delay)'
+--   local start_time = os.time()
+--   M.async_do(500, 0, function()
+--     local elapsed = os.time() - start_time
+--     vim.print('Timer callback executed after approximately', elapsed, 'seconds')
+--     return elapsed
+--   end).after(function(elapsed)
+--     vim.print('Timing test completed:', elapsed)
+--   end)
+--
+--   vim.print '\nAll tests queued. Results will appear asynchronously...\n'
+-- end)()
 
 return M

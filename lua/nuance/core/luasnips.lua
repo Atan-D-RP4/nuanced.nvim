@@ -3,7 +3,7 @@ local ls = require 'luasnip'
 
 local s, sn, isn = ls.snippet, ls.snippet_node, ls.indent_snippet_node
 local t, i, f = ls.text_node, ls.insert_node, ls.function_node
-local c, d, r = ls.choice_node, ls.dynamic_node, ls.replicate_node
+local c, d, r = ls.choice_node, ls.dynamic_node, ls.restore_node
 local ms = ls.multi_snippet
 
 local events = require 'luasnip.util.events'

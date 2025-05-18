@@ -52,12 +52,6 @@ opt.breakindent = true
 opt.breakindentopt = 'shift:4,min:20'
 opt.showbreak = '↪'
 
--- Save undo history
-opt.undofile = true
-opt.undolevels = 1000
-opt.undoreload = 10000
-opt.undodir = vim.fn.stdpath 'cache' .. '/undo/'
-
 -- Command-line History
 opt.history = 10000
 
@@ -132,39 +126,60 @@ opt.fileencoding = 'utf-8'
 opt.path:append '**'
 opt.autoread = true
 
--- Create directories if they don't exist
-local function ensure_directory(path)
-  local ok, err = vim.loop.fs_mkdir(path, 493) -- 0755 in octal
-  if not ok and err ~= 'EEXIST' then
-    return false
+-- Sync clipboard between OS and Neovim.
+-- Schedule the setting after `UiEnter` because it can increase startup-time.
+vim.schedule(function()
+  -- Check if clipboard support is available
+  if vim.fn.has 'clipboard' == 0 then
+    return
   end
-  return true
-end
+
+  -- Platform-specific clipboard configuration
+  vim.opt.clipboard = 'unnamedplus,unnamed'
+  vim.g.clipboard = {
+    name = 'OSC 52 with improved fallbacks',
+    copy = {
+      ['+'] = require('vim.ui.clipboard.osc52').copy '+',
+      ['*'] = require('vim.ui.clipboard.osc52').copy '*',
+    },
+    cache_enabled = 1,
+  }
+end)
 
 local cache_dir = vim.fn.stdpath 'cache'
-local dirs = {
-  cache_dir .. '/undo',
-  cache_dir .. '/backup',
-  cache_dir .. '/swap',
-}
+vim.schedule(function()
+  vim.tbl_map(function(dir)
+    local name, path = unpack(dir)
+    local created_or_exist = (function()
+      -- Create directories if they don't exist
+      local ok, err, err_name = vim.loop.fs_mkdir(path, 493) -- 0755 in octal
+      if not ok and err_name ~= 'EEXIST' then
+        return false
+      end
+      return true
+    end)()
 
-for _, dir in ipairs(dirs) do
-  if ensure_directory(dir) then
-    if dir:match 'undo$' then
-      opt.undodir = dir
-    elseif dir:match 'backup$' then
-      opt.backupdir = dir
-    elseif dir:match 'swap$' then
-      opt.directory = dir
+    if not created_or_exist then
+      vim.notify('Failed to create ' .. name .. ': ' .. path, vim.log.levels.ERROR)
     end
-  end
-end
+    vim.opt[name] = path
+  end, {
+    { 'undodir', cache_dir .. '/undo' },
+    { 'backupdir', cache_dir .. '/backup' },
+    { 'directory', cache_dir .. '/swap' },
+  })
+end)
 
--- Backup and Swap Files
+-- Save undo history
+opt.undofile = true
+opt.undolevels = 1000
+opt.undoreload = 10000
+
+-- Swap files
 opt.swapfile = true
-opt.directory = cache_dir .. '/swap/'
+
+-- Backup Files
 opt.backup = true
-opt.backupdir = cache_dir .. '/backup/'
 
 vim.g.treesitter_diagnostics = true
 vim.g.treesitter_lint_available = vim.fn.has 'nvim-0.11' == 1

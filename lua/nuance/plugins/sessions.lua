@@ -111,16 +111,14 @@ local session_pick = function()
     end,
 
     actions = {
-      delete = function(picker, item, action)
-        vim.print('Action: ', action)
-        vim.print('Deleting: ' .. item.name)
+      delete = function(picker, item, _)
+        vim.notify('Deleting Session: ' .. item.name, vim.log.levels.INFO, { title = 'Session' })
         require('mini.sessions').delete(item.name, { force = true, verbose = true })
         picker:find { refresh = true }
       end,
 
       rename = function(picker, item, _)
         vim.ui.input({ prompt = 'Rename Session "' .. item.name .. '" to:' }, function(input)
-          vim.print('Renaming: ' .. item.name)
           require('mini.sessions').delete(item.name, { force = true })
           require('mini.sessions').write(input)
           if vim.g.active_session == item.name then
@@ -145,17 +143,26 @@ local session_pick = function()
         return
       end
 
-      require('mini.sessions').read(item.name, {})
-      local msg = ''
-      if vim.g.active_session == '' then
-        msg = 'Loaded Session: ' .. item.name
-      elseif vim.g.active_session == item.name then
-        msg = 'Already Loaded Session: ' .. item.name
-      else
-        msg = 'Switched From Session: ' .. vim.g.active_session .. '\nTo: ' .. item.name
-      end
-      vim.notify(msg, vim.log.levels.INFO, { title = 'Session' })
-      vim.g.active_session = item.name
+      require('nuance.core.utils')
+        .async_do(100, 0, function()
+          require('mini.sessions').read(item.name, {})
+          return true
+        end)
+        .after(function(_)
+          local msg = ''
+          if vim.g.active_session == '' then
+            msg = 'Loaded Session: ' .. item.name
+          elseif vim.g.active_session == item.name then
+            msg = 'Already Loaded Session: ' .. item.name
+          else
+            msg = 'Switched From Session: ' .. vim.g.active_session .. '\nTo: ' .. item.name
+          end
+          vim.notify(msg, vim.log.levels.INFO, { title = 'Session' })
+          vim.g.active_session = item.name
+        end)
+        .catch(function(err)
+          vim.notify(err, 'error', { title = 'Session' })
+        end)
     end,
   }
 end
@@ -170,6 +177,7 @@ M = {
   dependencies = {
     'folke/snacks.nvim',
   },
+
   opts = {
     autoread = false,
     directory = vim.fn.stdpath 'data' .. '/sessions',
@@ -196,11 +204,12 @@ M = {
 M.config = function(_, opts)
   require('mini.sessions').setup(opts)
 
-  local session_read = require('mini.sessions').read
-  ---@diagnostic disable-next-line: duplicate-set-field
-  require('mini.sessions').read = function(name, read_opts)
-    require('nuance.core.utils').async_do(100, 0, session_read, name, read_opts)
-  end
+  -- local read = MiniSessions.read
+  -- ---@diagnostic disable-next-line: redefined-local, duplicate-set-field
+  -- MiniSessions.read = function(name, opts)
+  --   vim.cmd [[ exec 'silent! bufdo w' ]]
+  --   read(name, opts)
+  -- end
 
   -- Check if session dir exists and if not create it
   if vim.fn.isdirectory(require('mini.sessions').config.directory) == 0 then

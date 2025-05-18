@@ -225,7 +225,7 @@ autocmd({ 'BufWritePre' }, {
     if event.match:match '^%w%w+:[\\/][\\/]' then
       return
     end
-    local file = vim.uv.fs_realpath(event.match) or event.match
+    local file = vim.loop.fs_realpath(event.match) or event.match
     vim.fn.mkdir(vim.fn.fnamemodify(file, ':p:h'), 'p')
   end,
 })
@@ -373,6 +373,20 @@ autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusL
       vim.wo.number = false
     end
   end,
+})
+
+vim.api.nvim_create_user_command('ToggleClipSync', function()
+  local clipboard = vim.o.clipboard
+  if clipboard:find 'unnamed' then
+    vim.opt.clipboard:remove { 'unnamed', 'unnamedplus' }
+    vim.notify('OS clipboard sync disabled', vim.log.levels.INFO, { title = 'Clipboard' })
+  else
+    vim.opt.clipboard:append { 'unnamed', 'unnamedplus' }
+    vim.notify('OS clipboard sync enabled', vim.log.levels.INFO, { title = 'Clipboard' })
+  end
+end, {
+  nargs = 0,
+  desc = 'Toggle OS clipboard',
 })
 
 -- NOTE: DO NOT NEED THIS WITH snacks.nvim in use

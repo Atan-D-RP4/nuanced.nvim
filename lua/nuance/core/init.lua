@@ -1,6 +1,5 @@
-require 'nuance.core.clipboard'
-require 'nuance.core.keymaps'
 require 'nuance.core.options'
+require 'nuance.core.keymaps'
 
 require('nuance.core.utils').async_do(100, 0, require, 'nuance.core.lsps')
 

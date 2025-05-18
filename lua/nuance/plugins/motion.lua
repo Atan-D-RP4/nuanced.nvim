@@ -97,7 +97,12 @@ local spider = {
 local flash = {
   'folke/flash.nvim',
   keys = {
-    'f', 'F', 't', 'T', ';', ',',
+    'f',
+    'F',
+    't',
+    'T',
+    ';',
+    ',',
     { '<M-f>', '<cmd>lua require("flash").jump()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash' },
     { '<M-F>', '<cmd>lua require("flash").treesitter()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash Treesitter' },
     { 'r', '<cmd>lua require("flash").remote()<CR>', mode = 'o', desc = 'Remote Flash' },
@@ -139,11 +144,32 @@ local operator = {
   end,
 }
 
+local treewalker = {
+  'aaronik/treewalker.nvim',
+  keys = {
+    { mode = { 'n', 'v' }, '<leader>h', 'Up' },
+    { mode = { 'n', 'v' }, '<leader>j', 'Down' },
+    { mode = { 'n', 'v' }, '<leader>k', 'Left' },
+    { mode = { 'n', 'v' }, '<leader>l', 'Right' },
+  },
+  ---@module "lazy"
+  ---@param plugin LazyPlugin
+  config = function(plugin, _)
+    vim.tbl_map(function(key)
+      require('nuance.core.utils').map({ 'n', 'v' }, key[1], function()
+        vim.cmd('Treewalker ' .. key[2])
+        vim.api.nvim_input(vim.g.mapleader)
+      end, { desc = 'Treewalker ' .. key[2] })
+    end, plugin.keys)
+  end,
+}
+
 local M = {
   surround,
   spider,
   ai,
   flash,
+  -- treewalker,
   -- operator,
   -- matchup,
 }
