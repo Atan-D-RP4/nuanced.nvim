@@ -60,6 +60,9 @@ Buftabline.build = function()
       s = s .. bufIndex .. ":"
     end
 
+    local icon = require('mini.icons').get('file', 'file.' .. vim.bo[bufnr].filetype)
+    s = s .. icon .. ' '
+
     -- Buffer name
     local bufname = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ":t")
 
@@ -126,10 +129,9 @@ end
 -- Set buftabline. The Lua function called must be globally accessible
 Buftabline.setup = function()
   defineBufferCommands()
-  vim.go.tabline = "%!v:lua.Buftabline.build()"
-
   -- Run the buffer tab setup
   require('nuance.core.utils').buftab_setup()
+  vim.go.tabline = "%!v:lua.Buftabline.build()"
 end
 
 return Buftabline

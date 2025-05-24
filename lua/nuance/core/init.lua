@@ -1,8 +1,6 @@
 require 'nuance.core.options'
 require 'nuance.core.keymaps'
 
-require('nuance.core.utils').async_do(100, 0, require, 'nuance.core.lsps')
-
 -- NOTE: This is for when I convert the nuance.core directory into a Neovim-Lua plugin
 vim.api.nvim_create_autocmd('User', {
   group = vim.api.nvim_create_augroup('nuance-autocmds', { clear = true }),
@@ -14,7 +12,10 @@ vim.api.nvim_create_autocmd('User', {
 })
 
 require('nuance.core.diagnostics').conf()
-require('nuance.core.diagnostics').setup()
+require('nuance.core.utils').async_do(100, 0, require('nuance.core.diagnostics').setup)
+.catch(function(err)
+  vim.notify(err, vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
+end)
 
 require('nuance.core.tabline').setup()
 -- vim: ts=2 sts=2 sw=2 et

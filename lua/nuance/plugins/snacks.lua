@@ -26,6 +26,23 @@ M.keys = {
   { '<leader>ti', '<cmd>lua Snacks.toggle.indent():toggle()<CR>', desc = '[T]oggle [I]ndent' },
   { '<leader>tf', '<cmd>lua Snacks.toggle.dim():toggle()<CR>', desc = '[T]oggle [F]ocus' },
   { '<leader>tn', '<cmd>lua Snacks.picker.notifications()<CR>', desc = 'Notification History' },
+  {
+    '<leader>tc',
+    function()
+      local flag = vim.o.statuscolumn == ''
+      if flag then
+        vim.o.statuscolumn = [[%!v:lua.require'snacks.statuscolumn'.get()]]
+      else
+        vim.o.statuscolumn = ''
+      end
+      vim.notify(
+        'Snacks statuscolumn ' .. (flag and 'disabled' or 'enabled'),
+        (flag and vim.log.levels.WARN or vim.log.levels.INFO),
+        { title = 'Snacks Statuscolumn' }
+      )
+    end,
+    desc = '[T]oggle snacks statuscolumn',
+  },
 
   -- Picker maps
   { '<leader>u', '<cmd>lua Snacks.picker.undo()<CR>', desc = 'Snacks undotree' },
