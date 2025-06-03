@@ -60,7 +60,8 @@ Buftabline.build = function()
       s = s .. bufIndex .. ":"
     end
 
-    local icon = require('mini.icons').get('file', 'file.' .. vim.bo[bufnr].filetype)
+    local success, icons = pcall(require, 'mini.icons')
+    local icon = success and icons.get('file', 'file.' .. vim.bo[bufnr].filetype) or ""  -- Default icon if Mini Icons is not available
     s = s .. icon .. ' '
 
     -- Buffer name

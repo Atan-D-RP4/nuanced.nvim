@@ -26,6 +26,24 @@ local ai = {
   },
   config = function()
     require('mini.ai').setup {
+      mappings = {
+        -- Move cursor to corresponding edge of `a` textobject
+        goto_left = '<leader>[',
+        goto_right = '<leader>]',
+      },
+
+      -- Number of lines within which textobject is searched
+      n_lines = 300,
+
+      -- How to search for object (first inside current line, then inside
+      -- neighborhood). One of 'cover', 'cover_or_next', 'cover_or_prev',
+      -- 'cover_or_nearest', 'next', 'prev', 'nearest'.
+      search_method = 'cover_or_next',
+
+      -- Whether to disable showing non-error feedback
+      -- This also affects (purely informational) helper messages shown after
+      -- idle time if user input is required.
+      silent = false,
       custom_textobjects = {
         o = require('mini.ai').gen_spec.treesitter { -- code block
           a = { '@block.outer', '@conditional.outer', '@loop.outer' },
@@ -44,40 +62,6 @@ local ai = {
       },
     }
   end,
-  opts = {
-    -- Table with textobject id as fields, textobject specification as values.
-    -- Also use this to disable builtin textobjects. See |MiniAi.config|. ,
-
-    -- Module mappings. Use `''` (empty string) to disable one.
-    mappings = {
-      -- Main textobject prefixes
-      around = 'a',
-      inside = 'i',
-
-      -- Next/last textobjects
-      around_next = 'an',
-      inside_next = 'in',
-      around_last = 'al',
-      inside_last = 'il',
-
-      -- Move cursor to corresponding edge of `a` textobject
-      goto_left = '<leader>[',
-      goto_right = '<leader>]',
-    },
-
-    -- Number of lines within which textobject is searched
-    n_lines = 300,
-
-    -- How to search for object (first inside current line, then inside
-    -- neighborhood). One of 'cover', 'cover_or_next', 'cover_or_prev',
-    -- 'cover_or_nearest', 'next', 'prev', 'nearest'.
-    search_method = 'cover_or_next',
-
-    -- Whether to disable showing non-error feedback
-    -- This also affects (purely informational) helper messages shown after
-    -- idle time if user input is required.
-    silent = false,
-  },
 }
 
 local spider = {
@@ -97,12 +81,7 @@ local spider = {
 local flash = {
   'folke/flash.nvim',
   keys = {
-    'f',
-    'F',
-    't',
-    'T',
-    ';',
-    ',',
+    'f', 'F', 't', 'T', ';', ',',
     { '<M-f>', '<cmd>lua require("flash").jump()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash' },
     { '<M-F>', '<cmd>lua require("flash").treesitter()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash Treesitter' },
     { 'r', '<cmd>lua require("flash").remote()<CR>', mode = 'o', desc = 'Remote Flash' },

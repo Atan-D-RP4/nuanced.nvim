@@ -33,27 +33,33 @@ local on_attach = function(client, bufnr)
     return msg:gsub('\n', '\n')
   end)
 
+  local mappings = {
+    { 'gws', '<cmd>lua Snacks.picker.lsp_workspace_symbols()<CR>', 'LSP [W]orkspace [S]ymbols' },
+    { 'gd', '<cmd>lua Snacks.picker.lsp_type_definitions()<CR>', 'LSP [T]ype [D]efinition' },
+    { 'gus', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', 'LSP [D]ocument [S]ymbols' },
+
+    { 'gd', '<cmd>lua Snacks.picker.lsp_definitions()<CR>', 'LSP [G]oto [D]efinition' },
+    { 'grr', '<cmd>lua Snacks.picker.lsp_references()<CR>', 'LSP [G]oto [R]eferences' }, -- override `grr` mapping
+    { 'gri', '<cmd>lua Snacks.picker.lsp_implementations()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
+    { 'gs', '<cmd>lua Snacks.picker.lsp_symbols({layout = {preset = "vscode", preview = "main"}})<CR>', 'LSP Document [S]ymbols' },
+    (client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, bufnr)) and {
+      '<leader>th',
+      '<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = vim.api.nvim_get_current_buf() }) <CR>',
+      'LSP [T]oggle Inlay [H]ints',
+    } or nil,
+  }
+
+  local nmap = require('nuance.core.utils').nmap
   vim.tbl_map(function(map)
     local key = map[1]
-    local rhs = '<cmd>lua Snacks.picker.' .. map[2] .. '<CR>'
+    local rhs = map[2]
     local opts = map[3] or {}
-    require('nuance.core.utils').nmap(key, rhs, opts)
-  end, {
-    { 'gws', 'lsp_workspace_symbols()', { buffer = true, desc = 'LSP [W]orkspace [S]ymbols' } },
-    { 'gd', 'lsp_type_definitions()', { buffer = true, desc = 'LSP [T]ype [D]efinition' } },
-    { 'gus', 'lsp_symbols()', { buffer = true, desc = 'LSP [D]ocument [S]ymbols' } },
-
-    { 'gd', 'lsp_definitions()', { buffer = true, desc = 'LSP [G]oto [D]efinition' } },
-    { 'grr', 'lsp_references()', { buffer = true, desc = 'LSP [G]oto [R]eferences' } }, -- override `grr` mapping
-    { 'gri', 'lsp_implementations()', { buffer = true, desc = 'LSP [G]oto [I]mplementation' } }, -- override `gri` mapping
-  })
-
-  ---@diagnostic disable-next-line: param-type-mismatch
-  if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, { bufnr = bufnr }) then
-    require('nuance.core.utils').nmap('<leader>th', function()
-      vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = bufnr })
-    end, 'LSP [T]oggle Inlay [H]ints')
-  end
+    if type(opts) == 'string' then
+      opts = { desc = opts }
+    end
+    opts = vim.tbl_deep_extend('force', { buffer = bufnr }, opts)
+    nmap(key, rhs, opts)
+  end, mappings)
 
   if not client or not client.server_capabilities then
     vim.notify('LSP client not found or does not have server capabilities', vim.log.levels.WARN, { title = 'LSP' })
@@ -63,8 +69,9 @@ local on_attach = function(client, bufnr)
   -- The following two autocommands are used to highlight references of the
   -- word under your cursor when your cursor rests there for a little while.
   -- When you move your cursor, the highlights will be cleared (the second autocommand).
+  local augroup = require('nuance.core.utils').augroup
   if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, bufnr) then
-    local highlight_augroup = vim.api.nvim_create_augroup('nuance-lsp-highlight', { clear = true })
+    local highlight_augroup = augroup('lsp-highlight', { clear = true })
     vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
       buffer = bufnr,
       group = highlight_augroup,
@@ -81,13 +88,13 @@ local on_attach = function(client, bufnr)
       group = highlight_augroup,
       callback = function(ev)
         vim.lsp.buf.clear_references()
-        vim.api.nvim_clear_autocmds { group = 'nuance-lsp-highlight', buffer = ev.buf }
+        vim.api.nvim_clear_autocmds { group = highlight_augroup, buffer = ev.buf }
       end,
     })
   end
 
   if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentColor, bufnr) then
-    local color_augroup = vim.api.nvim_create_augroup('nuance-lsp-color', { clear = true })
+    local color_augroup = augroup('lsp-color', { clear = true })
     vim.api.nvim_create_autocmd('ColorScheme', {
       group = color_augroup,
       callback = function()
@@ -99,23 +106,15 @@ local on_attach = function(client, bufnr)
       group = color_augroup,
       callback = function(ev)
         vim.lsp.buf.clear_references()
-        vim.api.nvim_clear_autocmds { group = 'nuance-lsp-color', buffer = ev.buf }
+        vim.api.nvim_clear_autocmds { group = color_augroup, buffer = ev.buf }
       end,
     })
   end
 
-  -- vim.opt_local.foldmethod = 'expr'
-  -- vim.opt_local.foldexpr = 'v:lua.vim.lsp.foldexpr()'
-  -- vim.opt_local.foldtext = 'v:lua.vim.lsp.foldtext()'
-end
-
----@module 'lspconfig'
----@param opts lspconfig.Config
-lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
+  local cleanup_group = augroup('lsp-detach-cleanup', { clear = false })
   vim.api.nvim_create_autocmd('LspDetach', {
-    group = vim.api.nvim_create_augroup('nuance-lsp-detach', { clear = false }),
+    group = cleanup_group,
     callback = function(event)
-      -- vim.api.clear_autocmds { group = detach_augroup, buffer = event.buf }
       vim.defer_fn(function()
         -- Kill the LS process if no buffers are attached to the client
         local cur_client = vim.lsp.get_client_by_id(event.data.client_id)
@@ -130,11 +129,20 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
           cur_client:stop(true)
         end
       end, 200)
+      vim.api.nvim_clear_autocmds { group = cleanup_group, buffer = bufnr }
     end,
   })
 
   vim.api.nvim_set_hl(0, 'LspReferenceText', {})
 
+  -- vim.opt_local.foldmethod = 'expr'
+  -- vim.opt_local.foldexpr = 'v:lua.vim.lsp.foldexpr()'
+  -- vim.opt_local.foldtext = 'v:lua.vim.lsp.foldtext()'
+end
+
+---@module 'lspconfig'
+---@param opts lspconfig.Config
+lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
   -- LSP servers and clients are able to communicate to each other what features they support.
   -- By default, Neovim doesn't support everything that is in the LSP specification.
   -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
@@ -151,7 +159,8 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
 
   require('nuance.core.utils')
     .async_do(100, 0, require, 'nuance.core.lsps')
-    .after(function(res)
+    .after(function(_)
+      local lsp_conf = require 'lspconfig'
       for name, config in pairs(vim.g.configured_language_servers) do
         ---@type vim.lsp.ClientConfig
         local server_conf = vim.tbl_deep_extend('force', {}, config)
@@ -181,7 +190,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         --   end
         --   config.on_attach(client, bufnr)
         -- end,
-        require('lspconfig')[name].setup(server_conf)
+        lsp_conf[name].setup(server_conf)
       end
 
       local buf = vim.api.nvim_get_current_buf()

@@ -86,7 +86,7 @@ gitsigns.opts.on_attach = function(bufnr)
     end
   end, 'Jump to previous git [c]hange')
 
-  map({ 'o', 'x' }, 'ih', '<cmd>Gitsigns select_hunk<CR>', 'Select git hunk')
+  map({ 'o', 'x' }, 'ih', signs.select_hunk, 'Select git hunk')
 
   -- Actions
   -- visual mode

@@ -156,14 +156,14 @@ M.opts.keymap = {
   ['<CR>'] = { 'select_and_accept', 'fallback' }, -- Accept the completion.
   -- ['<C-y>'] = { 'select_and_accept', 'fallback' }, -- Accept ([y]es) the completion.
 
-  ['<C-n>'] = { 'select_next', 'snippet_forward', 'fallback' }, -- Select the [n]ext item
-  ['<C-p>'] = { 'select_prev', 'snippet_backward', 'fallback' }, -- Select the [p]revious item
+  ['<C-n>'] = { 'show', 'select_next', 'snippet_forward', 'fallback' }, -- Select the [n]ext item
+  ['<C-p>'] = { 'show', 'select_prev', 'snippet_backward', 'fallback' }, -- Select the [p]revious item
 
   ['<Tab>'] = { 'snippet_forward', 'fallback' },
   ['<S-Tab>'] = { 'snippet_backward', 'fallback' },
 
   -- Manually Trigger completions and toggle documentation window
-  ['<C-Space>'] = { 'show', 'show_documentation', 'hide_documentation' },
+  ['<C-Space>'] = { 'show_documentation', 'hide_documentation' },
 }
 
 M.opts.cmdline = {

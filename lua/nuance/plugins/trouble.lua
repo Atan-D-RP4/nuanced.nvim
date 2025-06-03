@@ -8,14 +8,9 @@ local M = {
     end
     snacks.config.picker = {
       actions = require('trouble.sources.snacks').actions,
-      win = {
-        input = {
-          keys = {
-            ['<C-t>'] = { 'trouble_open', desc = 'trouble', mode = { 'i', 'n' } },
-          },
-        },
-      },
+      win = { input = { keys = { ['<C-t>'] = { 'trouble_open', desc = 'trouble', mode = { 'i', 'n' } } } } },
     }
+
     require('trouble').setup()
   end,
 }

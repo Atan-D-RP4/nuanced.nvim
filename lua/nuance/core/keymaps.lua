@@ -128,6 +128,7 @@ local maps = {
   },
 
   { 'x', '/', '<Esc>/\\%V', 'Search in Visual Selection' },
+  { 'x', '?', '<Esc>?\\%V', 'Search in Visual Selection' },
 
   -- NOTE: This won't work in all terminal emulators/tmux/etc. Try other mappings
   -- or just use <C-\><C-n> to exit terminal mode

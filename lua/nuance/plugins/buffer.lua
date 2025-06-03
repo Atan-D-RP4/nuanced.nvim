@@ -29,13 +29,14 @@ local grugfar = {
   ---@type GrugFarOptions
   opts = {
     filetypes = {
-      ['grug-far'] = false,
+      ['grug-far'] = true,
       ['grug-far-history'] = false,
       ['grug-far-help'] = false,
     },
   },
   keys = {
     { 'g/', '<cmd>lua require("grug-far").open()<CR>', desc = 'Grug Far Search/Replace', mode = { 'n', 'x' } },
+    { 'g/', '<cmd>lua require("grug-far").with_visual_selection()<CR>', desc = 'Grug Far Search/Replace', mode = { 'v' } },
   },
 }
 
