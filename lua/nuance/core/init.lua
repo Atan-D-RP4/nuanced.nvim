@@ -12,10 +12,10 @@ vim.api.nvim_create_autocmd('User', {
 })
 
 require('nuance.core.diagnostics').conf()
-require('nuance.core.utils').async_do(100, 0, require('nuance.core.diagnostics').setup)
-.catch(function(err)
+require('nuance.core.utils').async_do(100, 0, require('nuance.core.diagnostics').setup).catch(function(err)
   vim.notify(err, vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
 end)
 
 require('nuance.core.tabline').setup()
+require('nuance.core.rain').setup()
 -- vim: ts=2 sts=2 sw=2 et
