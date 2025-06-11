@@ -1,4 +1,4 @@
-vim.g.configured_language_servers = {
+return {
   lua_ls = {
     enabled = vim.fn.executable 'lua-language-server' == 1,
     filetypes = { 'lua' },
@@ -229,13 +229,12 @@ vim.g.configured_language_servers = {
           allFeatures = true,
           loadOutDirsFromCheck = true,
           buildScripts = { enable = true },
+          targetDir = 'target/rust_analyzer',
         },
 
         imports = { granularity = { group = 'module' }, prefix = 'self' },
-        -- Add "enabled = false", if you want to disable it
-        checkOnSave = { command = 'clippy' },
-        -- Add "enabled = false", if you want to disable them
-        diagnostics = {},
+        checkOnSave = { command = 'clippy' }, -- Add "enabled = false", if you want to disable it
+        diagnostics = {}, -- Add "enabled = false", if you want to disable them
       },
     },
   },

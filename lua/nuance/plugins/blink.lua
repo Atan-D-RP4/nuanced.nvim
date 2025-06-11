@@ -94,7 +94,11 @@ M.opts.completion = {
         kind = { highlight = 'Special' },
         source_name = {
           text = function(ctx)
-            return ctx.source_name == 'LSP' and vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })[1].name or ctx.source_name
+            return ctx.source_name == 'LSP'
+                and vim.tbl_filter(function(value)
+                  return value.name ~= 'copilot'
+                end, vim.lsp.get_clients { bufnr = vim.api.nvim_get_current_buf() })[1].name
+              or ctx.source_name
           end,
         },
       },

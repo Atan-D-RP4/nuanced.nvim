@@ -307,16 +307,17 @@ local maps = {
   { { 'n', 'i' }, '<M-a>', '<cmd>%y<CR>', 'Yank All Text in Buffer' },
 
   { { 'i' }, '<C-g>', '<C-g>u<ESC>1z=`]a<C-g>u', 'Fix Current Word Under Cursor' },
-
 }
 
-vim.tbl_map(function(map)
-  require('nuance.core.utils').map(map[1], map[2], map[3] or '', map[4] or {})
+local map = require('nuance.core.utils').map
+vim.tbl_map(function(keymaps)
+  map(keymaps[1], keymaps[2], keymaps[3] or '', keymaps[4] or {})
 end, maps)
 
+local nmap = require('nuance.core.utils').nmap
 vim.tbl_map(
-  function(keys)
-    require('nuance.core.utils').nmap(keys.cmd, keys.callback, keys.desc)
+  function(keymaps)
+    nmap(keymaps.cmd, keymaps.callback, keymaps.desc)
   end,
   vim.tbl_map(function(index)
     return {

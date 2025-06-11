@@ -232,13 +232,16 @@ function M.async_do(timeout, repeat_, callback, arg1, ...)
   promise.error = nil
 
   -- Store callbacks
-  local then_callbacks = {}
+  local after_callbacks = {}
   local catch_callbacks = {}
+  table.insert(catch_callbacks, function(err)
+    vim.notify('Error in async_do: ' .. tostring(err), vim.log.levels.ERROR)
+  end)
 
   -- Add then method
   function promise.after(fn)
     if promise.pending then
-      table.insert(then_callbacks, fn)
+      table.insert(after_callbacks, fn)
     else
       if not promise.error then
         fn(promise.result)
@@ -259,6 +262,18 @@ function M.async_do(timeout, repeat_, callback, arg1, ...)
     return promise
   end
 
+  function promise.await()
+    if promise.pending then
+      vim.wait(timeout, function()
+        return not promise.pending
+      end)
+    end
+    if promise.error then
+      error(promise.error)
+    end
+    return promise.result
+  end
+
   -- This will run in the background without blocking the editor
   timer:start(
     timeout,
@@ -273,7 +288,7 @@ function M.async_do(timeout, repeat_, callback, arg1, ...)
       if success then
         promise.result = result
         -- Execute then callbacks
-        for _, fn in ipairs(then_callbacks) do
+        for _, fn in ipairs(after_callbacks) do
           fn(result)
         end
       else

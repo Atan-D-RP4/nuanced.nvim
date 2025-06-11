@@ -19,7 +19,7 @@ function M.conf()
       },
     } or {},
     update_in_insert = false,
-    virtual_lines = { current_line = true },
+    -- virtual_lines = { current_line = true },
 
     virtual_text = {
       source = true,

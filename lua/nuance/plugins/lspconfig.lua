@@ -4,13 +4,23 @@ local lspconfig = {
 
   ft = {
     -- Web Languages
-    'typescript', 'javascript', 'html', 'css',
+    'typescript',
+    'javascript',
+    'html',
+    'css',
     -- Script Languages
-    'vim', 'lua', 'sh', 'python',
+    'vim',
+    'lua',
+    'sh',
+    'python',
     -- Compiled Languages
-    'c', 'cpp', 'rust', 'java',
+    'c',
+    'cpp',
+    'rust',
+    'java',
     -- Document Filetypes
-    'tex', 'typst',
+    'tex',
+    'typst',
   },
 
   ---@module 'lspconfig'
@@ -30,15 +40,23 @@ local on_attach = function(client, bufnr)
   vim.lsp.log.set_format_func(function(args)
     local msg = vim.inspect(args)
     msg = msg:gsub('\t', '  ')
-    return msg:gsub('\n', '\n')
+    return msg:gsub('\n', '\n')[1]
   end)
 
   local mappings = {
     { 'gws', '<cmd>lua Snacks.picker.lsp_workspace_symbols()<CR>', 'LSP [W]orkspace [S]ymbols' },
     { 'gd', '<cmd>lua Snacks.picker.lsp_type_definitions()<CR>', 'LSP [T]ype [D]efinition' },
     { 'gus', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', 'LSP [D]ocument [S]ymbols' },
-
     { 'gd', '<cmd>lua Snacks.picker.lsp_definitions()<CR>', 'LSP [G]oto [D]efinition' },
+    {
+      'grn',
+      function()
+        vim.lsp.buf.rename()
+        -- Save all buffers after renaming
+        vim.cmd [[ exec 'wa' ]]
+      end,
+      'LSP [R]ename',
+    }, -- override `grn` mapping
     { 'grr', '<cmd>lua Snacks.picker.lsp_references()<CR>', 'LSP [G]oto [R]eferences' }, -- override `grr` mapping
     { 'gri', '<cmd>lua Snacks.picker.lsp_implementations()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
     { 'gs', '<cmd>lua Snacks.picker.lsp_symbols({layout = {preset = "vscode", preview = "main"}})<CR>', 'LSP Document [S]ymbols' },
@@ -99,7 +117,7 @@ local on_attach = function(client, bufnr)
       group = color_augroup,
       callback = function()
         vim.lsp.buf.clear_references()
-        vim.lsp.buf.document_color()
+        vim.lsp.document_color._buf_refresh(bufnr, client.id)
       end,
     })
     vim.api.nvim_create_autocmd('LspDetach', {
@@ -153,20 +171,19 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     {},
     vim.lsp.protocol.make_client_capabilities(),
     has_blink and blink.get_lsp_capabilities() or {},
-    has_blink and blink.get_lsp_capabilities() or {},
     opts.capabilities or {}
   )
 
   require('nuance.core.utils')
     .async_do(100, 0, require, 'nuance.core.lsps')
-    .after(function(_)
+    .after(function(res)
       local lsp_conf = require 'lspconfig'
-      for name, config in pairs(vim.g.configured_language_servers) do
+
+      for name, config in pairs(res) do
         ---@type vim.lsp.ClientConfig
         local server_conf = vim.tbl_deep_extend('force', {}, config)
         server_conf.on_init = function(client, initialize_result)
           vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
-          vim.g.configured_language_servers[name] = client
           if config.on_init then
             config.on_init(client, initialize_result)
           end
@@ -182,8 +199,10 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
             config.on_exit(code, signal, client_id)
           end
         end
+
         server_conf.capabilities = vim.tbl_extend('force', {}, capabilities, config.capabilities or {})
         server_conf.on_attach = on_attach
+
         -- server_conf.on_attach = function(client, bufnr)
         --   if client.server_capabilities.documentSymbolProvider then
         --     require('nvim-navic').attach(client, bufnr)

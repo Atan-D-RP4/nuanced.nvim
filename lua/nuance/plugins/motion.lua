@@ -20,10 +20,17 @@ local ai = {
   'echasnovski/mini.ai',
   lazy = true,
   event = { 'BufRead', 'BufNewFile' },
+  branch = 'main',
+
   dependencies = {
     'nvim-treesitter/nvim-treesitter',
-    'nvim-treesitter/nvim-treesitter-textobjects',
+    {
+      'nvim-treesitter/nvim-treesitter-textobjects',
+      branch = 'main',
+      opts = { select = { lookahead = true } },
+    },
   },
+
   config = function()
     require('mini.ai').setup {
       mappings = {
@@ -45,6 +52,14 @@ local ai = {
       -- idle time if user input is required.
       silent = false,
       custom_textobjects = {
+        g = function()
+          local from = { line = 1, col = 1 }
+          local to = {
+            line = vim.fn.line '$',
+            col = math.max(vim.fn.getline('$'):len(), 1),
+          }
+          return { from = from, to = to }
+        end,
         o = require('mini.ai').gen_spec.treesitter { -- code block
           a = { '@block.outer', '@conditional.outer', '@loop.outer' },
           i = { '@block.inner', '@conditional.inner', '@loop.inner' },
@@ -81,7 +96,12 @@ local spider = {
 local flash = {
   'folke/flash.nvim',
   keys = {
-    'f', 'F', 't', 'T', ';', ',',
+    'f',
+    'F',
+    't',
+    'T',
+    ';',
+    ',',
     { '<M-f>', '<cmd>lua require("flash").jump()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash' },
     { '<M-F>', '<cmd>lua require("flash").treesitter()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash Treesitter' },
     { 'r', '<cmd>lua require("flash").remote()<CR>', mode = 'o', desc = 'Remote Flash' },
@@ -148,6 +168,7 @@ local M = {
   spider,
   ai,
   flash,
+  { 'tpope/vim-rsi', lazy = false },
   -- treewalker,
   -- operator,
   -- matchup,

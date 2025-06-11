@@ -139,14 +139,37 @@ autocmd('BufWinEnter', {
   pattern = 'quickfix',
   callback = function()
     vim.bo.modifiable = true
+    vim.bo.buflisted = false
     -- :vimgrep's quickfix window display format now includes start and end column (in vim and nvim) so adding 2nd format to match that
     vim.bo.errorformat = '%f|%l col %c| %m,%f|%l col %c-%k| %m'
-    vim.keymap.set(
-      'n',
-      '<C-s>',
-      '<Cmd>cgetbuffer|set nomodified|echo "quickfix/location list updated"<CR>',
-      { buffer = true, desc = 'Update quickfix/location list with changes made in quickfix window' }
-    )
+
+    -- Enhanced keymap for updating quickfix
+    vim.keymap.set('n', '<C-s>', function()
+      vim.cmd [[ exec 'cgetbuffer' ]]
+      vim.bo.modified = false
+      vim.notify('Quickfix/location list updated', vim.log.levels.INFO, {
+        title = 'Quickfix',
+        timeout = 2000,
+      })
+    end, { buffer = true, desc = 'Update quickfix/location list with changes made in quickfix window' })
+
+    -- Additional useful keymaps for quickfix editing
+    vim.keymap.set('n', '<C-r>', function()
+      vim.cmd [[ exec "edit!" ]]
+      vim.notify('Quickfix list reloaded', vim.log.levels.INFO, {
+        title = 'Quickfix',
+        timeout = 2000,
+      })
+    end, { buffer = true, desc = 'Reload quickfix list' })
+
+    -- Quick navigation keymaps
+    vim.keymap.set('n', 'dd', function()
+      local line = vim.fn.line '.'
+      vim.cmd [[ exec 'delete' ]]
+      if vim.fn.line '$' == 1 then
+        vim.cmd [[ exec 'cclose' ]]
+      end
+    end, { buffer = true, desc = 'Delete quickfix entry' })
   end,
 })
 
@@ -351,10 +374,6 @@ vim.api.nvim_create_user_command('SearchEngineQuery', function(args)
   -- Open the URL
   vim.ui.open(selected_engine.url .. query)
 end, { nargs = '?', range = true, desc = 'Search using a specified engine' })
-
-vim.keymap.set('c', '<C-;>', function()
-  vim.print(vim.fn.winnr '$' == 0)
-end, { desc = 'Check if command window is open' })
 
 autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusLost', 'CmdwinEnter' }, {
   group = augroup('NumberToggle', { clear = true }),

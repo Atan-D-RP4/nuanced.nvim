@@ -8,6 +8,43 @@ local statusline = {
   config = function()
     local statusline = require 'mini.statusline'
     -- set use_icons to true if you have a Nerd Font
+    -- You can configure sections in the statusline by overriding their
+    -- default behavior.
+    ---@diagnostic disable-next-line: duplicate-set-field
+    statusline.section_fileinfo = function(args)
+      local size_fn = function()
+        local size = vim.fn.getfsize(vim.fn.getreg '%')
+        if size < 1024 then
+          return string.format('%dB', size)
+        elseif size < 1048576 then
+          return string.format('%.2fKiB', size / 1024)
+       end
+      end
+
+      local filetype = vim.bo.filetype
+
+      -- Don't show anything if there is no filetype
+      if filetype == '' then
+        return ''
+      end
+      -- Construct output string if truncated or buffer is not normal
+      if MiniStatusline.is_truncated(args.trunc_width) or vim.bo.buftype ~= '' then
+        return filetype
+      end
+
+      -- Construct output string with extra file info
+      local encoding = vim.bo.fileencoding or vim.bo.encoding
+      local format = vim.bo.fileformat
+      local word = vim.fn.wordcount()
+      local words = string.format('%dW', word.words)
+
+      return string.format('%s %s[%s] %s %s', filetype, encoding, format, size_fn(), words)
+    end
+
+    ---@diagnostic disable-next-line: duplicate-set-field
+    statusline.section_location = function()
+      return '%2l|%-2v'
+    end
 
     local combine_groups = function(groups)
       local parts = vim.tbl_map(function(s)
@@ -53,7 +90,9 @@ local statusline = {
       ---@diagnostic disable-next-line: param-type-mismatch
       vim.api.nvim_set_hl(0, hl_fg .. '2', fghl)
     end
+
     require('nuance.core.utils').async_do(100, 0, function(opts)
+      vim.o.laststatus = 2
       statusline.setup {
 
         content = {
@@ -114,45 +153,6 @@ local statusline = {
         set_vim_settings = true,
       }
     end)
-    -- You can configure sections in the statusline by overriding their
-    -- default behavior.
-    ---@diagnostic disable-next-line: duplicate-set-field
-    statusline.section_fileinfo = function(args)
-      local size_fn = function()
-        local size = vim.fn.getfsize(vim.fn.getreg '%')
-        if size < 1024 then
-          return string.format('%dB', size)
-        elseif size < 1048576 then
-          return string.format('%.2fKiB', size / 1024)
-        else
-          return string.format('%.2fMiB', size / 1048576)
-        end
-      end
-
-      local filetype = vim.bo.filetype
-
-      -- Don't show anything if there is no filetype
-      if filetype == '' then
-        return ''
-      end
-      -- Construct output string if truncated or buffer is not normal
-      if MiniStatusline.is_truncated(args.trunc_width) or vim.bo.buftype ~= '' then
-        return filetype
-      end
-
-      -- Construct output string with extra file info
-      local encoding = vim.bo.fileencoding or vim.bo.encoding
-      local format = vim.bo.fileformat
-      local word = vim.fn.wordcount()
-      local words = string.format('%dW', word.words)
-
-      return string.format('%s %s[%s] %s %s', filetype, encoding, format, size_fn(), words)
-    end
-
-    ---@diagnostic disable-next-line: duplicate-set-field
-    statusline.section_location = function()
-      return '%2l:%-2v'
-    end
   end,
 }
 

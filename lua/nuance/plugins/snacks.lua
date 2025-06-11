@@ -11,15 +11,19 @@ M.keys = {
   { '<leader>cR', '<cmd>lua Snacks.rename.rename_file()<CR>', desc = 'Rename File' },
   { '<leader>gB', '<cmd>lua Snacks.gitbrowse()<CR>', desc = 'Git Browse', mode = { 'n', 'v' } },
 
-  { '<C-w>t', '<cmd>lua Snacks.terminal()<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
-  { '<C-w><C-t>', '<cmd>lua Snacks.terminal()<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
+  { '<C-w>t', '<cmd>lua Snacks.terminal.toggle("fish")<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
+  { '<C-w><C-t>', '<cmd>lua Snacks.terminal.toggle("fish")<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
 
   -- Create some toggle mappings
   { '<leader>tz', '<cmd>lua Snacks.zen()<CR>', desc = 'Toggle Zen Mode' },
   { '<leader>tZ', '<cmd>lua Snacks.zen.zoom()<CR>', desc = 'Toggle Zoom' },
   { '<leader>ts', "<cmd>lua Snacks.toggle.option('spell', { name = 'Spelling' }):toggle()<CR>", desc = '[T]oggle [S]pell' },
   { '<leader>tw', "<cmd>lua Snacks.toggle.option('wrap', { name = 'Wrap' }):toggle()<CR>", desc = 'Toggle [W]rap' },
-  { '<leader>tL', "<cmd>lua Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):toggle()<CR>", desc = '[T]oggle [R]elative Numbers' },
+  {
+    '<leader>tL',
+    "<cmd>lua Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):toggle()<CR>",
+    desc = '[T]oggle [R]elative Numbers',
+  },
   { '<leader>td', '<cmd>lua Snacks.toggle.diagnostics():toggle()<CR>', desc = '[T]oggle Lsp [D]iagnosticse' },
   { '<leader>tl', '<cmd>lua Snacks.toggle.line_number():toggle()<CR>', desc = '[T]oggle [L]ine Numbers' },
   { '<leader>tt', '<cmd>lua Snacks.toggle.treesitter():toggle()<CR>', desc = '[T]oggle [T]reesitter Highlight' },
@@ -92,6 +96,43 @@ M.opts = {
   words = { enabled = false },
 }
 
+M.opts.terminal = {
+  enabled = true,
+  win = { border = 'rounded' },
+  keys = {
+    ["<C-d>"] = function (self)
+      vim.api.nvim_feedkeys('<C-d><CR>', 'n', true)
+    end,
+    gf = function(self)
+      local f = vim.fn.findfile(vim.fn.expand '<cfile>', '**')
+      if f == '' then
+        Snacks.notify.warn 'No file under cursor'
+      else
+        self:hide()
+        vim.schedule(function()
+          vim.cmd('e ' .. f)
+        end)
+      end
+    end,
+    term_normal = {
+      '<esc>',
+      function(self)
+        self.esc_timer = self.esc_timer or (vim.uv or vim.loop).new_timer()
+        if self.esc_timer:is_active() then
+          self.esc_timer:stop()
+          vim.cmd 'stopinsert'
+        else
+          self.esc_timer:start(200, 0, function() end)
+          return '<esc>'
+        end
+      end,
+      mode = 't',
+      expr = true,
+      desc = 'Double escape to normal mode',
+    },
+  },
+}
+
 M.opts.dashboard = {
   enabled = true,
   preset = {
@@ -100,6 +141,7 @@ M.opts.dashboard = {
 
     ---@type snacks.dashboard.Item[]
     keys = {
+      { icon = ' ', key = 'a', desc = 'Pick Session', action = '<cmd>SessionPick<CR>' },
       { icon = ' ', key = 'f', desc = 'Find File', action = ":lua Snacks.dashboard.pick('files')" },
       { icon = ' ', key = 'n', desc = 'New File', action = ':ene | startinsert' },
       -- { icon = ' ', key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
@@ -107,7 +149,6 @@ M.opts.dashboard = {
       { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
       { icon = ' ', key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
       { icon = ' ', key = 'o', desc = 'File System', action = '<cmd>Oil<CR>' },
-      { icon = ' ', key = 'a', desc = 'Pick Session', action = '<cmd>SessionPick<CR>' },
       { icon = '󰒲 ', key = 'L', desc = 'Lazy', action = ':Lazy', enabled = package.loaded.lazy ~= nil },
       { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
     },
