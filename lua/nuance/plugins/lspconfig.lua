@@ -1,3 +1,4 @@
+local config = require 'blink.cmp.completion.brackets.config'
 local lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspLog' },
@@ -105,7 +106,6 @@ local on_attach = function(client, bufnr)
     vim.api.nvim_create_autocmd('LspDetach', {
       group = highlight_augroup,
       callback = function(ev)
-        vim.lsp.buf.clear_references()
         vim.api.nvim_clear_autocmds { group = highlight_augroup, buffer = ev.buf }
       end,
     })
@@ -115,15 +115,14 @@ local on_attach = function(client, bufnr)
     local color_augroup = augroup('lsp-color', { clear = true })
     vim.api.nvim_create_autocmd('ColorScheme', {
       group = color_augroup,
-      callback = function()
+      callback = function(ev)
         vim.lsp.buf.clear_references()
-        vim.lsp.document_color._buf_refresh(bufnr, client.id)
+        vim.lsp.document_color._buf_refresh(ev.buf, client.id)
       end,
     })
     vim.api.nvim_create_autocmd('LspDetach', {
       group = color_augroup,
       callback = function(ev)
-        vim.lsp.buf.clear_references()
         vim.api.nvim_clear_autocmds { group = color_augroup, buffer = ev.buf }
       end,
     })
@@ -132,10 +131,11 @@ local on_attach = function(client, bufnr)
   local cleanup_group = augroup('lsp-detach-cleanup', { clear = false })
   vim.api.nvim_create_autocmd('LspDetach', {
     group = cleanup_group,
-    callback = function(event)
+    callback = function(ev)
+      vim.api.nvim_clear_autocmds { group = cleanup_group, buffer = ev.buf }
       vim.defer_fn(function()
         -- Kill the LS process if no buffers are attached to the client
-        local cur_client = vim.lsp.get_client_by_id(event.data.client_id)
+        local cur_client = vim.lsp.get_client_by_id(ev.data.client_id)
         if cur_client == nil or cur_client.name == 'copilot' then
           return
         end
@@ -147,7 +147,6 @@ local on_attach = function(client, bufnr)
           cur_client:stop(true)
         end
       end, 200)
-      vim.api.nvim_clear_autocmds { group = cleanup_group, buffer = bufnr }
     end,
   })
 
@@ -174,33 +173,37 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     opts.capabilities or {}
   )
 
+  vim.g.configured_servers = vim.g.configured_servers or {}
   require('nuance.core.utils')
     .async_do(100, 0, require, 'nuance.core.lsps')
     .after(function(res)
       local lsp_conf = require 'lspconfig'
+      local configured_servers = {}
 
-      for name, config in pairs(res) do
+      for name, server in pairs(res) do
         ---@type vim.lsp.ClientConfig
-        local server_conf = vim.tbl_deep_extend('force', {}, config)
+        local server_conf = vim.tbl_deep_extend('force', {}, server)
+        local server_extended = vim.tbl_extend('force', server_conf, lsp_conf[name].config_def.default_config or {})
+        configured_servers[name] = server_extended
         server_conf.on_init = function(client, initialize_result)
           vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
-          if config.on_init then
-            config.on_init(client, initialize_result)
+          if server.on_init then
+            server.on_init(client, initialize_result)
           end
         end
         server_conf.before_init = function(params, client_config)
-          if config.before_init then
-            config.before_init(params, client_config)
+          if server.before_init then
+            server.before_init(params, client_config)
           end
         end
         server_conf.on_exit = function(code, signal, client_id)
           vim.notify('De-Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
-          if config.on_exit then
-            config.on_exit(code, signal, client_id)
+          if server.on_exit then
+            server.on_exit(code, signal, client_id)
           end
         end
 
-        server_conf.capabilities = vim.tbl_extend('force', {}, capabilities, config.capabilities or {})
+        server_conf.capabilities = vim.tbl_extend('force', {}, capabilities, server.capabilities or {})
         server_conf.on_attach = on_attach
 
         -- server_conf.on_attach = function(client, bufnr)
@@ -211,6 +214,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         -- end,
         lsp_conf[name].setup(server_conf)
       end
+      vim.g.configured_servers = configured_servers
 
       local buf = vim.api.nvim_get_current_buf()
       vim.api.nvim_exec_autocmds('FileType', {

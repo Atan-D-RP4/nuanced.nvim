@@ -12,30 +12,30 @@ M = {
   -- build = 'nix run .#build-plugin',
 }
 
-M.dependencies = {
-  {
-    'L3MON4D3/LuaSnip',
-    event = { 'InsertEnter' },
-    build = (function()
-      -- Build Step is needed for regex support in snippets.
-      -- This step is not supported in many windows environments.
-      -- Remove the below condition to re-enable on windows.
-      if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
-        return
-      end
-      return 'make install_jsregexp'
-    end)(),
+local luasnip = {
+  'L3MON4D3/LuaSnip',
+  event = { 'InsertEnter' },
+  build = (function()
+    -- Build Step is needed for regex support in snippets.
+    -- This step is not supported in many windows environments.
+    -- Remove the below condition to re-enable on windows.
+    if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
+      return
+    end
+    return 'make install_jsregexp'
+  end)(),
 
-    main = 'luasnip.config',
-    opts = {
-      history = true,
-      updateevents = 'TextChanged,TextChangedI',
-    },
-    config = function()
-      require 'nuance.core.luasnips'
-    end,
+  main = 'luasnip.config',
+  opts = {
+    history = true,
+    updateevents = 'TextChanged,TextChangedI',
   },
+  config = function()
+    require 'nuance.core.luasnips'
+  end,
 }
+
+-- M.dependencies = { luasnip }
 
 ---@module 'blink.cmp'
 ---@type blink.cmp.Config
@@ -150,7 +150,7 @@ M.opts.sources = {
   },
 }
 
-M.opts.snippets = { preset = 'luasnip' }
+M.opts.snippets = { preset = 'default' }
 
 M.opts.keymap = {
   ['<C-q>'] = { 'scroll_documentation_up', 'fallback' }, -- Scroll the documentation window [b]ack

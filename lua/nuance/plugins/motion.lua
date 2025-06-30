@@ -1,6 +1,6 @@
 local surround = {
   'echasnovski/mini.surround',
-  event = { 'BufRead', 'BufNewFile' },
+  event = { 'BufEnter', 'BufRead', 'BufNewFile' },
 
   opts = {
     mappings = {
@@ -112,7 +112,7 @@ local flash = {
   ---@type Flash.Config
   opts = {
     -- labels = 'asdfghjklqwertyuiopzxcvbnm',
-    labels = 'dgqftyuzxcvbnm1234567890',
+    labels = 'dgqftyuzxcvnm1234567890',
     search = { mode = 'search' },
     modes = { char = { jump_labels = true } },
     label = { rainbow = { enabled = true } },

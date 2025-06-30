@@ -1,13 +1,19 @@
--- Inspired by: https://www.reddit.com/r/neovim/comments/1kkuu5h/wow_i_just_wrote_my_own_tabline_in_lua_with/
--- Nuance Buftabline
-
--- Clickable buffer list
--- Buffer index from vim.g.tab_idx_map
--- Highlights for active/inactive buffers
+-- *buftabline.lua* Theovim Buftabline
+-- $ figlet -f tinker-joy theovim
+--  o  o
+--  |  |                  o
+-- -o- O--o o-o o-o o   o   o-O-o
+--  |  |  | |-' | |  \ /  | | | |
+--  o  o  o o-o o-o   o   | o o o
+--
+-- Initialize buftabline with:
+-- - Clickable buffer list
+-- - Buffer index from nuance_buftabs_count
+-- - Highlights for active/inactive buffers
 
 Buftabline = {}
 
-local logo = vim.g.have_nerd_font and "  " or " [B] "
+local logo = vim.g.have_nerd_font and "  " or "Nuance"
 
 ---Get a list of all listed buffers
 ---@return table List of buffer numbers
@@ -60,8 +66,7 @@ Buftabline.build = function()
       s = s .. bufIndex .. ":"
     end
 
-    local success, icons = pcall(require, 'mini.icons')
-    local icon = success and icons.get('file', 'file.' .. vim.bo[bufnr].filetype) or ""  -- Default icon if Mini Icons is not available
+    local icon = require('mini.icons').get('file', 'file.' .. vim.bo[bufnr].filetype)
     s = s .. icon .. ' '
 
     -- Buffer name
@@ -130,9 +135,10 @@ end
 -- Set buftabline. The Lua function called must be globally accessible
 Buftabline.setup = function()
   defineBufferCommands()
+  vim.go.tabline = "%!v:lua.Buftabline.build()"
+
   -- Run the buffer tab setup
   require('nuance.core.utils').buftab_setup()
-  vim.go.tabline = "%!v:lua.Buftabline.build()"
 end
 
 return Buftabline

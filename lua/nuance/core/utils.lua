@@ -130,31 +130,6 @@ function M.test()
   print(test[3])
 end
 
-function M.buftab_setup()
-  -- NOTE: This does not work since any of the buffer delete operations don't seemd to trigger this autocommand
-  vim.api.nvim_create_autocmd({ 'BufAdd', 'BufDelete', 'BufEnter', 'BufUnload', 'BufHidden', 'BufNewFile', 'BufNew' }, {
-    desc = 'Trigger an Autocommand everytime the buffer list changes',
-    group = vim.api.nvim_create_augroup('nuance-buftabs', { clear = true }),
-    pattern = '*',
-    callback = function()
-      vim.g.nuance_buftabs_count = vim.g.nuance_buftabs_count or 1
-      vim.g.tab_idx_map = nil
-      local bufs = vim.api.nvim_exec2('exec "buffers"', { output = true }).output
-      bufs = vim.split(bufs, '\n', { trimempty = true })
-      bufs = vim.tbl_map(function(s)
-        return tonumber(vim.split(s, ' ', { trimempty = true })[1])
-      end, bufs)
-      local tab_idx_map = {}
-      local idx = 1
-      for _, bufnr in ipairs(bufs) do
-        tab_idx_map[bufnr] = idx
-        idx = idx + 1
-      end
-      vim.g.tab_idx_map = tab_idx_map
-    end,
-  })
-end
-
 ---@param offset integer
 function M.get_relative_line(offset)
   -- Get the current cursor row (1-indexed)

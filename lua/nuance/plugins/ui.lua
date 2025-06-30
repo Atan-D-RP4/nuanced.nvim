@@ -92,7 +92,6 @@ local statusline = {
     end
 
     require('nuance.core.utils').async_do(100, 0, function(opts)
-      vim.o.laststatus = 2
       statusline.setup {
 
         content = {

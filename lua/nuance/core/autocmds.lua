@@ -394,6 +394,46 @@ autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusL
   end,
 })
 
+vim.api.nvim_create_user_command('ToggleTransparency', function()
+  vim.g.transparency = vim.g.transparency or {
+    enabled = false,
+    hl1 = {},
+    hl2 = {},
+    hl3 = {},
+  }
+
+  if not vim.g.transparency.enabled then
+    local transparency = vim.g.transparency or {}
+    transparency.enabled = true
+
+    transparency.hl1 = vim.api.nvim_get_hl(0, { name = 'Normal' })
+    transparency.hl2 = vim.api.nvim_get_hl(0, { name = 'NormalNC' })
+    transparency.hl3 = vim.api.nvim_get_hl(0, { name = 'EndOfBuffer' })
+    vim.g.transparency = transparency
+
+    vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+    vim.api.nvim_set_hl(0, 'NormalNC', { bg = 'none' })
+    vim.api.nvim_set_hl(0, 'EndOfBuffer', { bg = 'none' })
+  else
+    local transparency = vim.g.transparency or {}
+    vim.api.nvim_set_hl(0, 'Normal', vim.g.transparency.hl1)
+    vim.api.nvim_set_hl(0, 'NormalNC', vim.g.transparency.hl2)
+    vim.api.nvim_set_hl(0, 'EndOfBuffer', vim.g.transparency.hl3)
+    transparency = {
+      enabled = false,
+      hl1 = {},
+      hl2 = {},
+      hl3 = {},
+    }
+    vim.g.transparency = transparency
+  end
+
+  vim.print(vim.g.transparency)
+end, {
+  nargs = 0,
+  desc = 'Toggle Transparency',
+})
+
 vim.api.nvim_create_user_command('ToggleClipSync', function()
   local clipboard = vim.o.clipboard
   if clipboard:find 'unnamed' then

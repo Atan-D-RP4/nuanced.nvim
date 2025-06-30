@@ -16,6 +16,7 @@ require('nuance.core.utils').async_do(100, 0, require('nuance.core.diagnostics')
   vim.notify(err, vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
 end)
 
-require('nuance.core.tabline').setup()
+require('nuance.core.bufline').setup()
 require('nuance.core.rain').setup()
+
 -- vim: ts=2 sts=2 sw=2 et

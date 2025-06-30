@@ -42,12 +42,9 @@ opt.mousehide = true
 
 -- Don't show the mode, since it's already in the status line
 opt.showmode = false
-opt.laststatus = 3
+opt.laststatus = 2
 
--- Show Tabline
-opt.showtabline = 2
--- -- Enable break indent
-
+-- Enable break indent
 opt.breakindent = true
 opt.breakindentopt = 'shift:4,min:20'
 opt.showbreak = '↪'

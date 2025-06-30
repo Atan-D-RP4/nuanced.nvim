@@ -57,13 +57,6 @@ M.opts.lsp_file_methods = {
 M.opts.keymaps = {
   ['<CR>'] = {},
   ['<C-l>'] = 'actions.refresh',
-  -- Append to a register (Primitive impl for marking files)
-  ['<C-x>'] = function()
-    vim.fn.setreg('a', vim.fn.getreg 'a' .. vim.api.nvim_get_current_line() .. '\n')
-  end,
-  ['<C-c>'] = function()
-    vim.fn.setreg('a', '')
-  end,
   ['<C-s>'] = { 'actions.select', opts = { vertical = true }, desc = 'Open the entry in a vertical split' },
   ['<C-h>'] = { 'actions.select', opts = { horizontal = true }, desc = 'Open the entry in a horizontal split' },
   ['<C-t>'] = { 'actions.select', opts = { tab = true }, desc = 'Open the entry in new tab' },

@@ -21,16 +21,20 @@ M.avante = {
   dependencies = {
     'nvim-treesitter/nvim-treesitter',
     'nvim-lua/plenary.nvim',
-    'MunifTanjim/nui.nvim',
+    -- 'MunifTanjim/nui.nvim',
     'zbirenbaum/copilot.lua', -- for providers='copilot'
   },
 
   ---@module 'avante'
   ---@type avante.Config
   opts = {
+
+    mappings = {
+      files = { add_current = '<leader>ab' },
+    },
     -- add any opts here
     -- for example
-    provider = 'openrouter',
+    provider = 'copilot',
     providers = {
       openrouter = {
         __inherited_from = 'openai',
@@ -70,22 +74,22 @@ M.copilot = {
       vim.fn.expand '~' .. '/Notes/',
     },
   },
-
-  config = function(_, _)
-    vim.api.nvim_create_autocmd('User', {
-      pattern = 'BlinkCmpMenuOpen',
-      callback = function()
-        vim.b.copilot_suggestion_hidden = true
-      end,
-    })
-
-    vim.api.nvim_create_autocmd('User', {
-      pattern = 'BlinkCmpMenuClose',
-      callback = function()
-        vim.b.copilot_suggestion_hidden = false
-      end,
-    })
-  end,
+  --
+  -- config = function(_, _)
+  --   vim.api.nvim_create_autocmd('User', {
+  --     pattern = 'BlinkCmpMenuOpen',
+  --     callback = function()
+  --       vim.b.copilot_suggestion_hidden = true
+  --     end,
+  --   })
+  --
+  --   vim.api.nvim_create_autocmd('User', {
+  --     pattern = 'BlinkCmpMenuClose',
+  --     callback = function()
+  --       vim.b.copilot_suggestion_hidden = false
+  --     end,
+  --   })
+  -- end,
 }
 
 return {

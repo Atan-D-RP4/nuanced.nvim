@@ -9,6 +9,18 @@ local gitcore = {
     { '<leader>gd', '<cmd>Gdiffsplit<CR>', desc = '[G]it [d]iff against index', mode = 'n' },
     { '<leader>gD', '<cmd>Gdiffsplit!<CR>', desc = '[G]it [D]iff against last commit', mode = 'n' },
   },
+
+  config = function()
+    local suc, snacks = pcall(require, 'snacks')
+    if suc then
+      local map = require('nuance.core.utils').map
+      vim.tbl_map(function(keymap)
+        map(keymap[1], keymap[2], keymap[3] or '', keymap[4] or {})
+      end, {
+        { { 'n' }, '<leader>gt', '<cmd>lua Snacks.picker.git_branches()<CR>', '[G]it Branches Picker' },
+      })
+    end
+  end,
 }
 
 local gitsigns = { -- Adds git related signs to the gutter, as well as utilities for managing changes
@@ -50,12 +62,6 @@ gitsigns.opts = {
   },
 }
 
-gitsigns.config = function(_, opts)
-  require('nuance.core.utils').async_do(100, 0, function()
-    require('gitsigns').setup(opts)
-  end)
-end
-
 gitsigns.opts.on_attach = function(bufnr)
   local signs = require 'gitsigns'
 
@@ -87,10 +93,11 @@ gitsigns.opts.on_attach = function(bufnr)
   end, 'Jump to previous git [c]hange')
 
   map({ 'o', 'x' }, 'ih', signs.select_hunk, 'Select git hunk')
+  map({ 'o', 'x' }, 'ah', signs.select_hunk, 'Select git hunk')
 
   -- Actions
   -- visual mode
-  map('v', '<leader>gs', function()
+  map('v', '<leader>ga', function()
     signs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
   end, '[G]it stage hunk')
   map('v', '<leader>gr', function()

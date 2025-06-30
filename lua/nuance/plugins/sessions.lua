@@ -1,4 +1,5 @@
 vim.g.active_session = ''
+local Sessions = {}
 
 local function create_default()
   local session_path = require('mini.sessions').config.directory .. '/' .. 'default'
@@ -182,6 +183,7 @@ M = {
     autoread = false,
     directory = vim.fn.stdpath 'data' .. '/sessions',
     file = '', -- File for local session (use `''` to disable)
+
     hooks = {
       pre = {
         read = function()
@@ -272,7 +274,7 @@ M.keys = {
     mode = 'n',
   },
   {
-    '<leader>ac',
+    '<leader>aq',
     function()
       if vim.g.active_session == '' then
         print 'No session loaded'
@@ -282,11 +284,11 @@ M.keys = {
       vim.g.active_session = ''
       vim.notify('Cleared Session', vim.log.levels.INFO, { title = 'Session' })
     end,
-    desc = '[S]essions [C]lose',
+    desc = '[S]essions [Q]uit',
     mode = 'n',
   },
   {
-    '<leader>an',
+    '<leader>ac',
     function()
       local name = vim.fn.input 'Session name: '
       if name == '' then
@@ -296,7 +298,7 @@ M.keys = {
       require('mini.sessions').write(name)
       vim.g.active_session = name
     end,
-    desc = '[S]essions [N]ew',
+    desc = '[S]essions [C]reate',
     mode = 'n',
   },
 }

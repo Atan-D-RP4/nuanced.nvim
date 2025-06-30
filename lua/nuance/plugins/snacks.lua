@@ -9,7 +9,7 @@ M.keys = {
   { '<leader>S', '<cmd>lua Snacks.scratch.select()<CR>', desc = 'Select Scratch Buffer' },
   { '<leader>dn', '<cmd>lua Snacks.notifier.hide()<CR>', desc = 'Dismiss All Notifications' },
   { '<leader>cR', '<cmd>lua Snacks.rename.rename_file()<CR>', desc = 'Rename File' },
-  { '<leader>gB', '<cmd>lua Snacks.gitbrowse()<CR>', desc = 'Git Browse', mode = { 'n', 'v' } },
+  { '<leader>gB', '<cmd>lua Snacks.gitbrowse()<CR>', desc = '[G]it [B]rowse', mode = { 'n', 'v' } },
 
   { '<C-w>t', '<cmd>lua Snacks.terminal.toggle("fish")<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
   { '<C-w><C-t>', '<cmd>lua Snacks.terminal.toggle("fish")<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
@@ -82,7 +82,7 @@ M.opts = {
   profiler = { enabled = false },
   bigfile = { enabled = true },
   quickfile = { enabled = true },
-  scope = { enabled = true }, -- tpope/vim-sleuth is just better for this
+  scope = { enabled = false }, -- tpope/vim-sleuth is just better for this
   indent = { enabled = true },
   input = { enabled = true },
   rename = { enabled = true },
@@ -100,9 +100,6 @@ M.opts.terminal = {
   enabled = true,
   win = { border = 'rounded' },
   keys = {
-    ["<C-d>"] = function (self)
-      vim.api.nvim_feedkeys('<C-d><CR>', 'n', true)
-    end,
     gf = function(self)
       local f = vim.fn.findfile(vim.fn.expand '<cfile>', '**')
       if f == '' then

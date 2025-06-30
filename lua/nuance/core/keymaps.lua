@@ -237,14 +237,12 @@ local maps = {
     'n',
     '<leader>ed',
     function()
-      local has_snacks, snacks = pcall(require, 'snacks')
-      if has_snacks then
-        snacks.bufdelete()
+      local bufnr = vim.api.nvim_get_current_buf()
+      Bufline.buf_switch((Bufline.curr_buf_idx + 1) % Bufline.buftabs_count)
+      if Snacks then
+        Snacks.bufdelete.delete { buf = bufnr }
       else
-        local bufnr = vim.api.nvim_get_current_buf()
-        if vim.api.nvim_buf_is_valid(bufnr) then
-          vim.api.nvim_buf_delete(bufnr, { force = true })
-        end
+        vim.api.nvim_buf_delete(bufnr, { force = true })
       end
     end,
     'Delete Buffer',
@@ -254,15 +252,12 @@ local maps = {
     'n',
     '<leader>eD',
     function()
-      local has_snacks, snacks = pcall(require, 'snacks')
-      if has_snacks then
-        snacks.bufdelete.all()
+      if Snacks then
+        Snacks.bufdelete.all()
       else
-        for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-          if vim.api.nvim_buf_is_valid(bufnr) then
-            vim.api.nvim_buf_delete(bufnr, { force = true })
-          end
-        end
+        vim.tbl_map(function(bufnr)
+          vim.api.nvim_buf_delete(bufnr, { force = true })
+        end, vim.tbl_filter(vim.api.nvim_buf_is_valid, vim.api.nvim_list_bufs()))
       end
     end,
     'Delete All Buffers',
@@ -310,52 +305,15 @@ local maps = {
 }
 
 local map = require('nuance.core.utils').map
-vim.tbl_map(function(keymaps)
-  map(keymaps[1], keymaps[2], keymaps[3] or '', keymaps[4] or {})
+vim.tbl_map(function(keymap)
+  map(keymap[1], keymap[2], keymap[3] or '', keymap[4] or {})
 end, maps)
 
-local nmap = require('nuance.core.utils').nmap
-vim.tbl_map(
-  function(keymaps)
-    nmap(keymaps.cmd, keymaps.callback, keymaps.desc)
-  end,
-  vim.tbl_map(function(index)
-    return {
-      desc = string.format('Jump to buffer %d', index),
-      cmd = string.format('<leader>e%d', index),
-      callback = function()
-        local ok_list, bufs = pcall(vim.api.nvim_list_bufs)
-        if not ok_list then
-          vim.notify('Failed to list buffers', vim.log.levels.ERROR)
-          return
-        end
-
-        local valid_bufs = vim.tbl_filter(function(buf)
-          return vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buflisted
-        end, bufs)
-
-        if index > #valid_bufs then
-          vim.notify('Buffer index out of range', vim.log.levels.WARN)
-          return
-        end
-
-        local target_buf = valid_bufs[index]
-        if target_buf then
-          local ok_set, err = pcall(vim.api.nvim_set_current_buf, target_buf)
-          if not ok_set then
-            vim.notify('Failed to switch buffer: ' .. err, vim.log.levels.ERROR)
-          end
-        end
-      end,
-    }
-  end, { 1, 2, 3, 4, 5, 6, 7, 8, 9 })
-)
-
-vim.tbl_map(function(map)
-  require('nuance.core.utils').map(map[1], '<C-w>' .. map[2], function()
-    vim.api.nvim_command('wincmd ' .. map[2])
+vim.tbl_map(function(keymap)
+  map(keymap[1], '<C-w>' .. keymap[2], function()
+    vim.api.nvim_command('wincmd ' .. keymap[2])
     vim.api.nvim_input '<C-W>'
-  end or '', map[3] or {})
+  end or '', keymap[3] or {})
 end, {
   { 'n', 'j', 'Window: Go down' },
   { 'n', 'k', 'Window: Go up' },
@@ -380,18 +338,18 @@ end, {
   { 'n', 'L', 'Window: Move to right' },
 })
 
-vim.tbl_map(function(map)
-  require('nuance.core.utils').map(map[1], '<C-w>' .. map[2][1], function()
+vim.tbl_map(function(keymap)
+  map(keymap[1], '<C-w>' .. keymap[2][1], function()
     local saved_cmdheight = vim.o.cmdheight
-    vim.api.nvim_command(map[2][2])
+    vim.api.nvim_command(keymap[2][2])
     vim.o.cmdheight = saved_cmdheight
     vim.api.nvim_input '<C-w>'
-  end, map[4] or {})
+  end, keymap[4] or {})
 end, {
   { 'n', { '+', 'resize +5' }, 'Window: Grow vertical' },
   { 'n', { '-', 'resize -5' }, 'Window: Shrink vertical' },
-  { 'n', { '<', 'vertical resize +5' }, 'Window: Shrink horizontal' },
-  { 'n', { '>', 'vertical resize -5' }, 'Window: Grow horizontal' },
+  { 'n', { '<', 'vertical resize -5' }, 'Window: Shrink horizontal' },
+  { 'n', { '>', 'vertical resize +5' }, 'Window: Grow horizontal' },
 })
 
 -- vim: ts=2 sts=2 sw=2 et
