@@ -55,6 +55,11 @@ M.opts.lsp_file_methods = {
 }
 
 M.opts.keymaps = {
+  ['<leader>:'] = {
+    'actions.open_cmdline',
+    opts = { shorten_path = true },
+    desc = 'Open the command line with the current directory as an argument',
+  },
   ['<CR>'] = {},
   ['<C-l>'] = 'actions.refresh',
   ['<C-s>'] = { 'actions.select', opts = { vertical = true }, desc = 'Open the entry in a vertical split' },
@@ -64,7 +69,9 @@ M.opts.keymaps = {
   ['<Right>'] = 'actions.select',
   ['l'] = { 'actions.select', mode = 'n' },
   ['q'] = 'actions.close',
-  ['='] = function() vim.cmd 'write' end, -- Save the current buffer
+  ['='] = function()
+    vim.cmd 'write'
+  end, -- Save the current buffer
   ['-'] = 'actions.parent',
   ['_'] = 'actions.open_cwd',
   ['`'] = 'actions.cd',

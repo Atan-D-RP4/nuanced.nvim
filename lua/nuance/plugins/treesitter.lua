@@ -1,57 +1,75 @@
+local langs = {
+  'bash',
+  'c',
+  'rust',
+  'diff',
+  'html',
+  'lua',
+  'luadoc',
+  'markdown',
+  'markdown_inline',
+  'query',
+  'vim',
+  'vimdoc',
+}
+
 local treesitter_core_main = {
-  -- Highlight, edit, and navigate code
-  'nvim-treesitter/nvim-treesitter',
-  build = ':TSUpdate',
-  event = { 'BufReadPre', 'BufNewFile' },
-  branch = 'main',
-  lazy = false,
+  'MeanderingProgrammer/treesitter-modules.nvim',
+  ft = langs,
+  dependencies = {
+    'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
+    build = ':TSUpdate',
+    opts = { install_dir = vim.fn.stdpath 'data' .. '/site' },
+  },
 
-  config = function(_, _)
-    local ts = require 'nvim-treesitter'
-
-    local to_install = vim.tbl_filter(function(parser)
-      return not vim.tbl_contains(ts.get_installed(), parser)
-    end, {
-      'bash',
-      'c',
-      'rust',
-      'diff',
-      'html',
-      'lua',
-      'luadoc',
-      'markdown',
-      'markdown_inline',
-      'query',
-      'vim',
-      'vimdoc',
-    })
-    ts.install(to_install)
-
-    vim.api.nvim_create_autocmd('FileType', {
-      pattern = { '<filetype>' },
-      callback = function(ev)
-        vim.print('Filetype: ' .. ev.match)
-        if vim.tbl_contains({ 'ruby', 'php' }, ev.match) or not vim.tbl_contains(ts.get_installed(), ev.match) then
-          return
-        end
-
-        local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(ev.buf))
+  ---@module 'treesitter-modules'
+  ---@type ts.mod.UserConfig
+  opts = {
+    -- list of parser names, or 'all', that must be installed
+    -- ensure_installed = langs,
+    -- list of parser names, or 'all', to ignore installing
+    ignore_install = {},
+    -- install parsers in ensure_installed synchronously
+    sync_install = false,
+    -- automatically install missing parsers when entering buffer
+    auto_install = false,
+    fold = {
+      enable = false,
+      disable = false,
+    },
+    highlight = {
+      enable = true,
+      disable = function(ctx)
+        local buf = ctx.buf
+        local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
         local max_treesitter_filesize = 300 * 1024
 
         if not ok then
-          vim.notify('Cannot get stats for ' + vim.api.nvim_buf_get_name(ev.buf), vim.log.levels.DEBUG, { title = 'Treesitter' })
-          return
+          vim.notify('Cannot get stats for ' + vim.api.nvim_buf_get_name(buf), vim.log.levels.DEBUG, { title = 'Treesitter' })
+          return true
         end
 
         if stats and stats.size > max_treesitter_filesize then
-          return
+          return true
         end
-
-        vim.treesitter.start()
-        vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+        return false
       end,
-    })
-  end,
+      additional_vim_regex_highlighting = { 'ruby', 'php' },
+    },
+    incremental_selection = {
+      enable = true,
+      keymaps = {
+        init_selection = '<C-g>',
+        node_incremental = '<C-g>',
+        -- scope_incremental = '<C-g>',
+        node_decremental = '<BS>',
+      },
+    },
+    indent = {
+      enable = true,
+    },
+  },
 }
 
 local treesitter_core_master = {
@@ -69,20 +87,7 @@ local treesitter_core_master = {
   end,
 
   opts = {
-    ensure_installed = {
-      'bash',
-      'c',
-      'rust',
-      'diff',
-      'html',
-      'lua',
-      'luadoc',
-      'markdown',
-      'markdown_inline',
-      'query',
-      'vim',
-      'vimdoc',
-    },
+    ensure_installed = langs,
     auto_install = false,
 
     highlight = {

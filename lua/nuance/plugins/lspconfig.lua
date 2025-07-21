@@ -1,27 +1,16 @@
-local config = require 'blink.cmp.completion.brackets.config'
 local lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspLog' },
 
   ft = {
     -- Web Languages
-    'typescript',
-    'javascript',
-    'html',
-    'css',
+    'typescript', 'javascript', 'html', 'css',
     -- Script Languages
-    'vim',
-    'lua',
-    'sh',
-    'python',
+    'vim', 'lua', 'sh', 'python',
     -- Compiled Languages
-    'c',
-    'cpp',
-    'rust',
-    'java',
+    'c', 'cpp', 'rust', 'java',
     -- Document Filetypes
-    'tex',
-    'typst',
+    'tex', 'typst',
   },
 
   ---@module 'lspconfig'
@@ -160,23 +149,22 @@ end
 ---@module 'lspconfig'
 ---@param opts lspconfig.Config
 lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
-  -- LSP servers and clients are able to communicate to each other what features they support.
-  -- By default, Neovim doesn't support everything that is in the LSP specification.
-  -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
-  -- So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
-  local has_blink, blink = pcall(require, 'blink.cmp')
-  local capabilities = vim.tbl_deep_extend(
-    'force',
-    {},
-    vim.lsp.protocol.make_client_capabilities(),
-    has_blink and blink.get_lsp_capabilities() or {},
-    opts.capabilities or {}
-  )
-
   vim.g.configured_servers = vim.g.configured_servers or {}
   require('nuance.core.utils')
     .async_do(100, 0, require, 'nuance.core.lsps')
     .after(function(res)
+      -- LSP servers and clients are able to communicate to each other what features they support.
+      -- By default, Neovim doesn't support everything that is in the LSP specification.
+      -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
+      -- So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
+      local has_blink, blink = pcall(require, 'blink.cmp')
+      local capabilities = vim.tbl_deep_extend(
+        'force',
+        {},
+        vim.lsp.protocol.make_client_capabilities(),
+        has_blink and blink.get_lsp_capabilities() or {},
+        opts.capabilities or {}
+      )
       local lsp_conf = require 'lspconfig'
       local configured_servers = {}
 

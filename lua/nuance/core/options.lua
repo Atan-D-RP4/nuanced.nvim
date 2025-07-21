@@ -3,9 +3,9 @@
 -- NOTE: You can change these options as you wish!
 
 local opt = vim.opt
-
-opt.isfname:append '@-@'
-
+--
+-- opt.isfname:append '@-@'
+--
 opt.cmdheight = 0
 
 opt.shell = vim.fn.executable '/bin/fish' == 1 and '/bin/fish' or '/bin/bash'
@@ -44,11 +44,6 @@ opt.mousehide = true
 opt.showmode = false
 opt.laststatus = 2
 
--- Enable break indent
-opt.breakindent = true
-opt.breakindentopt = 'shift:4,min:20'
-opt.showbreak = '↪'
-
 -- Command-line History
 opt.history = 10000
 
@@ -86,7 +81,6 @@ opt.splitright = true
 opt.splitbelow = true
 
 -- Sets how neovim will display certain whitespace characters in the editor.
-
 opt.list = true
 opt.listchars = { tab = '» ', trail = '·', nbsp = '␣', extends = '›', precedes = '‹' }
 opt.fillchars = {
@@ -96,10 +90,17 @@ opt.fillchars = {
   msgsep = '‾',
 }
 
+-- Enable break indent
+opt.breakindent = true
+-- opt.breakindentopt = 'shift:4,min:20'
+-- opt.showbreak = '↪'
+
 -- go to previous/next line with h,l,left arrow and right arrow
 -- when cursor reaches end/beginning of line
 opt.whichwrap:append '<>[]hl'
 opt.wrap = true
+
+opt.smoothscroll = true
 
 -- Preview substitutions live, as you type!
 opt.inccommand = 'split'
@@ -193,7 +194,7 @@ opt.foldtext = 'v:lua.require("nuance.core.utils").custom_foldtext()'
 opt.foldlevel = vim.g.treesitter_folding_enabled and 99 or 0
 opt.fillchars:append { fold = ' ', foldopen = '▾', foldclose = '▸', foldsep = '│' }
 
--- opt.winborder = 'rounded'
+opt.winborder = 'rounded'
 
 -- vim.g.netrw_banner = 0
 -- vim.g.netrw_fastbrowse = 1

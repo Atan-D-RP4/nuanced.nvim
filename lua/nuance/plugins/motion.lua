@@ -145,22 +145,23 @@ local operator = {
 
 local treewalker = {
   'aaronik/treewalker.nvim',
-  keys = {
-    { mode = { 'n', 'v' }, '<leader>h', 'Up' },
-    { mode = { 'n', 'v' }, '<leader>j', 'Down' },
-    { mode = { 'n', 'v' }, '<leader>k', 'Left' },
-    { mode = { 'n', 'v' }, '<leader>l', 'Right' },
-  },
-  ---@module "lazy"
-  ---@param plugin LazyPlugin
-  config = function(plugin, _)
-    vim.tbl_map(function(key)
-      require('nuance.core.utils').map({ 'n', 'v' }, key[1], function()
-        vim.cmd('Treewalker ' .. key[2])
+  dependencies = { 'nvim-treesitter/nvim-treesitter' },
+
+  keys = vim.tbl_map(function(key)
+    return {
+      key.lhs,
+      function()
+        vim.cmd('Treewalker ' .. key.subcmd)
         vim.api.nvim_input(vim.g.mapleader)
-      end, { desc = 'Treewalker ' .. key[2] })
-    end, plugin.keys)
-  end,
+      end,
+      { mode = key.mode, desc = ('Treewalker %s'):format(key.subcmd) },
+    }
+  end, {
+    { lhs = '<leader>h', mode = { 'n', 'v' }, subcmd = 'Left' },
+    { lhs = '<leader>k', mode = { 'n', 'v' }, subcmd = 'Up' },
+    { lhs = '<leader>j', mode = { 'n', 'v' }, subcmd = 'Down' },
+    { lhs = '<leader>l', mode = { 'n', 'v' }, subcmd = 'Right' },
+  }),
 }
 
 local M = {

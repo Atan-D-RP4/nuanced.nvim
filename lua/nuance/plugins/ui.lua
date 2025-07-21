@@ -429,7 +429,7 @@ local M = {
   statusline,
   themes.tokyonight,
   icons,
-  noice,
+  -- noice,
   -- tabline,
   -- markview,
   -- todo_comments,

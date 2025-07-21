@@ -10,7 +10,7 @@ local gitcore = {
     { '<leader>gD', '<cmd>Gdiffsplit!<CR>', desc = '[G]it [D]iff against last commit', mode = 'n' },
   },
 
-  config = function()
+  init = function()
     local suc, snacks = pcall(require, 'snacks')
     if suc then
       local map = require('nuance.core.utils').map

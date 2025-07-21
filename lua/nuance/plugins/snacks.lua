@@ -11,8 +11,8 @@ M.keys = {
   { '<leader>cR', '<cmd>lua Snacks.rename.rename_file()<CR>', desc = 'Rename File' },
   { '<leader>gB', '<cmd>lua Snacks.gitbrowse()<CR>', desc = '[G]it [B]rowse', mode = { 'n', 'v' } },
 
-  { '<C-w>t', '<cmd>lua Snacks.terminal.toggle("fish")<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
-  { '<C-w><C-t>', '<cmd>lua Snacks.terminal.toggle("fish")<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
+  { '<C-w>t', '<cmd>lua Snacks.terminal.toggle(vim.o.shell)<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
+  { '<C-w><C-t>', '<cmd>lua Snacks.terminal.toggle(vim.o.shell)<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
 
   -- Create some toggle mappings
   { '<leader>tz', '<cmd>lua Snacks.zen()<CR>', desc = 'Toggle Zen Mode' },
