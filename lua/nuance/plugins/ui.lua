@@ -18,7 +18,7 @@ local statusline = {
           return string.format('%dB', size)
         elseif size < 1048576 then
           return string.format('%.2fKiB', size / 1024)
-       end
+        end
       end
 
       local filetype = vim.bo.filetype
@@ -429,7 +429,7 @@ local M = {
   statusline,
   themes.tokyonight,
   icons,
-  -- noice,
+  noice,
   -- tabline,
   -- markview,
   -- todo_comments,

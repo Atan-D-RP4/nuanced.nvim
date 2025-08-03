@@ -329,6 +329,7 @@ end
 function M.get_python_path(workspace)
   -- Check for activated virtualenv first
   if vim.env.VIRTUAL_ENV then
+    vim.notify('Using env: ' .. vim.env.VIRTUAL_ENV, vim.log.levels.INFO, { title = 'LSP' })
     return vim.env.VIRTUAL_ENV .. '/bin/python'
   end
 
@@ -341,12 +342,14 @@ function M.get_python_path(workspace)
   -- Try .venv directory
   local venv_path = workspace .. '/.venv/bin/python'
   if vim.fn.executable(venv_path) == 1 then
+    vim.notify('Using env: ' .. venv_path, vim.log.levels.INFO, { title = 'LSP' })
     return venv_path
   end
 
   -- Try venv directory
   local venv_alt_path = workspace .. '/venv/bin/python'
   if vim.fn.executable(venv_alt_path) == 1 then
+    vim.notify('Using env: ' .. venv_alt_path, vim.log.levels.INFO, { title = 'LSP' })
     return venv_alt_path
   end
 

@@ -155,11 +155,13 @@ return {
     settings = {
       basedpyright = {
         analysis = {
+          autoSearchPaths = true,
+          diagnosticMode = 'openFilesOnly',
+          useLibraryCodeForTypes = true,
+
           typeCheckingMode = 'strict',
           deprecateTypingAliases = true,
-          diagnosticSeverityOverrides = {
-            reportDeprecated = 'warning',
-          },
+          diagnosticSeverityOverrides = { reportDeprecated = 'warning' },
 
           inlayHints = {
             variableTypes = true,
@@ -210,9 +212,9 @@ return {
 
     settings = {
       formatterMode = 'typstyle',
-      compileStatus = true,
-      fontPaths = { "./", },
-      exportPdf = 'onType',
+      compileStatus = 'enable',
+      fontPaths = { './' },
+      exportPdf = 'onSave',
       semanticTokens = 'disable',
     },
   },
@@ -236,7 +238,7 @@ return {
 
         imports = { granularity = { group = 'module' }, prefix = 'self' },
         checkOnSave = { command = 'clippy' }, -- Add "enabled = false", if you want to disable it
-        diagnostics = {},                     -- Add "enabled = false", if you want to disable them
+        diagnostics = {}, -- Add "enabled = false", if you want to disable them
       },
     },
   },

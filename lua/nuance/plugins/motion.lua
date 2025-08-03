@@ -1,6 +1,6 @@
 local surround = {
   'echasnovski/mini.surround',
-  event = { 'BufEnter', 'BufRead', 'BufNewFile' },
+  event = { 'BufRead', 'BufNewFile', 'CursorMoved' },
 
   opts = {
     mappings = {

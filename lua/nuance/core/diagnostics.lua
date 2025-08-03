@@ -123,6 +123,9 @@ function M.setup()
       group = augroup 'diagnostic-float',
       pattern = '*',
       callback = function(ev)
+        if not Snacks.toggle.diagnostics():get() then
+          return
+        end
         local line = vim.api.nvim_win_get_cursor(0)[1] - 1
         local diagnostics = vim.diagnostic.get(ev.buf, { lnum = line })
 

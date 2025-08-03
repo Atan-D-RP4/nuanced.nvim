@@ -1,6 +1,7 @@
 local gitcore = {
   'tpope/vim-fugitive',
   cmd = { 'Git', 'Gstatus', 'Gblame', 'Gpush', 'Gpull', 'Gcommit', 'Gdiff' },
+
   keys = {
     { '<leader>gg', '<cmd>Git ++curwin<CR>', desc = '[G]it', mode = 'n' },
     { '<leader>gl', '<cmd>Git ++curwin log<CR>', desc = '[G]it log', mode = 'n' },
@@ -9,18 +10,6 @@ local gitcore = {
     { '<leader>gd', '<cmd>Gdiffsplit<CR>', desc = '[G]it [d]iff against index', mode = 'n' },
     { '<leader>gD', '<cmd>Gdiffsplit!<CR>', desc = '[G]it [D]iff against last commit', mode = 'n' },
   },
-
-  init = function()
-    local suc, snacks = pcall(require, 'snacks')
-    if suc then
-      local map = require('nuance.core.utils').map
-      vim.tbl_map(function(keymap)
-        map(keymap[1], keymap[2], keymap[3] or '', keymap[4] or {})
-      end, {
-        { { 'n' }, '<leader>gt', '<cmd>lua Snacks.picker.git_branches()<CR>', '[G]it Branches Picker' },
-      })
-    end
-  end,
 }
 
 local gitsigns = { -- Adds git related signs to the gutter, as well as utilities for managing changes

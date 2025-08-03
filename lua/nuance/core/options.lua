@@ -3,9 +3,9 @@
 -- NOTE: You can change these options as you wish!
 
 local opt = vim.opt
---
+
 -- opt.isfname:append '@-@'
---
+
 opt.cmdheight = 0
 
 opt.shell = vim.fn.executable '/bin/fish' == 1 and '/bin/fish' or '/bin/bash'
@@ -99,6 +99,8 @@ opt.breakindent = true
 -- when cursor reaches end/beginning of line
 opt.whichwrap:append '<>[]hl'
 opt.wrap = true
+opt.textwidth = 80
+opt.linebreak = true
 
 opt.smoothscroll = true
 
@@ -194,7 +196,7 @@ opt.foldtext = 'v:lua.require("nuance.core.utils").custom_foldtext()'
 opt.foldlevel = vim.g.treesitter_folding_enabled and 99 or 0
 opt.fillchars:append { fold = ' ', foldopen = '▾', foldclose = '▸', foldsep = '│' }
 
-opt.winborder = 'rounded'
+-- opt.winborder = 'rounded'
 
 -- vim.g.netrw_banner = 0
 -- vim.g.netrw_fastbrowse = 1
