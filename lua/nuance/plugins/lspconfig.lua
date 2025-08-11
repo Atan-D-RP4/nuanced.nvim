@@ -4,7 +4,7 @@ local lspconfig = {
 
   ft = {
     -- Web Languages
-    'typescript', 'javascript', 'html', 'css',
+    'typescript', 'javascript', 'typescriptreact', 'javascriptreact', 'html', 'css',
     -- Script Languages
     'vim', 'lua', 'sh', 'python',
     -- Compiled Languages
@@ -146,6 +146,34 @@ local on_attach = function(client, bufnr)
   -- vim.opt_local.foldtext = 'v:lua.vim.lsp.foldtext()'
 end
 
+---@param client vim.lsp.Client
+local function trigger_workspace_diagnostics(client)
+  require('nuance.core.utils').async_do(100, 0, function()
+    local supported_fts = client.config.filetypes
+    if supported_fts and type(supported_fts) ~= 'table' then
+      supported_fts = { supported_fts }
+    end
+    local ft_set = supported_fts and vim.tbl_add_reverse_lookup(vim.tbl_extend('force', {}, supported_fts)) or nil
+
+    for _, file in ipairs(require('nuance.core.utils').get_workspace_files(client)) do
+      local ft = vim.filetype.match { filename = file }
+      if not ft_set or ft_set[ft] then
+        local params = {
+          textDocument = {
+            uri = vim.uri_from_fname(file),
+            languageId = ft,
+            version = 0,
+            text = table.concat(vim.fn.readfile(file), '\n'),
+          },
+        }
+        ---@diagnostic disable-next-line: unused-local
+        local status = client.notify(vim.lsp.protocol.Methods.textDocument_didOpen, params)
+      end
+    end
+    vim.notify('Workspace diagnostics queued for LSP client: ' .. client.name, vim.log.levels.INFO, { title = 'LSP' })
+  end)
+end
+
 ---@module 'lspconfig'
 ---@param opts lspconfig.Config
 lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
@@ -170,6 +198,9 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     server_conf = vim.tbl_extend('keep', server_conf, lsp_conf[name].config_def.default_config or {})
     server_conf.on_init = function(client, initialize_result)
       vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
+
+      -- Workspeace diagnostics trigger
+      trigger_workspace_diagnostics(client)
 
       if server.on_init then
         server.on_init(client, initialize_result)

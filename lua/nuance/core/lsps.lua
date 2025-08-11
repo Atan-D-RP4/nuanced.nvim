@@ -221,7 +221,7 @@ return {
 
   denols = {
     enabled = vim.fn.executable 'deno' == 1,
-    filetypes = { 'typescript', 'javascript' },
+    filetypes = { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' },
   },
 
   rust_analyzer = {

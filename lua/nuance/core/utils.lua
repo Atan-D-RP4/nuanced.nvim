@@ -190,7 +190,7 @@ end
 ---@param ... any
 function M.async_do(timeout, repeat_, callback, arg1, ...)
   -- Use vim.loop (libuv) for async operations
-  local timer = vim.loop.new_timer()
+  local timer = vim.uv.new_timer()
   if timer == nil then
     vim.print 'Failed to create timer'
     return
@@ -361,6 +361,27 @@ function M.get_python_path(workspace)
   -- Fallback to system Python
   vim.print 'Falling back to system Python'
   return vim.fn.exepath 'python3' or vim.fn.exepath 'python' or 'python'
+end
+
+-- Pure Lua workspace file collection and workspace diagnostics trigger
+---@param client vim.lsp.Client
+function M.get_workspace_files(client)
+  local cwd = client.root_dir or vim.fn.getcwd()
+  local results = {}
+
+  -- Use ripgrep to collect files
+  local function scan_files_with_ripgrep(path)
+    local handle = io.popen('rg --files --hidden ' .. path)
+    if handle then
+      for line in handle:lines() do
+        table.insert(results, line)
+      end
+      handle:close()
+    end
+  end
+
+  scan_files_with_ripgrep(cwd)
+  return results
 end
 
 -- Test function with multiple cases to demonstrate the async_do2 functionality
