@@ -91,7 +91,7 @@ local statusline = {
       vim.api.nvim_set_hl(0, hl_fg .. '2', fghl)
     end
 
-    require('nuance.core.utils').async_do(100, 0, function(opts)
+    require('nuance.core.utils').async_promise(100, 0, function(opts)
       statusline.setup {
 
         content = {
@@ -379,7 +379,7 @@ local which_key = { -- Useful plugin to show you pending keybinds.
   },
 
   config = function(_, opts)
-    require('nuance.core.utils').async_do(100, 0, function()
+    require('nuance.core.utils').async_promise(100, 0, function()
       require('which-key').setup(opts)
     end)
   end,

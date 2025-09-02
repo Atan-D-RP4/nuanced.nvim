@@ -182,45 +182,67 @@ function M.get_visual_selection()
   return table.concat(lines, '\n')
 end
 
--- I don't really know if this works
----@param timeout? integer
----@param repeat_? integer
----@param callback function
----@param arg1? any
----@param ... any
-function M.async_do(timeout, repeat_, callback, arg1, ...)
+---@param timeout integer Delay in milliseconds before executing the callback
+---@param repeat_ integer Unused - kept for backwards compatibility
+---@param callback function The async function to execute
+---@param arg1? any First argument passed to callback
+---@param ... any Additional arguments passed to callback
+---@return table Promise-like object with after/catch/await methods
+function M.async_promise(timeout, repeat_, callback, arg1, ...)
+  -- Parameter validation
+  if type(timeout) ~= 'number' or timeout < 0 then
+    timeout = 100 -- Default timeout
+  end
+  if type(callback) ~= 'function' then
+    error 'async_promise: callback must be a function'
+  end
+
   -- Use vim.loop (libuv) for async operations
   local timer = vim.uv.new_timer()
   if timer == nil then
-    vim.print 'Failed to create timer'
-    return
+    local err_promise = {
+      pending = false,
+      result = nil,
+      error = 'Failed to create timer',
+      after = function(self)
+        return self
+      end,
+      catch = function(self, fn)
+        fn(self.error)
+        return self
+      end,
+      await = function()
+        error 'Failed to create timer'
+      end,
+    }
+    vim.notify('Failed to create timer', vim.log.levels.ERROR)
+    return err_promise
   end
 
   local args = { ... }
-  timeout = timeout or 100
-  repeat_ = repeat_ or 200
 
   -- Create a promise-like interface
-  local promise = {}
-  promise.pending = true
-  promise.result = nil
-  promise.error = nil
+  local promise = {
+    pending = true,
+    result = nil,
+    error = nil,
+  }
 
   -- Store callbacks
   local after_callbacks = {}
   local catch_callbacks = {}
+
+  -- Add default error handler
   table.insert(catch_callbacks, function(err)
-    vim.notify('Error in async_do: ' .. tostring(err), vim.log.levels.ERROR)
+    vim.notify(string.format('Async operation failed: %s', tostring(err)), vim.log.levels.ERROR)
   end)
 
   -- Add then method
   function promise.after(fn)
     if promise.pending then
       table.insert(after_callbacks, fn)
-    else
-      if not promise.error then
-        fn(promise.result)
-      end
+    elseif not promise.error then
+      fn(promise.result)
     end
     return promise
   end
@@ -229,17 +251,16 @@ function M.async_do(timeout, repeat_, callback, arg1, ...)
   function promise.catch(fn)
     if promise.pending then
       table.insert(catch_callbacks, fn)
-    else
-      if promise.error then
-        fn(promise.error)
-      end
+    elseif promise.error then
+      fn(promise.error)
     end
     return promise
   end
 
+  -- Add await method
   function promise.await()
     if promise.pending then
-      vim.wait(timeout, function()
+      vim.wait(timeout * 2, function() -- Double timeout to ensure completion
         return not promise.pending
       end)
     end
@@ -249,10 +270,10 @@ function M.async_do(timeout, repeat_, callback, arg1, ...)
     return promise.result
   end
 
-  -- This will run in the background without blocking the editor
+  -- Execute async operation
   timer:start(
     timeout,
-    repeat_,
+    0, -- Remove repeat since it's not used
     vim.schedule_wrap(function()
       -- Call the callback function with the provided arguments and capture result
       local success, result = pcall(callback, arg1, unpack(args))
@@ -262,15 +283,21 @@ function M.async_do(timeout, repeat_, callback, arg1, ...)
 
       if success then
         promise.result = result
-        -- Execute then callbacks
+        -- Execute after callbacks
         for _, fn in ipairs(after_callbacks) do
-          fn(result)
+          local ok, err = pcall(fn, result)
+          if not ok then
+            vim.notify(string.format('Error in after callback: %s', err), vim.log.levels.WARN)
+          end
         end
       else
         promise.error = result
         -- Execute catch callbacks
         for _, fn in ipairs(catch_callbacks) do
-          fn(result)
+          local ok, err = pcall(fn, result)
+          if not ok then
+            vim.notify(string.format('Error in catch callback: %s', err), vim.log.levels.WARN)
+          end
         end
       end
 

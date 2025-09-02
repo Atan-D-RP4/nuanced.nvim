@@ -12,7 +12,7 @@ vim.api.nvim_create_autocmd('User', {
 })
 
 require('nuance.core.diagnostics').conf()
-require('nuance.core.utils').async_do(100, 0, require('nuance.core.diagnostics').setup).catch(function(err)
+require('nuance.core.utils').async_promise(100, 0, require('nuance.core.diagnostics').setup).catch(function(err)
   vim.notify(err, vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
 end)
 
@@ -21,7 +21,7 @@ require('nuance.core.rain').setup()
 
 vim.g.configured_servers = vim.g.configured_servers or {}
 require('nuance.core.utils')
-  .async_do(100, 0, require, 'nuance.core.lsps')
+  .async_promise(100, 0, require, 'nuance.core.lsps')
   .after(function(res)
     local configured_servers = {}
     for name, server in pairs(res) do

@@ -145,7 +145,7 @@ local session_pick = function()
       end
 
       require('nuance.core.utils')
-        .async_do(100, 0, function()
+        .async_promise(100, 0, function()
           require('mini.sessions').read(item.name, {})
           return true
         end)
