@@ -42,7 +42,7 @@ local treesitter_core_main = {
       enable = true,
       disable = function(ctx)
         local buf = ctx.buf
-        local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+        local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
         local max_treesitter_filesize = 300 * 1024
 
         if not ok then
@@ -80,7 +80,7 @@ local treesitter_core_master = {
 
   main = 'nvim-treesitter.configs',
   init = function()
-    if vim.loop.os_uname().sysname == 'Windows_NT' then
+    if vim.uv.os_uname().sysname == 'Windows_NT' then
       vim.print 'On Windows_NT'
       require('nvim-treesitter.install').compilers = { 'zig' }
     end
@@ -95,7 +95,7 @@ local treesitter_core_master = {
       additional_vim_regex_highlighting = { 'ruby', 'php' },
 
       disable = function(_, buf)
-        local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+        local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
         local max_treesitter_filesize = 300 * 1024
 
         if not ok then

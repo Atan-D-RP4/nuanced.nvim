@@ -152,7 +152,7 @@ vim.schedule(function()
     local name, path = unpack(dir)
     local created_or_exist = (function()
       -- Create directories if they don't exist
-      local ok, err, err_name = vim.loop.fs_mkdir(path, 493) -- 0755 in octal
+      local ok, err, err_name = vim.uv.fs_mkdir(path, 493) -- 0755 in octal
       if not ok and err_name ~= 'EEXIST' then
         return false
       end

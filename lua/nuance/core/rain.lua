@@ -154,7 +154,7 @@ local function create_single_raindrop(buf, start_col, char)
   end
 
   -- Create timer for this specific raindrop
-  local drop_timer = vim.loop.new_timer()
+  local drop_timer = vim.uv.new_timer()
   if not drop_timer then
     pcall(vim.api.nvim_buf_del_extmark, buf, state.namespace, extmark_id)
     return nil
@@ -238,7 +238,7 @@ function M.rain()
   state.is_running = true
 
   -- Create global timer for spawning raindrop batches (like the original)
-  state.global_timer = vim.loop.new_timer()
+  state.global_timer = vim.uv.new_timer()
   if not state.global_timer then
     print 'Failed to create global timer'
     M.stop()
@@ -262,7 +262,7 @@ function M.rain()
         local char = config.chars[math.random(1, #config.chars)]
 
         -- Create a timer for delayed spawning of this individual raindrop
-        local spawn_timer = vim.loop.new_timer()
+        local spawn_timer = vim.uv.new_timer()
         if spawn_timer then
           table.insert(state.drop_timers, spawn_timer)
           spawn_timer:start(
