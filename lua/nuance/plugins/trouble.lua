@@ -1,6 +1,7 @@
 local M = {
   'folke/trouble.nvim',
   cmd = 'Trouble',
+  enabled = false,
   config = function()
     local err, snacks = pcall(require, 'snacks')
     if not err then

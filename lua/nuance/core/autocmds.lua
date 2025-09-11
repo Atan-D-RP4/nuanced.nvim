@@ -279,7 +279,7 @@ autocmd('BufReadPre', {
   end,
 })
 
-autocmd({ 'BufEnter' }, {
+autocmd({ 'BufEnter', 'BufRead', 'BufNew' }, {
   desc = 'Treesitter Folding',
   group = augroup 'treesitter-folding',
   pattern = '*',

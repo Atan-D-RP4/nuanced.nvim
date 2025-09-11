@@ -169,7 +169,12 @@ local function create_single_raindrop(buf, start_col, char)
       local current_dimensions = get_rain_dimensions()
 
       -- Check if raindrop should stop (reached bottom or right edge)
-      if not state.is_running or not is_valid_buffer(buf) or drop_state.l >= current_dimensions.height or drop_state.c >= current_dimensions.width then
+      if
+        not state.is_running
+        or not is_valid_buffer(buf)
+        or drop_state.l >= current_dimensions.height
+        or drop_state.c >= current_dimensions.width
+      then
         -- Clean up extmark and timer
         pcall(vim.api.nvim_buf_del_extmark, buf, state.namespace, extmark_id)
         cleanup_timer(drop_timer)

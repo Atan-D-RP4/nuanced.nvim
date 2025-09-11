@@ -25,7 +25,7 @@ M.opts = {
   keymaps_help = { border = 'rounded' },
   constrain_cursor = 'editable',
   watch_for_changes = true,
-  columns = { 'icon', 'size', 'modified' },
+  columns = { 'icon', 'size', 'mtime', 'modified' },
   cleanup_delay_ms = 2000,
   extra_scp_args = {},
 }
@@ -92,7 +92,7 @@ M.opts.view_options = {
   end,
 
   is_always_hidden = function(name, _) -- function(name, bufnr)
-    return name == '..' or name == '.git'
+    return name == '..' or name == '.'
   end,
 
   case_insensitive = false,

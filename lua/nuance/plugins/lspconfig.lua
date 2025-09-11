@@ -148,30 +148,28 @@ end
 
 ---@param client vim.lsp.Client
 local function trigger_workspace_diagnostics(client)
-  require('nuance.core.utils').async_do(100, 0, function()
-    local supported_fts = client.config.filetypes
-    if supported_fts and type(supported_fts) ~= 'table' then
-      supported_fts = { supported_fts }
-    end
-    local ft_set = supported_fts and vim.tbl_add_reverse_lookup(vim.tbl_extend('force', {}, supported_fts)) or nil
+  local supported_fts = client.config.filetypes
+  if supported_fts and type(supported_fts) ~= 'table' then
+    supported_fts = { supported_fts }
+  end
+  local ft_set = supported_fts and vim.tbl_add_reverse_lookup(vim.tbl_extend('force', {}, supported_fts)) or nil
 
-    for _, file in ipairs(require('nuance.core.utils').get_workspace_files(client)) do
-      local ft = vim.filetype.match { filename = file }
-      if not ft_set or ft_set[ft] then
-        local params = {
-          textDocument = {
-            uri = vim.uri_from_fname(file),
-            languageId = ft,
-            version = 0,
-            text = table.concat(vim.fn.readfile(file), '\n'),
-          },
-        }
-        ---@diagnostic disable-next-line: unused-local
-        local status = client.notify(vim.lsp.protocol.Methods.textDocument_didOpen, params)
-      end
+  for _, file in ipairs(require('nuance.core.utils').get_workspace_files(client)) do
+    local ft = vim.filetype.match { filename = file }
+    if not ft_set or ft_set[ft] then
+      local params = {
+        textDocument = {
+          uri = vim.uri_from_fname(file),
+          languageId = ft,
+          version = 0,
+          text = table.concat(vim.fn.readfile(file), '\n'),
+        },
+      }
+      ---@diagnostic disable-next-line: unused-local
+      local status = client.notify(vim.lsp.protocol.Methods.textDocument_didOpen, params)
     end
-    vim.notify('Workspace diagnostics queued for LSP client: ' .. client.name, vim.log.levels.INFO, { title = 'LSP' })
-  end)
+  end
+  vim.notify('Workspace diagnostics queued for LSP client: ' .. client.name, vim.log.levels.INFO, { title = 'LSP' })
 end
 
 ---@module 'lspconfig'

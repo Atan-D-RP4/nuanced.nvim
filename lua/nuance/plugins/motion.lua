@@ -169,7 +169,6 @@ local M = {
   spider,
   ai,
   flash,
-  { 'tpope/vim-rsi', lazy = false },
   -- treewalker,
   -- operator,
   -- matchup,

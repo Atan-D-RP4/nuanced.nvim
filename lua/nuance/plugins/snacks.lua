@@ -132,7 +132,7 @@ M.opts.terminal = {
 }
 
 M.opts.dashboard = {
-  enabled = true,
+  enabled = false,
   preset = {
     ---@type fun(cmd:string, opts:table)|nil
     pick = nil,
