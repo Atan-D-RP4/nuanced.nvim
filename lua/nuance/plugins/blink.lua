@@ -111,6 +111,7 @@ M.opts.completion = {
   },
 }
 
+
 -- default list of enabled providers defined so that you can extend it
 -- elsewhere in your config, without redefining it, via `opts_extend`
 M.opts.sources = {
@@ -119,16 +120,16 @@ M.opts.sources = {
     'path',
     'buffer',
     'snippets',
-    'lazydev',
+    -- 'lazydev',
     --'dadbod',
   },
   providers = {
     lsp = { score_offset = 100, async = true },
-    lazydev = {
-      name = 'LazyDev',
-      module = 'lazydev.integrations.blink',
-      score_offset = 95,
-    },
+    -- lazydev = {
+    --   name = 'LazyDev',
+    --   module = 'lazydev.integrations.blink',
+    --   score_offset = 95,
+    -- },
     path = { score_offset = 95 },
     snippets = {
       score_offset = 85,

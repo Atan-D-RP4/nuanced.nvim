@@ -122,10 +122,10 @@ M.avante = {
 
   -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
   dependencies = {
+    'zbirenbaum/copilot.lua', -- for providers='copilot'
     'nvim-treesitter/nvim-treesitter',
     'nvim-lua/plenary.nvim',
     'MunifTanjim/nui.nvim',
-    'zbirenbaum/copilot.lua', -- for providers='copilot'
   },
 
   ---@module 'avante'

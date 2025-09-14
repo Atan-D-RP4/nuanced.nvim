@@ -4,12 +4,24 @@ return {
     filetypes = { 'lua' },
     settings = {
       Lua = {
-        telemetry = { enable = false },
-        completion = {
-          callSnippet = 'Replace',
+        runtime = {
+          version = 'LuaJIT',
+          path = vim.split(package.path, ';'),
         },
+        telemetry = { enable = false },
+        completion = { callSnippet = 'Replace' },
         diagnostics = {
           disable = { 'missing-fields' },
+          globals = { 'vim' },
+        },
+        workspace = {
+          ignoreDir = { '.git', 'dist', 'build' },
+          library = {
+            [vim.fs.joinpath '${3rd}/luv/library'] = true,
+            [vim.fn.expand '$VIMRUNTIME/lua'] = true,
+            [vim.fn.stdpath 'config' .. '/lua'] = true,
+          },
+          checkThirdParty = false,
         },
       },
     },
@@ -246,4 +258,10 @@ return {
   clangd = { enabled = vim.fn.executable 'clangd' == 1 },
 
   hls = { enabled = vim.fn.executable 'haskell_language_server_wrapper' == 1 },
+
+  elixirls = {
+    cmd = { 'elixir-ls' },
+    enabled = vim.fn.executable 'elixir-ls' == 1,
+    ft = { 'elixir', 'eelixir' },
+  },
 }

@@ -5,6 +5,7 @@ local lspconfig = {
   ft = {
     -- Web Languages
     'typescript', 'javascript', 'typescriptreact', 'javascriptreact', 'html', 'css',
+    'elixir', 'heex',
     -- Script Languages
     'vim', 'lua', 'sh', 'python',
     -- Compiled Languages
@@ -234,9 +235,9 @@ local lazydev = {
   -- used for completion, annotations and signatures of Neovim apis
   'folke/lazydev.nvim',
   ft = 'lua',
-  -- dependencies = {
-  --   { 'Bilal2453/luvit-meta', lazy = true },
-  -- },
+  dependencies = {
+    { 'Bilal2453/luvit-meta', lazy = true },
+  },
   opts = {
     library = {
       -- Load luvit types when the `vim.uv` word is found
@@ -279,7 +280,7 @@ local rustowl = {
 
 return {
   mason,
-  lazydev,
+  -- lazydev,
   lspconfig,
   rustowl,
 }
