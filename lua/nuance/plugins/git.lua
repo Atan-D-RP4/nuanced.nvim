@@ -1,11 +1,12 @@
 local gitcore = {
   'tpope/vim-fugitive',
-  cmd = { 'Git', 'Gstatus', 'Gblame', 'Gpush', 'Gpull', 'Gcommit', 'Gdiff' },
+  cmd = { 'Git', 'Gstatus', 'Gblame', 'Gpush', 'Gpull', 'Gcommit', 'Gdiff', 'GcLog' },
 
   keys = {
-    { '<leader>gg', '<cmd>Git ++curwin<CR>', desc = '[G]it', mode = 'n' },
-    { '<leader>gl', '<cmd>Git ++curwin log<CR>', desc = '[G]it log', mode = 'n' },
-    { '<leader>gh', '<cmd>Git ++curwin reflog<CR>', desc = '[G]it log', mode = 'n' },
+    { '<leader>gg', '<cmd>vsplit | Git ++curwin<CR>', desc = '[G]it', mode = 'n' },
+    { '<leader>gl', '<cmd>vsplit | Git ++curwin log<CR>', desc = '[G]it log', mode = 'n' },
+    { '<leader>gh', '<cmd>vsplit | Git ++curwin reflog<CR>', desc = '[G]it log', mode = 'n' },
+    { '<leader>gL', '<cmd>GcLog<CR>', desc = '[G]it log', mode = 'n' },
     { '<leader>gs', '<cmd>Git status -s<CR>', desc = '[G]it log', mode = 'n' },
     { '<leader>gd', '<cmd>Gdiffsplit<CR>', desc = '[G]it [d]iff against index', mode = 'n' },
     { '<leader>gD', '<cmd>Gdiffsplit!<CR>', desc = '[G]it [D]iff against last commit', mode = 'n' },
@@ -21,10 +22,32 @@ local gitsigns = { -- Adds git related signs to the gutter, as well as utilities
 
 local gitdiffview = {
   'sindrets/diffview.nvim',
-  enabled = false,
   cmd = 'DiffviewOpen',
   opts = {
     use_icons = false, -- Requires nvim-web-devicons
+  },
+}
+
+local neogit = {
+  'NeogitOrg/neogit',
+  cmd = 'Neogit',
+  dependencies = { 'nvim-lua/plenary.nvim', gitdiffview },
+  opts = {
+    mappings = {
+      status = {
+        ['='] = 'Toggle',
+      },
+    },
+    disable_signs = false,
+    disable_hint = false,
+    disable_context_highlighting = false,
+    disable_commit_confirmation = false,
+    integrations = {
+      diffview = true,
+    },
+  },
+  keys = {
+    { '<leader>ng', '<cmd>Neogit<CR>', desc = '[N]eo[G]it', mode = 'n' },
   },
 }
 
@@ -122,6 +145,7 @@ end
 return {
   gitcore,
   gitsigns,
+  -- neogit,
   -- gitdiffview,
   -- gitworktree,
 }

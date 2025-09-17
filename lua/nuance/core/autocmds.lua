@@ -183,6 +183,7 @@ autocmd('BufEnter', {
     local q_fts = {
       '',
       'PlenaryTestPopup',
+      'DiffviewFiles',
       'checkhealth',
       'dbout',
       'gitsigns-blame',
@@ -203,7 +204,6 @@ autocmd('BufEnter', {
       'qf',
       'startuptime',
       'tsplayground',
-      -- Cmdline window
       'cmdwin',
     }
 

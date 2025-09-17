@@ -264,4 +264,9 @@ return {
     enabled = vim.fn.executable 'elixir-ls' == 1,
     ft = { 'elixir', 'eelixir' },
   },
+
+  systemd_ls = {
+    enabled = vim.fn.executable 'systemd-language-server' == 1,
+    ft = { 'systemd' },
+  },
 }

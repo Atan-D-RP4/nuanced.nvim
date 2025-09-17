@@ -12,6 +12,7 @@ local lspconfig = {
     'c', 'cpp', 'rust', 'java',
     -- Document Filetypes
     'tex', 'typst',
+    'systemd',
   },
 
   ---@module 'lspconfig'

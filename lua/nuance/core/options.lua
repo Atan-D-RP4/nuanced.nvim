@@ -90,6 +90,8 @@ opt.fillchars = {
   msgsep = '‾',
 }
 
+opt.diffopt = 'algorithm:histogram,anchor,internal,filler,closeoff,inline:char,linematch:40'
+
 -- Enable break indent
 opt.breakindent = true
 -- opt.breakindentopt = 'shift:4,min:20'
