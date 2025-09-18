@@ -219,11 +219,12 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     server_conf = vim.tbl_extend('keep', server_conf, lsp_conf[name].config_def.default_config or {})
 
     server_conf.on_init = function(client, initialize_result)
-      vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
-      vim.notify('In root directory: ' .. client.config.root_dir, vim.log.levels.INFO, { title = 'LSP' })
+      local msg = 'Initialized Language Server: ' .. name
+      msg = msg .. '\n' .. 'In root directory: ' .. client.config.root_dir
+      vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
 
       -- Workspeace diagnostics trigger
-      trigger_workspace_diagnostics(client)
+      -- trigger_workspace_diagnostics(client)
 
       if server.on_init then
         server.on_init(client, initialize_result)
@@ -286,6 +287,7 @@ local mason = {
   end,
   cmd = { 'Mason', 'MasonInstall', 'MasonLog' },
 } -- NOTE: Must be loaded before dependants
+
 
 local rustowl = {
   'cordx56/rustowl',
