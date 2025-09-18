@@ -1,5 +1,18 @@
 local M = {}
 
+--@param bufnr integer
+function M.safe_buf_delete(bufnr)
+  if vim.bo[bufnr].modified then
+    local cond = vim.fn.confirm('Save changes to "' .. vim.api.nvim_buf_get_name(bufnr) .. '"?', '&Yes\n&No\n&Cancel', 3)
+    if cond == 1 then
+      vim.cmd 'update'
+    elseif cond == 3 then
+      return
+    end
+  end
+  vim.api.nvim_buf_delete(bufnr, { force = true })
+end
+
 ---@param name string
 ---@param opts? vim.keymap.set.Opts|string
 function M.augroup(name, opts)

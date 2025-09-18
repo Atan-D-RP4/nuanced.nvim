@@ -239,11 +239,8 @@ local maps = {
     function()
       local bufnr = vim.api.nvim_get_current_buf()
       Bufline.buf_switch((Bufline.curr_buf_idx + 1) % Bufline.buftabs_count)
-      if Snacks then
-        Snacks.bufdelete.delete { buf = bufnr }
-      else
-        vim.api.nvim_buf_delete(bufnr, { force = true })
-      end
+
+      require('nuance.core.utils').safe_buf_delete(bufnr)
     end,
     'Delete Buffer',
   },
@@ -252,13 +249,17 @@ local maps = {
     'n',
     '<leader>eD',
     function()
-      if Snacks then
-        Snacks.bufdelete.all()
-      else
-        vim.tbl_map(function(bufnr)
+      vim.tbl_map(
+        function(bufnr)
           vim.api.nvim_buf_delete(bufnr, { force = true })
-        end, vim.tbl_filter(vim.api.nvim_buf_is_valid, vim.api.nvim_list_bufs()))
-      end
+        end,
+        vim.tbl_filter(function(bufnr)
+          return vim.api.nvim_buf_is_valid(bufnr) and vim.bo[bufnr].modified == false and vim.bo[bufnr].buflisted
+        end, vim.api.nvim_list_bufs())
+      )
+      vim.tbl_map(function(bufnr)
+        require('nuance.core.utils').safe_buf_delete(bufnr)
+      end, vim.api.nvim_list_bufs())
     end,
     'Delete All Buffers',
   },
