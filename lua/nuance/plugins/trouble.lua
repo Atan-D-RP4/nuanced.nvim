@@ -1,19 +1,7 @@
 local M = {
   'folke/trouble.nvim',
   cmd = 'Trouble',
-  enabled = false,
-  config = function()
-    local err, snacks = pcall(require, 'snacks')
-    if not err then
-      return
-    end
-    snacks.config.picker = {
-      actions = require('trouble.sources.snacks').actions,
-      win = { input = { keys = { ['<C-t>'] = { 'trouble_open', desc = 'trouble', mode = { 'i', 'n' } } } } },
-    }
-
-    require('trouble').setup()
-  end,
+  enabled = true,
 }
 
 M.keys = {

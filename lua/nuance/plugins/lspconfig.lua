@@ -40,18 +40,11 @@ local on_attach = function(client, bufnr)
     { 'gd', '<cmd>lua Snacks.picker.lsp_type_definitions()<CR>', 'LSP [T]ype [D]efinition' },
     { 'gus', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', 'LSP [D]ocument [S]ymbols' },
     { 'gd', '<cmd>lua Snacks.picker.lsp_definitions()<CR>', 'LSP [G]oto [D]efinition' },
-    {
-      'grn',
-      function()
-        vim.lsp.buf.rename()
-        -- Save all buffers after renaming
-        vim.cmd [[ exec 'wa' ]]
-      end,
-      'LSP [R]ename',
-    }, -- override `grn` mapping
+    { 'grn', "<cmd> vim.lsp.buf.rename() -- Save all buffers after renaming vim.cmd [[ exec 'wa' ]] <CR>", 'LSP [R]ename' }, -- override `grn` mapping
     { 'grr', '<cmd>lua Snacks.picker.lsp_references()<CR>', 'LSP [G]oto [R]eferences' }, -- override `grr` mapping
     { 'gri', '<cmd>lua Snacks.picker.lsp_implementations()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
     { 'gs', '<cmd>lua Snacks.picker.lsp_symbols({layout = {preset = "vscode", preview = "main"}})<CR>', 'LSP Document [S]ymbols' },
+
     (client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, bufnr)) and {
       '<leader>th',
       '<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = vim.api.nvim_get_current_buf() }) <CR>',
@@ -156,19 +149,42 @@ local function trigger_workspace_diagnostics(client)
   end
   local ft_set = supported_fts and vim.tbl_add_reverse_lookup(vim.tbl_extend('force', {}, supported_fts)) or nil
 
-  for _, file in ipairs(require('nuance.core.utils').get_workspace_files(client)) do
+  local files = require('nuance.core.utils').get_workspace_files(client)
+  files = vim.tbl_filter(function(f)
+    local ft = vim.filetype.match { filename = f }
+    return not ft_set or ft_set[ft]
+  end, files)
+
+  for _, file in ipairs(files) do
     local ft = vim.filetype.match { filename = file }
     if not ft_set or ft_set[ft] then
+      local file_handle = vim.uv.fs_open(file, 'r', 438) -- 438 = 0o666
+      if not file_handle then
+        vim.notify('Failed to open file: ' .. file .. ' for workspace diagnostics', vim.log.levels.WARN, { title = 'LSP' })
+        return
+      end
+      local data = vim.uv.fs_read(file_handle, vim.uv.fs_fstat(file_handle).size, 0)
+      vim.uv.fs_close(file_handle)
+      if not data then
+        vim.notify('Failed to read file: ' .. file .. ' for workspace diagnostics', vim.log.levels.WARN, { title = 'LSP' })
+        return
+      end
       local params = {
         textDocument = {
           uri = vim.uri_from_fname(file),
           languageId = ft,
           version = 0,
-          text = table.concat(vim.fn.readfile(file), '\n'),
+          text = data,
         },
       }
       ---@diagnostic disable-next-line: unused-local
-      local status = client.notify(vim.lsp.protocol.Methods.textDocument_didOpen, params)
+      -- vim.notify('Queued workspace diagnostics for file: ' .. file .. ' to LSP client: ' .. client.name, vim.log.levels.INFO, { title = 'LSP' })
+      -- local status = client.notify('textDocument/didOpen', params)
+      -- vim.notify(
+      --   'Workspace diagnostics request status for file: ' .. file .. ' to LSP client: ' .. client.name .. ' is: ' .. tostring(status),
+      --   vim.log.levels.DEBUG,
+      --   { title = 'LSP' }
+      -- )
     end
   end
   vim.notify('Workspace diagnostics queued for LSP client: ' .. client.name, vim.log.levels.INFO, { title = 'LSP' })
@@ -177,11 +193,15 @@ end
 ---@module 'lspconfig'
 ---@param opts lspconfig.Config
 lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
-  -- LSP servers and clients are able to communicate to each other what features they support.
+  --
+
+  -- LSP servers and clients are able to communicate to each other what features they support.nvim-config/blob/main/.luarc.json
   -- By default, Neovim doesn't support everything that is in the LSP specification.
   -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
   -- So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
+
   local has_blink, blink = pcall(require, 'blink.cmp')
+
   local capabilities = vim.tbl_deep_extend(
     'force',
     {},
@@ -189,6 +209,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     has_blink and blink.get_lsp_capabilities() or {},
     opts.capabilities or {}
   )
+
   local lsp_conf = require 'lspconfig'
   local configured_servers = vim.g.configured_servers or {}
 
@@ -196,8 +217,10 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     ---@type vim.lsp.ClientConfig
     local server_conf = vim.tbl_deep_extend('force', {}, server)
     server_conf = vim.tbl_extend('keep', server_conf, lsp_conf[name].config_def.default_config or {})
+
     server_conf.on_init = function(client, initialize_result)
       vim.notify('Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
+      vim.notify('In root directory: ' .. client.config.root_dir, vim.log.levels.INFO, { title = 'LSP' })
 
       -- Workspeace diagnostics trigger
       trigger_workspace_diagnostics(client)
@@ -206,11 +229,13 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         server.on_init(client, initialize_result)
       end
     end
+
     server_conf.before_init = function(params, client_config)
       if server.before_init then
         server.before_init(params, client_config)
       end
     end
+
     server_conf.on_exit = function(code, signal, client_id)
       vim.notify('De-Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
       if server.on_exit then
@@ -237,7 +262,7 @@ local lazydev = {
   'folke/lazydev.nvim',
   ft = 'lua',
   dependencies = {
-    { 'Bilal2453/luvit-meta', lazy = true },
+    -- { 'Bilal2453/luvit-meta', lazy = true },
   },
   opts = {
     library = {
@@ -281,7 +306,7 @@ local rustowl = {
 
 return {
   mason,
-  -- lazydev,
+  lazydev,
   lspconfig,
   rustowl,
 }

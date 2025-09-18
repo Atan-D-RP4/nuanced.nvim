@@ -17,9 +17,10 @@ return {
         workspace = {
           ignoreDir = { '.git', 'dist', 'build' },
           library = {
-            [vim.fs.joinpath '${3rd}/luv/library'] = true,
-            [vim.fn.expand '$VIMRUNTIME/lua'] = true,
-            [vim.fn.stdpath 'config' .. '/lua'] = true,
+            vim.fs.joinpath '${3rd}/luv/library',
+            vim.fn.expand '$VIMRUNTIME',
+            vim.fn.stdpath 'config' .. '/lua',
+            vim.fn.stdpath 'data' .. '/lazy/',
           },
           checkThirdParty = false,
         },

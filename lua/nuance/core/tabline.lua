@@ -56,10 +56,10 @@ Buftabline.build = function()
 
     -- Basic setup
     s = s .. (isActive and "%#TabLineSel#" or "%#TabLine#") --> diff hl for active and inactive buffers
-    s = s .. " "                                           --> Left margin/separator
+    s = s .. " "                                            --> Left margin/separator
 
     -- Make buffer clickable
-    s = s .. "%".. bufnr .. "@BufferGo@"
+    s = s .. "%" .. bufnr .. "@BufferGo@"
 
     -- Buffer index
     if bufIndex ~= "" then
@@ -105,7 +105,7 @@ Buftabline.build = function()
   -- ========== Middle ==========
   -- Empty space
   -- ============================
-  s = s .. "%="            --> spacer
+  s = s .. "%=" --> spacer
 
   -- ========== Right ==========
   -- Total buffer count

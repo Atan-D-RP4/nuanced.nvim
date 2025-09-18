@@ -260,9 +260,8 @@ local themes = {
 local noice = {
   'folke/noice.nvim',
   event = 'VeryLazy',
-  dependencies = {
-    'MunifTanjim/nui.nvim',
-  },
+  dependencies = { 'MunifTanjim/nui.nvim' },
+
   ---@module 'noice'
   ---@type NoiceConfig
   opts = {
@@ -272,6 +271,7 @@ local noice = {
         ['vim.lsp.util.stylize_markdown'] = true,
         ['cmp.entry.get_documentation'] = true,
       },
+
       signature = {
         enabled = false,
         view = nil, -- when nil, use defaults from documentation
@@ -279,6 +279,7 @@ local noice = {
         opts = {}, -- merged with defaults from documentation
       },
     },
+
     ---@type NoiceRouteConfig[]
     routes = {
       {
@@ -293,6 +294,7 @@ local noice = {
         view = 'mini',
       },
     },
+
     cmdline = {
       ---@type table<string, CmdlineFormat>
       format = {
@@ -300,11 +302,15 @@ local noice = {
         filter = { pattern = { '^:%s*!', '^:.!' }, icon = '$', lang = 'bash' },
       },
     },
+
     presets = {
       lsp_doc_border = vim.o.winborder == '' and false or true, -- add a border to hover docs and signature help
       command_palette = true,
       bottom_search = true, -- use a classic bottom cmdline for search
+      long_message_to_split = true, -- long messages will be sent to a split
     },
+
+    redirect = { filter = '' },
   },
 }
 
@@ -329,6 +335,7 @@ local which_key = { -- Useful plugin to show you pending keybinds.
     expand = function(node)
       return not node.desc
     end,
+
     icons = {
       -- set icon mappings to true if you have a Nerd Font
       mappings = vim.g.have_nerd_font,
@@ -388,6 +395,7 @@ local which_key = { -- Useful plugin to show you pending keybinds.
 local markview = {
   'OXY2DEV/markview.nvim',
   ft = { 'markdown', 'typst' },
+
   keys = {
     {
       '<leader>tm',
@@ -407,9 +415,11 @@ local markview = {
       desc = '[T]oggle [M]arkview',
     },
   },
+
   ---@module 'markview.nvim'
   ---@type mkv.config
   opts = {},
+
   config = function()
     vim.g.markview = false
     vim.cmd 'Markview Stop'

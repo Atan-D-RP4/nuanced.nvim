@@ -7,7 +7,7 @@ local M = {
     vim.api.nvim_create_user_command('ConformFormat', function(_)
       require('conform').format({ async = true, lsp_format = 'fallback' }, function()
         vim.notify('Buffer Formatted', vim.log.levels.INFO, { title = 'Conform' })
-        vim.cmd 'write'
+        vim.cmd 'exec "write"'
       end)
     end, { nargs = 0, desc = 'Format buffer' })
   end,
@@ -19,11 +19,12 @@ M.keys = {
     function()
       require('conform').format({ async = true, lsp_format = 'fallback' }, function()
         vim.notify('Buffer Formatted', vim.log.levels.INFO, { title = 'Conform' })
-        vim.cmd 'write'
+        vim.cmd 'exec "write"'
       end)
     end,
     mode = '',
-    desc = '[C]onform [F]ormat buffer', },
+    desc = '[C]onform [F]ormat buffer',
+  },
 }
 
 M.opts = {

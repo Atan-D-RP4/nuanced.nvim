@@ -167,8 +167,8 @@ local maps = {
   -- My Keybinds
   { 'i', '<C-U>', '<C-G>u<C-U>' },
 
-  { 'n', '<Tab>', ':bnext<CR>', 'Next Buffer' },
-  { 'n', '<S-Tab>', ':bprevious<CR>', 'Previous Buffer' },
+  { { 'n', 'v' }, '<Tab>', '<Esc>:bnext<CR>', 'Next Buffer' },
+  { { 'n', 'v' }, '<S-Tab>', '<Esc>:bprevious<CR>', 'Previous Buffer' },
 
   -- CTRL+S for Save
   { { 'n', 'v', 'i' }, '<C-S>', '<ESC>:update<CR>', 'Better Save' },

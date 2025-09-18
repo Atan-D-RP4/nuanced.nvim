@@ -96,25 +96,33 @@ local spider = {
 local flash = {
   'folke/flash.nvim',
   keys = {
-    'f',
-    'F',
-    't',
-    'T',
-    ';',
-    ',',
+    unpack { 'f', 'F', 't', 'T', ';', ',' },
     { '<M-f>', '<cmd>lua require("flash").jump()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash' },
     { '<M-F>', '<cmd>lua require("flash").treesitter()<CR>', mode = { 'n', 'x', 'o' }, desc = 'Flash Treesitter' },
     { 'r', '<cmd>lua require("flash").remote()<CR>', mode = 'o', desc = 'Remote Flash' },
     { 'R', '<cmd>lua require("flash").treesitter_search()<CR>', mode = { 'o', 'x' }, desc = 'Treesitter Search' },
     { '<c-s>', '<cmd>lua require("flash").toggle()<CR>', mode = { 'c' }, desc = 'Toggle Flash Search in "/" mode' },
+    -- Simulate nvim-treesitter incremental selection
+    {
+      '<C-g>',
+      mode = { 'n', 'o', 'x' },
+      function()
+        require('flash').treesitter {
+          label = { before = false, after = false },
+          actions = {
+            ['<c-g>'] = 'next',
+            ['<BS>'] = 'prev',
+          },
+        }
+      end,
+      desc = 'Treesitter Incremental Selection',
+    },
   },
 
   ---@type Flash.Config
   opts = {
     -- labels = 'asdfghjklqwertyuiopzxcvbnm',
     labels = 'dgqftyuzxcvnm1234567890',
-    search = { mode = 'search' },
-    modes = { char = { jump_labels = true } },
     label = { rainbow = { enabled = true } },
   },
 }
