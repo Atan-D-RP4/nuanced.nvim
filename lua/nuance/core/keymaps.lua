@@ -4,70 +4,6 @@ vim.g.mapleader = '\r'
 vim.g.maplocalleader = '\r'
 
 local maps = {
-  -- Treesitter-based '%' motion
-  -- {
-  --   { 'n', 'x' },
-  --   '%',
-  --   function()
-  --     local node_on_cursor = vim.treesitter.get_node()
-  --     if node_on_cursor == nil then vim.cmd 'execute "normal! %"' return end
-  --     local s_row, s_col, _, e_row, e_col, _ = unpack(vim.treesitter.get_range(node_on_cursor))
-  --     local start_line = s_row + 1
-  --     local start_col = s_col
-  --     local end_line = e_row + 1
-  --     local end_col = e_col - 1
-  --
-  --     local curr_line, curr_col = unpack(vim.api.nvim_win_get_cursor(0))
-  --
-  --     -- Determine if cursor is at either boundary
-  --     local at_start = curr_line == start_line and curr_col == start_col
-  --     local at_end = curr_line == end_line and curr_col == end_col
-  --
-  --     -- Jump to opposite boundary
-  --     if at_start then
-  --       vim.api.nvim_win_set_cursor(0, { end_line, end_col })
-  --     elseif at_end then
-  --       vim.api.nvim_win_set_cursor(0, { start_line, s_col })
-  --     else
-  --       -- Default to jumping to start if not at either boundary
-  --       vim.api.nvim_win_set_cursor(0, { start_line, s_col })
-  --     end
-  --   end,
-  --   'Treesitter % Motion',
-  -- },
-
-  {
-    { 'n', 'i' },
-    '<C-j>',
-    function()
-      local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-      line = line - 1
-      local node = vim.treesitter.get_node()
-      if node ~= nil then
-        local row
-        row, col = node:end_()
-        vim.api.nvim_win_set_cursor(0, { row + 1, col })
-      end
-    end,
-    'Treesitter Jump to Node-End',
-  },
-
-  {
-    { 'n', 'i' },
-    '<C-k>',
-    function()
-      local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-      line = line + 1
-      local node = vim.treesitter.get_node()
-      if node ~= nil then
-        local row
-        row, col = node:start()
-        vim.api.nvim_win_set_cursor(0, { row, col })
-      end
-    end,
-    'Treesitter Jump to Node-Start',
-  },
-
   -- {
   --   { 'n', 't' },
   --   '<C-t>',
@@ -108,6 +44,70 @@ local maps = {
   --   end)(),
   --   'Toggle float terminal',
   -- },
+
+  -- Treesitter-based '%' motion
+  -- {
+  --   { 'n', 'x' },
+  --   '%',
+  --   function()
+  --     local node_on_cursor = vim.treesitter.get_node()
+  --     if node_on_cursor == nil then vim.cmd 'execute "normal! %"' return end
+  --     local s_row, s_col, _, e_row, e_col, _ = unpack(vim.treesitter.get_range(node_on_cursor))
+  --     local start_line = s_row + 1
+  --     local start_col = s_col
+  --     local end_line = e_row + 1
+  --     local end_col = e_col - 1
+  --
+  --     local curr_line, curr_col = unpack(vim.api.nvim_win_get_cursor(0))
+  --
+  --     -- Determine if cursor is at either boundary
+  --     local at_start = curr_line == start_line and curr_col == start_col
+  --     local at_end = curr_line == end_line and curr_col == end_col
+  --
+  --     -- Jump to opposite boundary
+  --     if at_start then
+  --       vim.api.nvim_win_set_cursor(0, { end_line, end_col })
+  --     elseif at_end then
+  --       vim.api.nvim_win_set_cursor(0, { start_line, s_col })
+  --     else
+  --       -- Default to jumping to start if not at either boundary
+  --       vim.api.nvim_win_set_cursor(0, { start_line, s_col })
+  --     end
+  --   end,
+  --   'Treesitter % Motion',
+  -- },
+
+  -- {
+  --   { 'n', 'i' },
+  --   '<C-k>',
+  --   function()
+  --     local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+  --     line = line + 1
+  --     local node = vim.treesitter.get_node()
+  --     if node ~= nil then
+  --       local row
+  --       row, col = node:start()
+  --       vim.api.nvim_win_set_cursor(0, { row, col })
+  --     end
+  --   end,
+  --   'Treesitter Jump to Node-Start',
+  -- },
+
+  {
+    { 'n', 'i' },
+    '<C-j>',
+    function()
+      local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+      line = line - 1
+      local node = vim.treesitter.get_node()
+      if node ~= nil then
+        local row
+        row, col = node:end_()
+        vim.api.nvim_win_set_cursor(0, { row + 1, col })
+      end
+    end,
+    'Treesitter Jump to Node-End',
+  },
 
   {
     'n',

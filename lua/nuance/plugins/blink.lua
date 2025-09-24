@@ -153,21 +153,20 @@ M.opts.sources = {
 M.opts.snippets = { preset = 'default' }
 
 M.opts.keymap = {
+  preset = 'none',
   ['<C-q>'] = { 'scroll_documentation_up', 'fallback' }, -- Scroll the documentation window [b]ack
   ['<C-f>'] = { 'scroll_documentation_down', 'fallback' }, -- Scroll the documentation window [f]orward
 
+  ['<C-Space>'] = { 'show_documentation', 'hide_documentation' }, -- Manually Trigger completions and toggle documentation window
   ['<C-e>'] = { 'hide' }, -- Hide the completion menu
   ['<CR>'] = { 'select_and_accept', 'fallback' }, -- Accept the completion.
-  -- ['<C-y>'] = { 'select_and_accept', 'fallback' }, -- Accept ([y]es) the completion.
+  ['<C-y>'] = { 'select_and_accept', 'fallback' }, -- Accept ([y]es) the completion.
 
   ['<C-n>'] = { 'show', 'select_next', 'snippet_forward', 'fallback' }, -- Select the [n]ext item
   ['<C-p>'] = { 'show', 'select_prev', 'snippet_backward', 'fallback' }, -- Select the [p]revious item
 
   ['<Tab>'] = { 'snippet_forward', 'fallback' },
   ['<S-Tab>'] = { 'snippet_backward', 'fallback' },
-
-  -- Manually Trigger completions and toggle documentation window
-  ['<C-Space>'] = { 'show_documentation', 'hide_documentation' },
 }
 
 M.opts.cmdline = {
