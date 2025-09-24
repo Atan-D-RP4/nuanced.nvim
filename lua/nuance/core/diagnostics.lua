@@ -10,6 +10,17 @@ function M.conf()
     float = {
       border = 'rounded',
     },
+    jump = {
+      on_jump = function(_, _)
+        vim.diagnostic.open_float {
+          focusable = false,
+          close_events = { 'CursorMoved', 'InsertEnter', 'FocusLost' },
+          border = 'rounded',
+          source = 'if_many',
+          prefix = ' ',
+        }
+      end,
+    },
     signs = vim.g.have_nerd_font and {
       text = {
         [vim.diagnostic.severity.ERROR] = '󰅚 ',
@@ -19,7 +30,7 @@ function M.conf()
       },
     } or {},
     update_in_insert = false,
-    -- virtual_lines = { current_line = true },
+    virtual_lines = { current_line = true },
 
     virtual_text = {
       source = true,
@@ -108,12 +119,19 @@ function M.setup()
 
         local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
 
-        if #vim.diagnostic.get(ev.buf, { lnum = lnum }) < 2 then
+        local diagnostic_count = #vim.diagnostic.get(ev.buf, { lnum = lnum })
+        if diagnostic_count < 5 then
           vim.diagnostic.config { virtual_text = og_virt_text }
           vim.diagnostic.config { virtual_lines = false }
         else
           vim.diagnostic.config { virtual_text = false }
-          vim.diagnostic.config { virtual_lines = og_virt_line }
+          vim.diagnostic.open_float {
+            focusable = false,
+            close_events = { 'CursorMoved', 'InsertEnter', 'FocusLost' },
+            border = 'rounded',
+            source = 'if_many',
+            prefix = ' ',
+          }
         end
       end,
     })

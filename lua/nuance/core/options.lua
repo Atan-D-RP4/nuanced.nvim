@@ -28,6 +28,10 @@ if vim.fn.exists 'messagesopt' == 1 then
   opt.messagesopt:remove 'hit-enter'
 end
 
+if vim.fn.exists 'diffopt' == 1 then
+  opt.diffopt = 'algorithm:histogram,anchor,internal,filler,closeoff,inline:char,linematch:40'
+end
+
 -- Separate vim plugins from neovim in case vim still in use
 opt.runtimepath:remove '/usr/share/vim/vimfiles'
 
@@ -89,8 +93,6 @@ opt.fillchars = {
   diff = '─',
   msgsep = '‾',
 }
-
-opt.diffopt = 'algorithm:histogram,anchor,internal,filler,closeoff,inline:char,linematch:40'
 
 -- Enable break indent
 opt.breakindent = true

@@ -1,7 +1,7 @@
 ---@diagnostic disable: unused-local
 local statusline = {
   'echasnovski/mini.statusline',
-  event = 'VimEnter',
+  event = 'VeryLazy',
   -- Simple and easy statusline.
   -- You could remove this setup call if you don't like it,
   -- and try some other statusline plugin
@@ -306,7 +306,6 @@ local noice = {
     presets = {
       lsp_doc_border = vim.o.winborder == '' and false or true, -- add a border to hover docs and signature help
       command_palette = true,
-      bottom_search = true, -- use a classic bottom cmdline for search
       long_message_to_split = true, -- long messages will be sent to a split
     },
 
@@ -372,6 +371,8 @@ local which_key = { -- Useful plugin to show you pending keybinds.
         F12 = '<F12>',
       },
     },
+
+    win = { wo = { winblend = 70 } },
 
     -- Document existing key chains
     spec = {

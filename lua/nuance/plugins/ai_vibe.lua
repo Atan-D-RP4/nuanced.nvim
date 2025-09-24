@@ -115,25 +115,7 @@ X = 912 / 2
 
 M.avante = {
   'yetone/avante.nvim',
-  lazy = true,
-  keys = {
-    { mode = 'n', '<CR>aa' },
-    { mode = 'v', '<CR>aa' },
-    { mode = 'n', '<CR>aS' },
-    { mode = 'v', '<CR>ae' },
-    { mode = 'n', '<CR>af' },
-    { mode = 'n', '<CR>at' },
-    { mode = 'n', '<CR>a?' },
-    { mode = 'n', '<CR>ad' },
-    { mode = 'n', '<CR>ah' },
-    { mode = 'n', '<CR>an' },
-    { mode = 'v', '<CR>an' },
-    { mode = 'n', '<CR>az' },
-    { mode = 'v', '<CR>az' },
-    { mode = 'n', '<CR>aR' },
-    { mode = 'n', '<CR>aC' },
-    { mode = 'n', '<CR>aB' },
-  },
+  event = 'VeryLazy',
 
   version = false, -- Never set this value to "*"! Never!
   -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows

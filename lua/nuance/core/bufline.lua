@@ -5,6 +5,7 @@
 -- Buffer index from vim.g.tab_idx_map
 -- Highlights for active/inactive buffers
 
+---@class Bufline
 Bufline = {
   buftabs_count = 1, -- Number of buffers in the tabline
   tab_idx_map = {}, -- Map of buffer numbers to their index in the tabline

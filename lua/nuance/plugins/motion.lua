@@ -108,7 +108,7 @@ local flash = {
       mode = { 'n', 'o', 'x' },
       function()
         require('flash').treesitter {
-          label = { before = false, after = false },
+          -- label = { before = false, after = false },
           actions = {
             ['<c-g>'] = 'next',
             ['<BS>'] = 'prev',
