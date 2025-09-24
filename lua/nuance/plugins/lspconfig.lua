@@ -1,6 +1,7 @@
 local lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspLog' },
+  event = { 'Filetype', 'LspAttach' },
 
   ft = {
     -- Web Languages
@@ -26,9 +27,9 @@ local on_attach = function(client, bufnr)
   -- Set the priority of the semantic tokens to be lower than
   -- that of Treesitter, so that Treesitter is always highlighting
   -- over LSP semantic tokens.
-  vim.highlight.priorities.semantic_tokens = 95
+  vim.hl.priorities.semantic_tokens = 95
 
-  vim.lsp.set_log_level(vim.log.levels.INFO)
+  vim.lsp.log.set_level(vim.log.levels.INFO)
   vim.lsp.log.set_format_func(function(args)
     local msg = vim.inspect(args)
     msg = msg:gsub('\t', '  ')
@@ -37,10 +38,11 @@ local on_attach = function(client, bufnr)
 
   local mappings = {
     { 'gws', '<cmd>lua Snacks.picker.lsp_workspace_symbols()<CR>', 'LSP [W]orkspace [S]ymbols' },
-    { 'gd', '<cmd>lua Snacks.picker.lsp_type_definitions()<CR>', 'LSP [T]ype [D]efinition' },
+    { 'gD', '<cmd>lua Snacks.picker.lsp_type_definitions()<CR>', 'LSP [T]ype [D]efinition' },
     { 'gus', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', 'LSP [D]ocument [S]ymbols' },
     { 'gd', '<cmd>lua Snacks.picker.lsp_definitions()<CR>', 'LSP [G]oto [D]efinition' },
-    { 'grn', "<cmd> vim.lsp.buf.rename() -- Save all buffers after renaming vim.cmd [[ exec 'wa' ]] <CR>", 'LSP [R]ename' }, -- override `grn` mapping
+    -- Save all buffers after renaming
+    { 'grn', "<cmd>lua vim.lsp.buf.rename() vim.cmd [[ exec 'wa' ]]<CR>", 'LSP [R]ename' }, -- override `grn` mapping
     { 'grr', '<cmd>lua Snacks.picker.lsp_references()<CR>', 'LSP [G]oto [R]eferences' }, -- override `grr` mapping
     { 'gri', '<cmd>lua Snacks.picker.lsp_implementations()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
     { 'gs', '<cmd>lua Snacks.picker.lsp_symbols({layout = {preset = "vscode", preview = "main"}})<CR>', 'LSP Document [S]ymbols' },
@@ -56,11 +58,12 @@ local on_attach = function(client, bufnr)
   vim.tbl_map(function(map)
     local key = map[1]
     local rhs = map[2]
+    ---@type vim.keymap.set.Opts
     local opts = map[3] or {}
     if type(opts) == 'string' then
       opts = { desc = opts }
     end
-    opts = vim.tbl_deep_extend('force', { buffer = bufnr }, opts)
+    opts = vim.tbl_deep_extend('force', { buffer = bufnr, noremap = true, silent = true }, opts)
     nmap(key, rhs, opts)
   end, mappings)
 
@@ -125,9 +128,6 @@ local on_attach = function(client, bufnr)
         end
         local attached_buffers_count = vim.tbl_count(cur_client.attached_buffers)
         if attached_buffers_count == 0 then
-          local msg = 'No attached buffers to client: ' .. cur_client.name .. '\n'
-          msg = msg .. 'Stopping Server: ' .. cur_client.name
-          vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
           cur_client:stop(true)
         end
       end, 200)
@@ -140,6 +140,18 @@ local on_attach = function(client, bufnr)
   -- vim.opt_local.foldexpr = 'v:lua.vim.lsp.foldexpr()'
   -- vim.opt_local.foldtext = 'v:lua.vim.lsp.foldtext()'
 end
+
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if not client then
+      vim.notify('LSP client not found for id: ' .. tostring(args.data.client_id), vim.log.levels.WARN, { title = 'LSP' })
+      return
+    end
+    local bufnr = args.buf
+    on_attach(client, bufnr)
+  end,
+})
 
 ---@param client vim.lsp.Client
 local function trigger_workspace_diagnostics(client)
@@ -193,8 +205,6 @@ end
 ---@module 'lspconfig'
 ---@param opts lspconfig.Config
 lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
-  --
-
   -- LSP servers and clients are able to communicate to each other what features they support.nvim-config/blob/main/.luarc.json
   -- By default, Neovim doesn't support everything that is in the LSP specification.
   -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
@@ -210,51 +220,40 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     opts.capabilities or {}
   )
 
-  local lsp_conf = require 'lspconfig'
   local configured_servers = vim.g.configured_servers or {}
 
   for name, server in pairs(configured_servers) do
-    ---@type vim.lsp.ClientConfig
-    local server_conf = vim.tbl_deep_extend('force', {}, server)
-    server_conf = vim.tbl_extend('keep', server_conf, lsp_conf[name].config_def.default_config or {})
+    vim.lsp.config(name, {
+      settings = server.settings or {},
+      filetypes = server.filetypes or nil,
+      on_init = server.on_init or nil,
+      before_init = server.before_init or nil,
+      on_exit = server.on_exit or nil,
+    })
+    if not (server.enabled == nil) and (not server.enabled == false) then
+      vim.lsp.enable(name)
+    end
+  end
 
-    server_conf.on_init = function(client, initialize_result)
-      local msg = 'Initialized Language Server: ' .. name
+  vim.lsp.config('*', {
+    capabilities = capabilities,
+    on_init = function(client, initialize_result)
+      local msg = 'Initialized Language Server: ' .. client.name
       msg = msg .. '\n' .. 'In root directory: ' .. client.config.root_dir
       vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
-
-      -- Workspeace diagnostics trigger
-      -- trigger_workspace_diagnostics(client)
-
-      if server.on_init then
-        server.on_init(client, initialize_result)
-      end
-    end
-
-    server_conf.before_init = function(params, client_config)
-      if server.before_init then
-        server.before_init(params, client_config)
-      end
-    end
-
-    server_conf.on_exit = function(code, signal, client_id)
+      vim.notify(vim.inspect(initialize_result), vim.log.levels.INFO, { title = 'LSP' })
+    end,
+    before_init = function(params, client_config)
+      client_config.settings = configured_servers[client_config.name].settings or client_config.settings
+    end,
+    on_exit = function(code, signal, client_id)
+      local name = vim.lsp.get_client_by_id(client_id).name
+      local msg = 'No buffers attached to client: ' .. name .. '\n'
+      msg = msg .. 'Stopping Server: ' .. name
+      vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
       vim.notify('De-Initialized Language Server: ' .. name, vim.log.levels.INFO, { title = 'LSP' })
-      if server.on_exit then
-        server.on_exit(code, signal, client_id)
-      end
-    end
-
-    server_conf.capabilities = vim.tbl_extend('force', {}, capabilities, server.capabilities or {})
-    server_conf.on_attach = on_attach
-
-    -- server_conf.on_attach = function(client, bufnr)
-    --   if client.server_capabilities.documentSymbolProvider then
-    --     require('nvim-navic').attach(client, bufnr)
-    --   end
-    --   config.on_attach(client, bufnr)
-    -- end,
-    lsp_conf[name].setup(server_conf)
-  end
+    end,
+  })
 end
 
 local lazydev = {
@@ -287,7 +286,6 @@ local mason = {
   end,
   cmd = { 'Mason', 'MasonInstall', 'MasonLog' },
 } -- NOTE: Must be loaded before dependants
-
 
 local rustowl = {
   'cordx56/rustowl',
