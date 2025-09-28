@@ -5,7 +5,7 @@ function M.safe_buf_delete(bufnr)
   if vim.bo[bufnr].modified then
     local cond = vim.fn.confirm('Save changes to "' .. vim.api.nvim_buf_get_name(bufnr) .. '"?', '&Yes\n&No\n&Cancel', 3)
     if cond == 1 then
-      vim.cmd 'update'
+      vim.cmd [[ exec 'update' ]]
     elseif cond == 3 then
       return
     end
@@ -286,7 +286,7 @@ function M.async_promise(timeout, repeat_, callback, arg1, ...)
   -- Execute async operation
   timer:start(
     timeout,
-    0, -- Remove repeat since it's not used
+    repeat_,
     vim.schedule_wrap(function()
       -- Call the callback function with the provided arguments and capture result
       local success, result = pcall(callback, arg1, unpack(args))

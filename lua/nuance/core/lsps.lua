@@ -1,28 +1,98 @@
 return {
-  lua_ls = {
-    enabled = vim.fn.executable 'lua-language-server' == 1,
+  emmylua_ls = {
+    enabled = vim.fn.executable 'emmylua_ls' == 1, -- adjust the binary name if needed
     filetypes = { 'lua' },
+
     settings = {
       Lua = {
         runtime = {
           version = 'LuaJIT',
           path = vim.split(package.path, ';'),
         },
+
         telemetry = { enable = false },
+        hint = { enable = true, setType = true },
+        codeLens = { enable = true },
         completion = { callSnippet = 'Replace' },
+
+        diagnostics = {
+          disable = {
+            'missing-fields',
+            'param-type-not-match',
+            'assign-type-mismatch',
+          },
+
+          globals = { 'vim' },
+        },
+
+        workspace = {
+          library = {
+            vim.fs.joinpath '${3rd}/luv/library',
+            vim.fn.expand '$VIMRUNTIME',
+            vim.fn.stdpath 'config' .. '/lua',
+            vim.fn.stdpath 'data' .. '/lazy/',
+          },
+          ignoreDir = { '.git', 'dist', 'build' },
+          checkThirdParty = true,
+        },
+
+        format = {
+          enable = false,
+          -- defaultConfig = {
+          --   indent_style = 'space',
+          --   indent_size = '2',
+          -- },
+        },
+      },
+    },
+  },
+
+  lua_ls = {
+    enabled = vim.fn.executable 'lua-language-server' == 1,
+    filetypes = { 'lua' },
+
+    settings = {
+      Lua = {
+        runtime = {
+          version = 'LuaJIT',
+          path = vim.split(package.path, ';'),
+        },
+
+        telemetry = { enable = false },
+        hint = { enable = true, setType = true },
+        codeLens = { enable = true },
+        completion = { callSnippet = 'Replace' },
+
         diagnostics = {
           disable = { 'missing-fields' },
           globals = { 'vim' },
         },
+
         workspace = {
           ignoreDir = { '.git', 'dist', 'build' },
-          -- library = {
-          --   vim.fs.joinpath '${3rd}/luv/library',
-          --   vim.fn.expand '$VIMRUNTIME',
-          --   vim.fn.stdpath 'config' .. '/lua',
-          --   vim.fn.stdpath 'data' .. '/lazy/',
-          -- },
           checkThirdParty = false,
+        },
+
+        format = {
+          enable = false,
+          -- defaultConfig = {
+          --   max_line_length = 180,
+          --   indent_style = 'space',
+          --   indent_size = '2',
+          --   continuation_indent_size = '2',
+          --   call_arg_parentheses = 'keep',
+          --   space_before_inline_comment = 2,
+          --   quote_style = 'single',
+          --
+          --   align_call_args = false,
+          --   align_continuous_line_space = 0,
+          --   align_continuous_inline_comment = false,
+          --   align_function_params = false,
+          --   align_continuous_assign_statement = false,
+          --   align_continuous_rect_table_field = 'none',
+          --   align_if_branch = false,
+          --   align_array_table = false,
+          -- },
         },
       },
     },
@@ -247,6 +317,16 @@ return {
           loadOutDirsFromCheck = true,
           buildScripts = { enable = true },
           targetDir = 'target/rust_analyzer',
+        },
+
+        lens = {
+          enabled = true,
+          references = {
+            adt = { enable = true },
+            method = { enable = true },
+            trait = { enable = true },
+            enumVariant = { enable = true },
+          },
         },
 
         imports = { granularity = { group = 'module' }, prefix = 'self' },

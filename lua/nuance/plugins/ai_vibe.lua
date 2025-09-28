@@ -115,11 +115,10 @@ X = 912 / 2
 
 M.avante = {
   'yetone/avante.nvim',
-  event = 'VeryLazy',
-
-  version = false, -- Never set this value to "*"! Never!
   -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
   build = 'make',
+  version = false, -- Never set this value to "*"! Never!
+  event = 'VeryLazy',
 
   -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
   dependencies = {
@@ -163,10 +162,10 @@ M.copilot = {
   cmd = 'Copilot',
   event = { 'InsertEnter' },
 
+  ---@module 'copilot'
   ---@type CopilotConfig
   opts = {
     filetypes = { markdown = true }, -- overrides default
-    copilot_node_command = 'node', -- Node.js version must be > 18.x
     copilot_model = 'claude-sonnet-4', -- Select preferred copilot model
 
     suggestion = {
@@ -178,6 +177,8 @@ M.copilot = {
       vim.fn.expand '~' .. '/Develop/repos/',
       vim.fn.expand '~' .. '/Notes/',
     },
+
+    server = { type = 'binary' },
   },
 }
 

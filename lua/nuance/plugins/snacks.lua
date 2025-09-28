@@ -90,7 +90,7 @@ M.opts = {
   image = { enabled = true },
   explorer = { enabled = true },
   picker = { enabled = true },
-  -- notifier = { enabled = true, timeout = 1500 },
+  notifier = { enabled = false, timeout = 1500 },
   styles = { notification = { wo = { wrap = true } } }, -- Wrap notifications
   scroll = { enabled = false },
   statuscolumn = { enabled = false },

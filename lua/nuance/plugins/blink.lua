@@ -10,6 +10,29 @@ M = {
   -- build = 'cargo build --release',
   -- If you use nix, you can build from source using latest nightly rust with:
   -- build = 'nix run .#build-plugin',
+
+  config = function(_, opts)
+    local has_lazydev = vim
+      .iter(require('lazy').plugins())
+      :map(function(p)
+        return p.name
+      end)
+      :any(function(name)
+        return name == 'lazydev.nvim'
+      end)
+    if has_lazydev then
+      opts.sources.default = vim.list_extend(opts.sources.default, { 'lazydev' })
+      opts.sources.providers = {
+        unpack(opts.sources.providers),
+        lazydev = {
+          name = 'LazyDev',
+          module = 'lazydev.integrations.blink',
+          score_offset = 95,
+        },
+      }
+    end
+    require('blink.cmp').setup(opts)
+  end,
 }
 
 local luasnip = {
@@ -89,16 +112,14 @@ M.opts.completion = {
 
     draw = {
       treesitter = { 'lsp' },
-      columns = { { 'kind_icon', 'label', 'label_description', gap = 1 }, { 'kind', 'source_name', gap = 1 } },
+      columns = { { 'kind_icon', 'label', 'label_description', gap = 1 }, { 'source_name', gap = 1 } },
       components = {
         kind = { highlight = 'Special' },
         source_name = {
+          ---@module 'blink'
+          ---@param ctx blink.cmp.DrawItemContext
           text = function(ctx)
-            return ctx.source_name == 'LSP'
-                and vim.tbl_filter(function(value)
-                  return value.name ~= 'copilot'
-                end, vim.lsp.get_clients { bufnr = vim.api.nvim_get_current_buf() })[1].name
-              or ctx.source_name
+            return ctx.source_name == 'LSP' and ctx.item.client_name
           end,
         },
       },
@@ -119,16 +140,10 @@ M.opts.sources = {
     'path',
     'buffer',
     'snippets',
-    -- 'lazydev',
     --'dadbod',
   },
   providers = {
     lsp = { score_offset = 100, async = true },
-    -- lazydev = {
-    --   name = 'LazyDev',
-    --   module = 'lazydev.integrations.blink',
-    --   score_offset = 95,
-    -- },
     path = { score_offset = 95 },
     snippets = {
       score_offset = 85,

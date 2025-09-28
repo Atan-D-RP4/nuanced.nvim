@@ -262,9 +262,8 @@ local noice = {
   event = 'VeryLazy',
   dependencies = { 'MunifTanjim/nui.nvim' },
   config = function(_, opts)
-    require('noice').setup(opts)
     require('nuance.core.utils').async_promise(100, 0, function()
-      vim.print 'Noice loaded'
+      require('noice').setup(opts)
       vim.notify = require('noice').notify
       Snacks.picker.notifications = function()
         require('noice').cmd 'snacks'

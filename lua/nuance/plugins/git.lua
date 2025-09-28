@@ -3,7 +3,7 @@ local gitcore = {
   cmd = { 'Git', 'Gstatus', 'Gblame', 'Gpush', 'Gpull', 'Gcommit', 'Gdiff', 'GcLog' },
 
   keys = {
-    { '<leader>gg', '<cmd>vsplit | Git ++curwin<CR>', desc = '[G]it', mode = 'n' },
+    { '<leader>gg', '<cmd>Git ++curwin<CR>', desc = '[G]it', mode = 'n' },
     { '<leader>gl', '<cmd>vsplit | Git ++curwin log<CR>', desc = '[G]it log', mode = 'n' },
     { '<leader>gh', '<cmd>vsplit | Git ++curwin reflog<CR>', desc = '[G]it log', mode = 'n' },
     { '<leader>gL', '<cmd>GcLog<CR>', desc = '[G]it log', mode = 'n' },
@@ -15,7 +15,7 @@ local gitcore = {
 
 local gitsigns = { -- Adds git related signs to the gutter, as well as utilities for managing changes
   'lewis6991/gitsigns.nvim',
-  event = 'VeryLazy',
+  event = 'BufReadPre',
   ---@type Gitsigns.Config
   opts = {},
 }

@@ -1,16 +1,4 @@
-local langs = {
-  unpack { 'rust', 'python', 'c', 'java' },
-  unpack { 'printf', 'query', 'regex' },
-  unpack { 'diff' },
-  unpack { 'html', 'css', 'javascript', 'jsdoc', 'typescript', 'tsx' },
-  unpack { 'json', 'jsonc', 'xml', 'yaml', 'toml' },
-  unpack { 'lua', 'luadoc', 'luap' },
-  unpack { 'markdown', 'markdown_inline' },
-  unpack { 'bash', 'vim', 'vimdoc' },
-}
-
 local treesitter_core_main = {
-  ft = langs,
   'nvim-treesitter/nvim-treesitter',
   branch = 'main',
   build = function()
@@ -28,33 +16,31 @@ local treesitter_core_main = {
 
   version = false,
   lazy = vim.fn.argc(-1) == 0, -- load treesitter early when opening a file from the cmdline
+  event = { 'BufReadPre' },
 
-  opts_extend = { 'ensure_installed' },
-
+  ---@module 'nvim-treesitter.configs'
+  ---@type TSConfig
   opts = {
-    -- LazyVim config for treesitter
-    ensure_installed = langs,
-    -- install_dir = vim.fn.stdpath 'data' .. '/site',
+    -- stylua: ignore
+    ensure_installed = {
+      'rust', 'python', 'c', 'java',
+      'printf', 'query', 'diff', 'regex',
+      'html', 'css', 'javascript', 'jsdoc', 'typescript', 'tsx',
+      'json', 'jsonc', 'xml', 'yaml', 'toml',
+      'lua', 'luadoc', 'luap',
+      'markdown', 'markdown_inline',
+      'bash', 'vim', 'vimdoc',
+    },
   },
 
   ---@param opts TSConfig
   config = function(_, opts)
     local ts = require 'nvim-treesitter'
+    local ensure_installed = opts.ensure_installed
 
-    -- some quick sanity checks
-    if not ts.get_installed then
-      vim.notify('Please use `:Lazy` and update `nvim-treesitter` to the **main** branch.', vim.log.levels.ERROR, { title = 'Treesitter' })
-      return
-    elseif vim.fn.executable 'tree-sitter' == 0 then
+    if vim.fn.executable 'tree-sitter' == 0 then
       vim.notify(
         'The `tree-sitter` CLI executable is not installed. Please install it to use the `treesitter-main` plugin.',
-        vim.log.levels.ERROR,
-        { title = 'Treesitter' }
-      )
-      return
-    elseif type(opts.ensure_installed) ~= 'table' then
-      vim.notify(
-        '`nvim-treesitter` opts.ensure_installed must be a table, but got ' .. type(opts.ensure_installed),
         vim.log.levels.ERROR,
         { title = 'Treesitter' }
       )
@@ -65,11 +51,12 @@ local treesitter_core_main = {
     ts.setup(opts)
 
     -- install missing parsers
-    local install = vim.tbl_filter(function(lang)
+    local to_install = vim.tbl_filter(function(lang)
       return not vim.tbl_contains(ts.get_installed(), lang)
-    end, opts.ensure_installed or {})
-    if #install > 0 then
-      ts.install(install, { summary = true }):await(function()
+    end, ensure_installed or {})
+
+    if #to_install > 0 then
+      ts.install(to_install, { summary = true }):await(function()
         ts.get_installed(true) -- refresh the installed langs
       end)
     end
@@ -100,7 +87,7 @@ local treesitter_core_master = {
   end,
 
   opts = {
-    ensure_installed = langs,
+    ensure_installed = treesitter_core_main.opts.ensure_installed,
     auto_install = false,
 
     highlight = {
@@ -111,12 +98,17 @@ local treesitter_core_master = {
         local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
         local max_treesitter_filesize = 300 * 1024
 
-        if not ok then
+        if not ok or stats == nil then
           vim.notify('Cannot get stats for ' + vim.api.nvim_buf_get_name(buf), vim.log.levels.DEBUG, { title = 'Treesitter' })
           return true
         end
 
-        if stats and stats.size > max_treesitter_filesize then
+        if stats.size > max_treesitter_filesize then
+          vim.notify(
+            'Disabling treesitter for ' .. vim.api.nvim_buf_get_name(buf) .. ' (file too large: ' .. (stats.size / 1024) .. ' KB)',
+            vim.log.levels.WARN,
+            { title = 'Treesitter' }
+          )
           return true
         end
       end,

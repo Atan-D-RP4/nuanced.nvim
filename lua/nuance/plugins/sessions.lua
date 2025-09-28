@@ -168,13 +168,8 @@ local session_pick = function()
   }
 end
 
-vim.api.nvim_create_user_command('SessionPick', function()
-  session_pick()
-end, { nargs = 0 })
-
 M = {
   'echasnovski/mini.sessions',
-  event = 'VeryLazy',
   dependencies = {
     'folke/snacks.nvim',
   },
@@ -205,6 +200,9 @@ M = {
 ---@diagnostic disable-next-line: duplicate-set-field
 M.config = function(_, opts)
   require('mini.sessions').setup(opts)
+  vim.api.nvim_create_user_command('SessionPick', function()
+    session_pick()
+  end, { nargs = 0 })
 
   -- local read = MiniSessions.read
   -- ---@diagnostic disable-next-line: redefined-local, duplicate-set-field

@@ -1,6 +1,6 @@
 local dropbar = {
   'Bekaboo/dropbar.nvim',
-  event = { 'VeryLazy', 'BufRead' },
+  event = { 'BufReadPre' },
   keys = {
     { '<leader>;', '<cmd>lua require("dropbar.api").pick()<CR>', desc = 'Pick symbols in Dropbar' },
   },

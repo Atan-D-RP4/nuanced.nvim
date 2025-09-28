@@ -435,8 +435,7 @@ end, {
 })
 
 vim.api.nvim_create_user_command('ToggleClipSync', function()
-  local clipboard = vim.o.clipboard
-  if clipboard:find 'unnamed' then
+  if vim.o.clipboard:find 'unnamed' then
     vim.opt.clipboard:remove { 'unnamed', 'unnamedplus' }
     vim.notify('OS clipboard sync disabled', vim.log.levels.INFO, { title = 'Clipboard' })
   else

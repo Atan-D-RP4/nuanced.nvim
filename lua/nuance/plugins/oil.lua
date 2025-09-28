@@ -3,7 +3,9 @@ local M = {
   version = '*',
   cmd = 'Oil',
 
-  keys = { { '<leader>o', '<cmd>lua require("oil").open()<CR>', mode = 'n', desc = 'Open Oil Window' } },
+  keys = {
+    { '<leader>o', '<cmd>lua require("oil").open()<CR>', mode = 'n', desc = 'Open Oil Window' },
+  },
 
   init = function()
     ---@diagnostic disable-next-line: param-type-mismatch

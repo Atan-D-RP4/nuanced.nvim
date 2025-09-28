@@ -16,12 +16,7 @@ local M = {
 M.keys = {
   {
     '<leader>cf',
-    function()
-      require('conform').format({ async = true, lsp_format = 'fallback' }, function()
-        vim.notify('Buffer Formatted', vim.log.levels.INFO, { title = 'Conform' })
-        vim.cmd 'exec "write"'
-      end)
-    end,
+    '<cmd>ConformFormat<CR>',
     mode = '',
     desc = '[C]onform [F]ormat buffer',
   },
