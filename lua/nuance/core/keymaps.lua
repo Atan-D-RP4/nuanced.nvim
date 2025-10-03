@@ -238,6 +238,13 @@ local maps = {
     '<leader>ed',
     function()
       local bufnr = vim.api.nvim_get_current_buf()
+      ---@diagnostic disable-next-line: unnecessary-if
+      if Bufline.curr_buf_idx + 1 > Bufline.buftabs_count then
+        ---@diagnostic disable-next-line: unnecessary-if
+        if Bufline.buftabs_count > 1 then
+          Bufline.buf_switch(Bufline.curr_buf_idx - 1)
+        end
+      end
       Bufline.buf_switch((Bufline.curr_buf_idx + 1) % Bufline.buftabs_count)
 
       require('nuance.core.utils').safe_buf_delete(bufnr)

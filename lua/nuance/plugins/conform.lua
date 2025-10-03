@@ -22,6 +22,8 @@ M.keys = {
   },
 }
 
+---@module "conform"
+---@type conform.setupOpts
 M.opts = {
   notify_on_error = true,
 
@@ -43,14 +45,15 @@ M.opts = {
   -- end,
 
   formatters_by_ft = {
+    yaml = { 'yamlfmt' },
     markdown = { 'mdformat' },
     lua = { 'stylua' },
-    python = { 'ruff_format' },
+    -- python = { 'ruff_format' },
     rust = { 'rustfmt' },
     sh = { 'shfmt' },
     -- Conform can also run multiple formatters sequentially
     -- python = { "isort", "black" },
-    --
+
     -- You can use 'stop_after_first' to run the first available formatter from the list
     -- javascript = { "prettierd", "prettier", stop_after_first = true },
   },

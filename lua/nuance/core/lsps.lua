@@ -83,7 +83,7 @@ return {
           --   call_arg_parentheses = 'keep',
           --   space_before_inline_comment = 2,
           --   quote_style = 'single',
-          --
+
           --   align_call_args = false,
           --   align_continuous_line_space = 0,
           --   align_continuous_inline_comment = false,
@@ -137,8 +137,21 @@ return {
     },
   },
 
+  ty = {
+    cmd = { 'uv', 'tool', 'run', 'ty', 'server' },
+    enabled = false and vim.fn.executable 'uv' == 1,
+    filetypes = { 'python' },
+  },
+
+  pyrefly = {
+    enabled = true and vim.fn.executable 'uv' == 1,
+    cmd = { 'uv', 'tool', 'run', 'pyrefly', 'lsp' },
+    filetypes = { 'python' },
+  },
+
   ruff = {
-    enabled = vim.fn.executable 'ruff' == 1,
+    enabled = true and vim.fn.executable 'uv' == 1,
+    cmd = { 'uv', 'tool', 'run', 'ruff', 'server' },
     settings = {
       lint = {
         codeAction = { fixViolation = { enable = true } },
@@ -164,13 +177,11 @@ return {
   },
 
   jedi_language_server = {
-    enabled = vim.fn.executable 'jedi-language-server' == 1,
+    enabled = false and vim.fn.executable 'uv' == 1,
+    cmd = { 'uv', 'tool', 'run', 'jedi-language-server' },
 
     before_init = function(_, config)
-      local python_path = require('nuance.core.utils').get_python_path(config.root_dir)
-      if python_path then
-        config.init_options.workspace.environmentPath = python_path
-      end
+      config.init_options.workspace.environmentPath = require('nuance.core.utils').get_python_path(config.root_dir)
     end,
 
     init_options = {
@@ -328,6 +339,7 @@ return {
             enumVariant = { enable = true },
           },
         },
+        -- highlightRelated = { enable = true },
 
         imports = { granularity = { group = 'module' }, prefix = 'self' },
         checkOnSave = { command = 'clippy' }, -- Add "enabled = false", if you want to disable it
@@ -350,4 +362,6 @@ return {
     enabled = vim.fn.executable 'systemd-language-server' == 1,
     ft = { 'systemd' },
   },
+
+  yamlls = { enabled = vim.fn.executable 'yaml-language-server' == 1 },
 }

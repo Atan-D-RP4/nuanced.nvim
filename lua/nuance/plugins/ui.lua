@@ -264,9 +264,10 @@ local noice = {
   config = function(_, opts)
     require('nuance.core.utils').async_promise(100, 0, function()
       require('noice').setup(opts)
-      vim.notify = require('noice').notify
-      Snacks.picker.notifications = function()
-        require('noice').cmd 'snacks'
+      if Snacks ~= nil then
+        Snacks.picker.notifications = function()
+          require('noice').cmd 'snacks'
+        end
       end
     end)
   end,
@@ -381,7 +382,7 @@ local which_key = { -- Useful plugin to show you pending keybinds.
       },
     },
 
-    win = { wo = { winblend = 70 } },
+    win = { wo = { winblend = 20 } },
 
     -- Document existing key chains
     spec = {

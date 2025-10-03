@@ -16,7 +16,7 @@ autocmd('TextYankPost', {
   end,
 })
 
-vim.api.nvim_create_autocmd('Colorscheme', {
+autocmd('Colorscheme', {
   desc = 'Set custom colors for diff highlighting',
   group = augroup('diffcolors', { clear = true }),
   callback = function()
@@ -82,7 +82,7 @@ autocmd('VimResized', {
 })
 
 -- Check if we need to reload the file when it changed
-vim.api.nvim_create_autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
+autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
   desc = 'Check if we need to reload the file when it changed',
   group = augroup 'checktime',
   callback = function()
@@ -92,14 +92,37 @@ vim.api.nvim_create_autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
   end,
 })
 
--- Clear trailing whitespace on save
 autocmd('BufWritePre', {
-  desc = 'Clear trailing whitespace on save',
-  group = augroup 'clear-trailing-whitespace',
+  desc = 'Clear Trailing Whitespace and Empty Comment Lines on Save',
+  group = augroup 'clear-whitespace-and-empty-comments',
   callback = function()
-    local save = vim.fn.winsaveview()
-    vim.cmd [[keeppatterns %s/\s\+$//e]]
-    vim.fn.winrestview(save)
+    require('nuance.core.utils')
+      .async_promise(0, 0, function()
+        local save = vim.fn.winsaveview()
+        if vim.bo.commentstring == '' then
+          return
+        end
+        local commentstring = vim.bo.commentstring
+
+        if commentstring:sub(-3) == ' %s' then
+          commentstring = commentstring:sub(1, -3)
+        end
+        if commentstring:sub(-1) == ' ' then
+          commentstring = commentstring:sub(1, -2)
+        end
+        -- Escape special characters in commentstring for use in the substitution command
+        commentstring = commentstring:gsub('%%', '%%%%'):gsub('/', '\\/'):gsub('%-', '\\-'):gsub('^%s*(.-)%s*$', '%1')
+
+        local cmd = [[keeppatterns %s/]] .. commentstring .. [[$\n/\r/e]]
+        vim.cmd(cmd)
+        vim.cmd [[keeppatterns %s/\s\+$//e]]
+        vim.fn.winrestview(save)
+      end)
+      .catch(function(err)
+        vim.schedule(function()
+          vim.notify('Error in clear-empty-comment-lines autocmd: ' .. err, vim.log.levels.ERROR, { title = 'Autocmd Error' })
+        end)
+      end)
   end,
 })
 
@@ -486,12 +509,12 @@ end, {
 -- vim.cmd 'match Filepath /\\v(\\~\\/|\\.\\.\\/|\\.\\/|\\/)([^\\/ ]+\\/)*[^\\/ ]+(\\.[a-zA-Z0-9]+)*(:\\d+){0,2}/'
 
 -- local ns = vim.api.nvim_create_namespace 'filepath_highlighter'
---
+
 -- local function highlight_filepaths(bufnr)
 --   vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
 --   local content = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 --   local pattern = "(/[%w%._%-]+)+"
---
+
 --   for lnum, line in ipairs(content) do
 --     local start = 0
 --     while true do
@@ -499,7 +522,7 @@ end, {
 --       if not start_idx then
 --         break
 --       end
---
+
 --       vim.g.filepath_highlighter = ns
 --       vim.api.nvim_buf_set_extmark(bufnr, ns, lnum - 1, start_idx - 1, {
 --         end_row = lnum - 1,
@@ -507,12 +530,12 @@ end, {
 --         hl_group = 'Filepath',
 --         priority = 100,
 --       })
---
+
 --       start = end_idx + 1
 --     end
 --   end
 -- end
---
+
 -- -- Attach to buffers
 -- vim.api.nvim_create_autocmd({ 'BufEnter', 'TextChanged', 'InsertLeave' }, {
 --   callback = function(args)

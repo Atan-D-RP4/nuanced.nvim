@@ -92,7 +92,7 @@ gitsigns.opts.on_attach = function(bufnr)
     if vim.wo.diff then
       vim.cmd.normal { ']c', bang = true }
     else
-      signs.nav_hunk('next', { preview = true })
+      signs.nav_hunk('next')
     end
   end, 'Jump to next git [c]hange')
 
@@ -100,7 +100,7 @@ gitsigns.opts.on_attach = function(bufnr)
     if vim.wo.diff then
       vim.cmd.normal { '[c', bang = true }
     else
-      signs.nav_hunk('prev', { preview = true })
+      signs.nav_hunk('prev')
     end
   end, 'Jump to previous git [c]hange')
 
