@@ -1,4 +1,4 @@
-return {
+local kulala = {
   'mistweaverco/kulala.nvim',
   enabled = false,
   keys = {
@@ -12,4 +12,8 @@ return {
     global_keymaps_prefix = '<leader>R',
     kulala_keymaps_prefix = '',
   },
+}
+
+return {
+  -- kulala,
 }

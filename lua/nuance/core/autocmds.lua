@@ -99,6 +99,7 @@ autocmd('BufWritePre', {
     require('nuance.core.utils')
       .async_promise(0, 0, function()
         local save = vim.fn.winsaveview()
+
         if vim.bo.commentstring == '' then
           return
         end
@@ -113,9 +114,14 @@ autocmd('BufWritePre', {
         -- Escape special characters in commentstring for use in the substitution command
         commentstring = commentstring:gsub('%%', '%%%%'):gsub('/', '\\/'):gsub('%-', '\\-'):gsub('^%s*(.-)%s*$', '%1')
 
-        local cmd = [[keeppatterns %s/]] .. commentstring .. [[$\n/\r/e]]
+        -- Generic pattern to handle any comment style while skipping doc comments
+        -- Matches: leading whitespace + exact comment string + only whitespace + newline
+        local cmd = [[keeppatterns %s/\v^[ \t]*]] .. commentstring .. [[\s*\n/\r/e]]
         vim.cmd(cmd)
+
+        -- Remove trailing whitespace
         vim.cmd [[keeppatterns %s/\s\+$//e]]
+
         vim.fn.winrestview(save)
       end)
       .catch(function(err)
@@ -187,7 +193,6 @@ autocmd('BufWinEnter', {
 
     -- Quick navigation keymaps
     vim.keymap.set('n', 'dd', function()
-      local line = vim.fn.line '.'
       vim.cmd [[ exec 'delete' ]]
       if vim.fn.line '$' == 1 then
         vim.cmd [[ exec 'cclose' ]]

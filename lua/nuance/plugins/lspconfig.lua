@@ -305,7 +305,7 @@ return {
   mason,
   lazydev,
   lspconfig,
-  rustowl,
+  vim.fn.executable 'rustowl' == 1 and rustowl or nil,
 }
 
 -- vim: ts=2 sts=2 sw=2 et
