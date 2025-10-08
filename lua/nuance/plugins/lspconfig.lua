@@ -29,7 +29,7 @@ local lspconfig = {
         references = { -- Configure the UI for slowing the references cycling window.
           provider = 'snacks', -- telescope|fzf_lua|snacks|mini_pick|default
         },
-        post_open_hook = function(bufnr, win_id)
+        post_open_hook = function(bufnr, _win_id)
           -- Close the preview window on `q`
           vim.keymap.set('n', 'q', '<cmd>close<CR>', { buffer = bufnr, silent = true })
         end,
@@ -110,8 +110,6 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     opts.capabilities or {}
   )
 
-  local configured_servers = vim.g.configured_servers or {}
-
   vim.lsp.config('*', {
     capabilities = capabilities,
 
@@ -164,26 +162,27 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
 
       if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_codeLens) then
         local codelens_augroup = augroup('lsp-codelens', { clear = true })
-        local state = 0
+        vim.b.codelens_enabled = vim.b.codelens_enabled or false
+
         require('nuance.core.utils').nmap('<leader>tr', function()
-          if state == 0 then
-            vim.lsp.codelens.clear()
-            vim.notify('LSP CodeLens disabled', vim.log.levels.WARN, { title = 'LSP' })
-            state = 1
-          else
-            vim.lsp.codelens.refresh()
-            vim.notify('LSP CodeLens enabled', vim.log.levels.INFO, { title = 'LSP' })
-            state = 0
-          end
-        end, { desc = 'LSP [T]oggle [C]odeLens', noremap = false })
+          vim.b.codelens_enabled = not vim.b.codelens_enabled
+
+          -- stylua: ignore
+          if vim.b.codelens_enabled then vim.lsp.codelens.refresh()
+          else vim.lsp.codelens.clear() end
+
+          vim.notify('LSP CodeLens ' .. (vim.b.codelens_enabled and 'Enabled' or 'Disabled'), vim.log.levels.INFO, { title = 'LSP' })
+        end, { desc = 'LSP [T]oggle [R]efresh CodeLens', noremap = false })
+
         vim.api.nvim_create_autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
           group = codelens_augroup,
           callback = function()
-            if state == 0 then
+            if vim.b.codelens_enabled then
               vim.lsp.codelens.refresh()
             end
           end,
         })
+
         vim.api.nvim_create_autocmd('LspDetach', {
           group = codelens_augroup,
           callback = function(ev)
@@ -221,9 +220,9 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
       require('workspace-diagnostics').populate_workspace_diagnostics(client, 0)
     end,
 
-    before_init = function(_params, client_config)
-      client_config.settings = configured_servers[client_config.name].settings or client_config.settings
-    end,
+    -- before_init = function(_params, client_config)
+    --   client_config.settings = configured_servers[client_config.name].settings or client_config.settings
+    -- end,
 
     on_exit = function(_code, _signal, client_id)
       local client = vim.lsp.get_client_by_id(client_id)
@@ -238,6 +237,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     end,
   })
 
+  local configured_servers = require 'nuance.core.lsps'
   for name, server in pairs(configured_servers) do
     vim.tbl_map(function(key)
       vim.lsp.config(name, { [key] = server[key] })

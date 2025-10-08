@@ -255,8 +255,8 @@ autocmd('BufEnter', {
 
         local has_snacks, snacks = pcall(require, 'snacks')
         if has_snacks == false then
-          vim.print 'Fallback to default forced buffer deletion'
-          pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
+          vim.notify('Falling back to default forced buffer deletion', vim.log.levels.WARN, { title = 'Autocmd Warning' })
+          pcall(require('nuance.core.utils').safe_buf_delete, bufnr)
         else
           snacks.bufdelete.delete(bufnr)
         end
@@ -338,6 +338,16 @@ autocmd('FileType', {
   end,
 })
 
+-- autocmd BufNewFile,BufRead *.service* set ft=systemd
+autocmd({ 'BufRead', 'BufNewFile' }, {
+  desc = 'Set filetype for systemd service files',
+  group = augroup('set-systemd-ft', { clear = true }),
+  pattern = { '*.service', '*.socket', '*.target', '*.path', '*.timer', '*.mount', '*.automount', '*.swap', '*.slice', '*.scope' },
+  callback = function()
+    vim.bo.filetype = 'systemd'
+  end,
+})
+
 vim.api.nvim_create_user_command('TSFoldToggle', function(_)
   vim.g.treesitter_folding_enabled = not vim.g.treesitter_folding_enabled
   local state = vim.g.treesitter_folding_enabled and 'Enabled' or 'Disabled'
@@ -404,7 +414,7 @@ vim.api.nvim_create_user_command('SearchEngineQuery', function(args)
 end, { nargs = '?', range = true, desc = 'Search using a specified engine' })
 
 autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusLost', 'CmdwinEnter' }, {
-  group = augroup('NumberToggle', { clear = true }),
+  group = augroup('toggle-relative-number', { clear = true }),
   pattern = '*',
   callback = function(ev)
     if vim.bo[ev.buf].filetype:match '^snacks_' then

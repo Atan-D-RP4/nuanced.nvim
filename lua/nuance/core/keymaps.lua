@@ -57,13 +57,13 @@ local maps = {
   --     local start_col = s_col
   --     local end_line = e_row + 1
   --     local end_col = e_col - 1
-  --
+
   --     local curr_line, curr_col = unpack(vim.api.nvim_win_get_cursor(0))
-  --
+
   --     -- Determine if cursor is at either boundary
   --     local at_start = curr_line == start_line and curr_col == start_col
   --     local at_end = curr_line == end_line and curr_col == end_col
-  --
+
   --     -- Jump to opposite boundary
   --     if at_start then
   --       vim.api.nvim_win_set_cursor(0, { end_line, end_col })
@@ -141,9 +141,6 @@ local maps = {
   { 'i', '<Esc>', '<Esc><Esc>', 'Better Escape' },
 
   { 'n', '<C-I>', '<C-I>' },
-
-  -- Clear highlights on search when pressing <Esc> in normal mode
-  { 'n', '<Esc>', '<cmd>nohlsearch<CR>', 'Clear highlights on search' },
 
   -- Diagnostic keymaps
   { 'n', '<leader>q', vim.diagnostic.setloclist, 'Open diagnostic [Q]uickfix list' },

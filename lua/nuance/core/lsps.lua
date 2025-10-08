@@ -32,6 +32,8 @@ return {
             vim.fn.stdpath 'config' .. '/lua',
             vim.fn.stdpath 'data' .. '/lazy/',
           },
+          enableReindex = true,
+          reindexDuration = 10000,
           ignoreDir = { '.git', 'dist', 'build' },
           checkThirdParty = true,
         },
@@ -116,7 +118,8 @@ return {
   },
 
   emmet_language_server = {
-    enabled = vim.fn.executable 'emmet-ls' == 1,
+    enabled = vim.fn.executable 'deno' == 1,
+    cmd = { 'deno', 'run', '-A', 'npm:@olrtg/emmet-language-server', '--stdio' },
     filetypes = { 'html', 'css', 'scss', 'less', 'javascriptreact', 'typescriptreact' },
   },
 
@@ -359,9 +362,13 @@ return {
   },
 
   systemd_ls = {
-    enabled = vim.fn.executable 'systemd-language-server' == 1,
+    enabled = vim.fn.executable 'uv' == 1,
+    cmd = { 'uv', 'tool', 'run', 'systemd-language-server' },
     ft = { 'systemd' },
   },
 
-  yamlls = { enabled = vim.fn.executable 'yaml-language-server' == 1 },
+  yamlls = {
+    enabled = vim.fn.executable 'deno' == 1,
+    cmd = { 'deno', 'run', '-A', 'npm:yaml-language-server', '--stdio' },
+  },
 }

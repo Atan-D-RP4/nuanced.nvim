@@ -19,19 +19,4 @@ end)
 require('nuance.core.bufline').setup()
 require('nuance.core.rain').setup()
 
-vim.g.configured_servers = vim.g.configured_servers or {}
-require('nuance.core.utils')
-  .async_promise(100, 0, require, 'nuance.core.lsps')
-  .after(function(res)
-    local configured_servers = {}
-    for name, server in pairs(res) do
-      local server_conf = vim.tbl_deep_extend('force', {}, server)
-      configured_servers[name] = server_conf
-    end
-    vim.g.configured_servers = configured_servers
-  end)
-  .catch(function(err)
-    vim.notify(err, vim.log.levels.ERROR, { title = 'LSP' })
-  end)
-
 -- vim: ts=2 sts=2 sw=2 et
