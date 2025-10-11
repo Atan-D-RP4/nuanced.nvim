@@ -124,8 +124,22 @@ local flash = {
 
   ---@type Flash.Config
   opts = {
+    search = {
+      exclude = {
+        'notify',
+        'cmp_menu',
+        'noice',
+        'blink_menu',
+        'flash_prompt',
+        function(win)
+          -- exclude non-focusable windows
+          return not vim.api.nvim_win_get_config(win).focusable
+        end,
+      },
+    },
+    jump = { nohlsearch = true },
     -- labels = 'asdfghjklqwertyuiopzxcvbnm',
-    labels = 'dgqftyuzxcvnm1234567890',
+    -- labels = 'dgqftyuzxcvnm1234567890',
     label = { rainbow = { enabled = true } },
   },
 }
