@@ -1,3 +1,4 @@
+---@type table<string, vim.lsp.ClientConfig>
 return {
   emmylua_ls = {
     enabled = vim.fn.executable 'emmylua_ls' == 1, -- adjust the binary name if needed
@@ -328,6 +329,39 @@ return {
   rust_analyzer = {
     enabled = vim.fn.executable 'rust-analyzer' == 1,
 
+    before_init = function(_, _)
+      ---@param command table
+      vim.lsp.commands['rust-analyzer.runSingle'] = function(command)
+        local r = command.arguments[1]
+        local cmd = { 'cargo', unpack(r.args.cargoArgs) }
+        if r.args.executableArgs and #r.args.executableArgs > 0 then
+          vim.list_extend(cmd, { '--', unpack(r.args.executableArgs) })
+        end
+
+        local proc = vim.system(cmd, { cwd = r.args.cwd })
+
+        local result = proc:wait()
+
+        if result.code == 0 then
+          vim.notify(result.stdout, vim.log.levels.INFO)
+        else
+          vim.notify(result.stderr, vim.log.levels.ERROR)
+        end
+      end
+    end,
+
+    capabilities = {
+      experimental = {
+        commands = {
+          commands = {
+            'rust-analyzer.showReferences',
+            'rust-analyzer.runSingle',
+            'rust-analyzer.debugSingle',
+          },
+        },
+      },
+    },
+
     settings = {
       ['rust-analyzer'] = {
         cargo = {
@@ -337,8 +371,19 @@ return {
           targetDir = 'target/rust_analyzer',
         },
 
+        inlayHints = {
+          closureCaptureHints = { enable = true },
+          closureReturnTypeHints = { enable = true },
+          genericParameterHints = {
+            lifetimeElisionHints = { enable = true },
+            implicitSizedBoundHints = { enable = true },
+            type = { enable = true },
+            lifetime = { enable = true },
+          },
+        },
+
         lens = {
-          enabled = true,
+          enable = true,
           references = {
             adt = { enable = true },
             method = { enable = true },

@@ -171,7 +171,11 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
           if vim.b.codelens_enabled then vim.lsp.codelens.refresh()
           else vim.lsp.codelens.clear() end
 
-          vim.notify('LSP CodeLens ' .. (vim.b.codelens_enabled and 'Enabled' or 'Disabled'), vim.log.levels.INFO, { title = 'LSP' })
+          vim.notify(
+            'LSP CodeLens ' .. (vim.b.codelens_enabled and 'Enabled' or 'Disabled'),
+            (vim.b.codelens_enabled and vim.log.levels.INFO or vim.log.levels.WARN),
+            { title = 'LSP' }
+          )
         end, { desc = 'LSP [T]oggle [R]efresh CodeLens', noremap = false })
 
         vim.api.nvim_create_autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
