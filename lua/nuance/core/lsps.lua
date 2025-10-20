@@ -1,3 +1,52 @@
+--- rust-analyzer custom join lines command (reference implementation)
+-- local ra_join_lines = function(client_id, visual)
+--   local client = vim.lsp.get_client_by_id(client_id)
+--   if not client then
+--     return
+--   end
+--   local vis = false or visual
+--   local encoding = client.offset_encoding or 'utf-8'
+
+--   local modify_params = function(params)
+--     local range = params.range
+--     params.range = nil
+--     ---@diagnostic disable-next-line: inject-field
+--     params.ranges = { range }
+--     ---@diagnostic disable-next-line: return-type-mismatch
+--     return param
+--   end
+
+--   vim.lsp.buf_request(
+--     0,
+--     'experimental/joinLines',
+--     modify_params(vis == true and vim.lsp.util.make_given_range_params(nil, nil, 0, encoding) or vim.lsp.util.make_visual_params(0, encoding)),
+--     function(_, result, ctx)
+--       if result == nil or vim.tbl_isempty(result) then
+--         return
+--       end
+--       local client = vim.lsp.get_client_by_id(ctx.client_id)
+--       if not client then
+--         return
+--       end
+--       vim.lsp.util.apply_text_edits(result, ctx.bufnr, encoding)
+--     end
+--   )
+-- end
+-- vim.api.nvim_create_user_command('RustJoinLines', function(args)
+--   ra_join_lines(client.id, args.range ~= -1)
+-- end, { range = true, nargs = '?' })
+---
+-- Rust-analyzer custom runnables command (reference implementation)
+-- local ra_list_runnables = function(client_id)
+--   vim.lsp.buf_request(client_id, 'experimental/runnables', {
+--     textDocument = vim.lsp.util.make_text_document_params(0),
+--     position = nil, -- get em all
+--   }, function(_, runnables)
+--     vim.print(runnables)
+--   end)
+-- end
+---
+
 ---@type table<string, vim.lsp.ClientConfig>
 return {
   emmylua_ls = {
@@ -145,16 +194,19 @@ return {
     },
   },
 
-  ty = {
-    cmd = { 'uv', 'tool', 'run', 'ty', 'server' },
+  zuban = {
     enabled = true and vim.fn.executable 'uv' == 1,
-    filetypes = { 'python' },
+    cmd = { 'uv', 'tool', 'run', 'zuban', 'server' },
+  },
+
+  ty = {
+    enabled = false and vim.fn.executable 'uv' == 1,
+    cmd = { 'uv', 'tool', 'run', 'ty', 'server' },
   },
 
   pyrefly = {
     enabled = false and vim.fn.executable 'uv' == 1,
     cmd = { 'uv', 'tool', 'run', 'pyrefly', 'lsp' },
-    filetypes = { 'python' },
   },
 
   ruff = {

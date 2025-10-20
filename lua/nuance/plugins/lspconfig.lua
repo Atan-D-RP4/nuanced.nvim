@@ -18,7 +18,6 @@ local lspconfig = {
   },
 
   dependencies = {
-    'artemave/workspace-diagnostics.nvim',
     {
       'rmagatti/goto-preview',
       -- dependencies = { 'rmagatti/logger.nvim' },
@@ -37,6 +36,19 @@ local lspconfig = {
     },
   },
 
+  init = function()
+    -- vim.lsp.log.set_level(vim.lsp.log.levels.WARN)
+    vim.lsp.log.set_format_func(function(level, timestamp, message)
+      -- Make message readable (handles tables)
+      if vim.lsp.log.levels[level] < vim.lsp.log.levels.WARN then
+        return nil
+      end
+      local msg = type(message) == 'table' and vim.inspect(message) or tostring(message)
+      msg = msg:gsub('\t', '  ')
+      return string.format('[%s] [%s] %s\n', level, timestamp, msg)
+    end)
+  end,
+
   ---@module 'lspconfig'
   ---@type lspconfig.Config
   opts = {},
@@ -51,21 +63,11 @@ vim.api.nvim_create_autocmd('LspAttach', {
       return
     end
 
-    -- Set the priority of the semantic tokens to be lower than
-    -- that of Treesitter, so that Treesitter is always highlighting
-    -- over LSP semantic tokens.
-    vim.hl.priorities.semantic_tokens = 95
-
-    vim.lsp.log.set_level(vim.log.levels.INFO)
-    vim.lsp.log.set_format_func(function(log)
-      local msg = vim.inspect(log)
-      msg = msg:gsub('\t', '  ')
-      return msg:gsub('\n', '\n')[1]
-    end)
-
     local mappings = {
       { 'gus', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', 'LSP [D]ocument [S]ymbols' },
       { 'gws', '<cmd>lua Snacks.picker.lsp_workspace_symbols()<CR>', 'LSP [W]orkspace [S]ymbols' },
+      { 'gwd', '<cmd>lua vim.lsp.buf.workspace_diagnostics { client_id = ' .. client.id .. ' }<CR>', 'LSP [W]orkspace [D]iagnostics' },
+
       -- { 'gD', '<cmd>lua Snacks.picker.lsp_type_definitions()<CR>', 'LSP [T]ype [D]efinition' },
       -- { 'gd', '<cmd>lua Snacks.picker.lsp_definitions()<CR>', 'LSP [G]oto [D]efinition' },
       -- { 'grr', '<cmd>lua Snacks.picker.lsp_references()<CR>', 'LSP [G]oto [R]eferences' }, -- override `grr` mapping
@@ -74,6 +76,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
       { 'gd', '<cmd>lua require("goto-preview").goto_preview_definition()<CR>', 'LSP [G]oto [D]efinition' },
       { 'grr', '<cmd>lua require("goto-preview").goto_preview_references()<CR>', 'LSP [G]oto [R]eferences' }, -- override `grr` mapping
       { 'gri', '<cmd>lua require("goto-preview").goto_preview_references()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
+
       { 'grn', "<cmd>lua vim.lsp.buf.rename() vim.cmd [[ exec 'wa' ]]<CR>", 'LSP [R]ename' }, -- override `grn` mapping
       { 'gs', '<cmd>lua Snacks.picker.lsp_symbols({ layout = { preset = "vscode", preview = "main" } })<CR>', 'LSP Document [S]ymbols' },
     }
@@ -100,6 +103,11 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
   -- So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
 
+  -- Set the priority of the semantic tokens to be lower than
+  -- that of Treesitter, so that Treesitter is always highlighting
+  -- over LSP semantic tokens.
+  vim.hl.priorities.semantic_tokens = 95
+
   local has_blink, blink = pcall(require, 'blink.cmp')
 
   local capabilities = vim.tbl_deep_extend(
@@ -115,7 +123,9 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
 
     on_init = function(client, _initialize_result)
       local msg = 'Initialized Language Server: ' .. client.name
-      msg = msg .. '\n' .. 'In root directory: ' .. client.config.root_dir
+      if client.config.root_dir then
+        msg = msg .. '\n' .. 'In root directory: ' .. client.config.root_dir
+      end
       vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
 
       local augroup = require('nuance.core.utils').augroup
@@ -220,8 +230,6 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
           vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
         end, { desc = 'LSP [T]oggle Inlay [H]ints', noremap = false })
       end
-
-      require('workspace-diagnostics').populate_workspace_diagnostics(client, 0)
     end,
 
     -- before_init = function(_params, client_config)
@@ -234,6 +242,15 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         vim.notify('LSP client not found for id: ' .. tostring(client_id), vim.log.levels.WARN, { title = 'LSP' })
         return
       end
+
+      vim.schedule(function()
+        for ns_id, ns in pairs(vim.diagnostic.get_namespaces()) do
+          if ns.name and ns.name:match(client.name) then
+            vim.diagnostic.reset(ns_id)
+          end
+        end
+      end)
+
       local msg = 'No buffers attached to client: ' .. client.name .. '\n'
       msg = msg .. 'Stopping Server: ' .. client.name
       vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })

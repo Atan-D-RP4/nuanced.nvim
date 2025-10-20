@@ -62,6 +62,7 @@ M.opts = {
     lua = { 'stylua' },
     rust = { 'rustfmt' },
     sh = { 'shfmt' },
+    c = { 'clang-format' },
     -- Conform can also run multiple formatters sequentially
     -- python = { "isort", "black" },
 
@@ -73,6 +74,16 @@ M.opts = {
     mdformat = {
       command = 'uv',
       args = { 'tool', 'run', 'mdformat', '--number', '-' },
+      stdin = true,
+    },
+
+    ['clang-format'] = {
+      command = 'clang-format',
+      args = {
+        '--assume-filename',
+        '$FILENAME',
+        '--style={BasedOnStyle: llvm, IndentWidth: 4, UseTab: Never, IndentCaseLabels: true, IndentCaseBlocks: true}',
+      },
       stdin = true,
     },
   },

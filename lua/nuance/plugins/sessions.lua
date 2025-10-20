@@ -278,6 +278,7 @@ M.keys = {
         print 'No session loaded'
         return
       end
+      require('mini.sessions').write(vim.g.active_session)
       require('mini.sessions').read('default', {})
       vim.g.active_session = ''
       vim.notify('Cleared Session', vim.log.levels.INFO, { title = 'Session' })

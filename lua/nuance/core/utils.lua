@@ -427,7 +427,7 @@ end
 -- Test function with multiple cases to demonstrate the async_do2 functionality
 -- (function()
 --   vim.print '\n--- Testing async_do function ---'
---
+
 --   -- Test Case 1: Successful operation with simple return value
 --   vim.print '\nTest Case 1: Successful operation'
 --   local result
@@ -447,7 +447,7 @@ end
 --     .catch(function(err)
 --       vim.print('This should not run for success case:', err)
 --     end)
---
+
 --   -- Test Case 2: Error handling
 --   vim.print '\nTest Case 2: Error handling'
 --   M.async_do(200, 0, function()
@@ -465,7 +465,7 @@ end
 --     .after(function(result)
 --       vim.print('After error handling:', result or 'nil')
 --     end)
---
+
 --   -- Test Case 3: Multiple return values
 --   vim.print '\nTest Case 3: Multiple return values'
 --   M.async_do(300, 0, function()
@@ -476,7 +476,7 @@ end
 --     vim.print 'Multiple returns - other values may be nil due to Lua limitations'
 --     return ok
 --   end)
---
+
 --   -- Test Case 4: Testing with arguments
 --   vim.print '\nTest Case 4: Passing arguments'
 --   local test_arg = 'test argument'
@@ -486,7 +486,7 @@ end
 --   end, test_arg).after(function(result)
 --     vim.print('Result with argument:', result)
 --   end)
---
+
 --   -- Test Case 5: Timing test
 --   vim.print '\nTest Case 5: Timing test (500ms delay)'
 --   local start_time = os.time()
@@ -497,7 +497,7 @@ end
 --   end).after(function(elapsed)
 --     vim.print('Timing test completed:', elapsed)
 --   end)
---
+
 --   vim.print '\nAll tests queued. Results will appear asynchronously...\n'
 -- end)()
 

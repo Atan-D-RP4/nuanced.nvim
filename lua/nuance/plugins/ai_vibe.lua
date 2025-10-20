@@ -166,7 +166,7 @@ M.copilot = {
   ---@type CopilotConfig
   opts = {
     filetypes = { markdown = true }, -- overrides default
-    copilot_model = 'claude-sonnet-4', -- Select preferred copilot model
+    copilot_model = 'gpt-4o-copilot', -- Select preferred copilot model
 
     suggestion = {
       hide_during_completion = false,

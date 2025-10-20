@@ -113,7 +113,7 @@ local flash = {
         require('flash').treesitter {
           -- label = { before = false, after = false },
           actions = {
-            ['<c-g>'] = 'next',
+            ['<C-g>'] = 'next',
             ['<BS>'] = 'prev',
           },
         }

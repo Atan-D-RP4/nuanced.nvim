@@ -134,7 +134,6 @@ local maps = {
   -- or just use <C-\><C-n> to exit terminal mode
   { 't', '<C-w>q', '<C-\\><C-n>', 'Exit terminal mode' },
   { 't', '<C-w><C-q>', '<C-\\><C-n>', 'Exit terminal mode' },
-  { 't', '<M-r>', [['<C-\><C-N>"'.nr2char(getchar()).'pi']], { desc = 'Vim Register Select in Terminal Mode', expr = true } },
 
   -- Better Escape
   { 'n', '<Esc>', '<C-c><C-c>', 'Better Escape' },

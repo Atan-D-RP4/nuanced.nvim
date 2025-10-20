@@ -3,6 +3,7 @@
 -- NOTE: You can change these options as you wish!
 
 local opt = vim.opt
+local global = vim.g
 
 -- opt.isfname:append '@-@'
 
@@ -139,8 +140,8 @@ vim.schedule(function()
   end
 
   -- Platform-specific clipboard configuration
-  vim.opt.clipboard = 'unnamedplus,unnamed'
-  vim.g.clipboard = {
+  opt.clipboard = 'unnamedplus,unnamed'
+  global.clipboard = {
     name = 'OSC 52 with improved fallbacks',
     copy = {
       ['+'] = require('vim.ui.clipboard.osc52').copy '+',
@@ -158,6 +159,7 @@ vim.schedule(function()
       -- Create directories if they don't exist
       local ok, err, err_name = vim.uv.fs_mkdir(path, 493) -- 0755 in octal
       if not ok and err_name ~= 'EEXIST' then
+        vim.notify('Error creating ' .. name .. ' directory: ' .. err, vim.log.levels.ERROR)
         return false
       end
       return true
@@ -165,8 +167,9 @@ vim.schedule(function()
 
     if not created_or_exist then
       vim.notify('Failed to create ' .. name .. ': ' .. path, vim.log.levels.ERROR)
+      return
     end
-    vim.opt[name] = path
+    opt[name] = path
   end, {
     { 'undodir', cache_dir .. '/undo' },
     { 'backupdir', cache_dir .. '/backup' },
@@ -185,31 +188,31 @@ opt.swapfile = true
 -- Backup Files
 opt.backup = true
 
-vim.g.treesitter_diagnostics = true
-vim.g.treesitter_lint_available = vim.fn.has 'nvim-0.11' == 1
-vim.g.treesitter_folding_enabled = true
+global.treesitter_diagnostics = true
+global.treesitter_lint_available = vim.fn.has 'nvim-0.11' == 1
+global.treesitter_folding_enabled = true
 
-vim.g.loaded_node_provider = 0
-vim.g.loaded_perl_provider = 0
-vim.g.loaded_ruby_provider = 0
-vim.g.loaded_python3_provider = 0
+global.loaded_node_provider = 0
+global.loaded_perl_provider = 0
+global.loaded_ruby_provider = 0
+global.loaded_python3_provider = 0
 
 opt.foldmethod = 'expr'
 opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
 opt.foldtext = 'v:lua.require("nuance.core.utils").custom_foldtext()'
-opt.foldlevel = vim.g.treesitter_folding_enabled and 99 or 0
+opt.foldlevel = global.treesitter_folding_enabled and 99 or 0
 opt.fillchars:append { fold = ' ', foldopen = '▾', foldclose = '▸', foldsep = '│' }
 
 -- opt.winborder = 'rounded'
 
--- vim.g.netrw_banner = 0
--- vim.g.netrw_fastbrowse = 1
--- vim.g.netrw_keepdir = 1
--- vim.g.netrw_silent = 1
--- vim.g.netrw_special_syntax = 1
--- vim.g.netrw_bufsettings = 'noma nomod nonu nowrap ro nobl relativenumber'
--- vim.g.netrw_liststyle = 3
--- vim.g.netrw_browse_split = 4
+-- global.netrw_banner = 0
+-- global.netrw_fastbrowse = 1
+-- global.netrw_keepdir = 1
+-- global.netrw_silent = 1
+-- global.netrw_special_syntax = 1
+-- global.netrw_bufsettings = 'noma nomod nonu nowrap ro nobl relativenumber'
+-- global.netrw_liststyle = 3
+-- global.netrw_browse_split = 4
 -- vim.cmd [[
 --     let g:netrw_list_hide = netrw_gitignore#Hide()
 --     let g:netrw_list_hide.=',\(^\|\s\s\)\zs\.\S\+'

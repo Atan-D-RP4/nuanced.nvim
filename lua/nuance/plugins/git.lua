@@ -92,7 +92,7 @@ gitsigns.opts.on_attach = function(bufnr)
     if vim.wo.diff then
       vim.cmd.normal { ']c', bang = true }
     else
-      signs.nav_hunk('next')
+      signs.nav_hunk('next', { target = 'all' })
     end
   end, 'Jump to next git [c]hange')
 
@@ -100,7 +100,7 @@ gitsigns.opts.on_attach = function(bufnr)
     if vim.wo.diff then
       vim.cmd.normal { '[c', bang = true }
     else
-      signs.nav_hunk('prev')
+      signs.nav_hunk('prev', { target = 'all' })
     end
   end, 'Jump to previous git [c]hange')
 
@@ -140,6 +140,10 @@ gitsigns.opts.on_attach = function(bufnr)
     end
     signs.toggle_signs()
   end, '[T]oggle [G]it signs')
+
+  map('n', '<leader>gq', function()
+    signs.setqflist('all', { open = true }, nil)
+  end, '[G]it set [q]uickfix list')
 end
 
 return {

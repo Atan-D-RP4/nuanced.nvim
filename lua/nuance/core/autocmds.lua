@@ -117,7 +117,6 @@ autocmd('BufWritePre', {
         prefix = vim_escape(vim.trim(prefix))
         suffix = vim_escape(vim.trim(suffix))
 
-        --
         -- Construct substitution depending on comment style
         local cmd
         if suffix == '' then
@@ -330,6 +329,8 @@ autocmd({ 'BufEnter', 'BufRead', 'BufNew' }, {
         vim.opt.foldlevel = 0
         vim.opt.foldmethod = 'manual'
       end
+      -- Close all folds initially
+      -- vim.cmd 'normal! zM'
     end, 100)
   end,
 })
@@ -376,13 +377,17 @@ vim.api.nvim_create_user_command('TSFoldToggle', function(_)
   end
 end, { nargs = 0, desc = 'Toggle Treesitter folding' })
 
+---@param args vim.api.keyset.user_command.callback_opts
 vim.api.nvim_create_user_command('SearchEngineQuery', function(args)
   local engines = {
     google = { prompt = ' Google: ', url = 'https://www.google.com/search?q=' },
     ddg = { prompt = ' DuckDuckGo: ', url = 'https://duckduckgo.com/?q=' },
   }
 
-  local selected_engine = engines[args.args == '' and 'ddg' or args.args]
+  local selected_engine = engines['ddg']
+  if args.fargs[1] and engines[args.fargs[1]] then
+    selected_engine = engines[args.fargs[1]]
+  end
   local query = ''
 
   -- Check if a range is specified (visual selection)
@@ -400,6 +405,9 @@ vim.api.nvim_create_user_command('SearchEngineQuery', function(args)
     query = table.concat(lines, ' ')
   else
     -- No selection, use input or current word
+    if selected_engine == nil then
+      selected_engine = engines['ddg']
+    end
     local input = vim.fn.input(selected_engine.prompt)
     local response = not (input == nil or input == '')
 
@@ -441,40 +449,22 @@ autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusL
 })
 
 vim.api.nvim_create_user_command('ToggleTransparency', function()
-  vim.g.transparency = vim.g.transparency or {
-    enabled = false,
-    hl1 = {},
-    hl2 = {},
-    hl3 = {},
-  }
-
-  if not vim.g.transparency.enabled then
-    local transparency = vim.g.transparency or {}
-    transparency.enabled = true
-
+  local transparency = vim.g.transparency or { enabled = false, hl1 = {}, hl2 = {}, hl3 = {} }
+  if transparency.enabled then
+    vim.api.nvim_set_hl(0, 'Normal', transparency.hl1)
+    vim.api.nvim_set_hl(0, 'NormalNC', transparency.hl2)
+    vim.api.nvim_set_hl(0, 'EndOfBuffer', transparency.hl3)
+    vim.g.transparency = { enabled = false, hl1 = {}, hl2 = {}, hl3 = {} }
+  else
     transparency.hl1 = vim.api.nvim_get_hl(0, { name = 'Normal' })
     transparency.hl2 = vim.api.nvim_get_hl(0, { name = 'NormalNC' })
     transparency.hl3 = vim.api.nvim_get_hl(0, { name = 'EndOfBuffer' })
-    vim.g.transparency = transparency
-
     vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
     vim.api.nvim_set_hl(0, 'NormalNC', { bg = 'none' })
     vim.api.nvim_set_hl(0, 'EndOfBuffer', { bg = 'none' })
-  else
-    local transparency = vim.g.transparency or {}
-    vim.api.nvim_set_hl(0, 'Normal', vim.g.transparency.hl1)
-    vim.api.nvim_set_hl(0, 'NormalNC', vim.g.transparency.hl2)
-    vim.api.nvim_set_hl(0, 'EndOfBuffer', vim.g.transparency.hl3)
-    transparency = {
-      enabled = false,
-      hl1 = {},
-      hl2 = {},
-      hl3 = {},
-    }
+    transparency.enabled = true
     vim.g.transparency = transparency
   end
-
-  vim.print(vim.g.transparency)
 end, {
   nargs = 0,
   desc = 'Toggle Transparency',
@@ -482,10 +472,10 @@ end, {
 
 vim.api.nvim_create_user_command('ToggleClipSync', function()
   if vim.o.clipboard:find 'unnamed' then
-    vim.opt.clipboard:remove { 'unnamed', 'unnamedplus' }
+    vim.opt.clipboard = vim.opt.clipboard - { 'unnamed', 'unnamedplus' }
     vim.notify('OS clipboard sync disabled', vim.log.levels.INFO, { title = 'Clipboard' })
   else
-    vim.opt.clipboard:append { 'unnamed', 'unnamedplus' }
+    vim.opt.clipboard = vim.opt.clipboard + { 'unnamed', 'unnamedplus' }
     vim.notify('OS clipboard sync enabled', vim.log.levels.INFO, { title = 'Clipboard' })
   end
 end, {

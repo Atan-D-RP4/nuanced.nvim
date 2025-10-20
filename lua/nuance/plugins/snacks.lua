@@ -181,6 +181,11 @@ M.opts.picker = {
       flash.jump {
         pattern = '^',
         label = { after = { 0, 0 } },
+        actions = {
+          ['<C-l>'] = function(match, state)
+            return false
+          end,
+        },
         search = {
           mode = 'search',
           exclude = {
