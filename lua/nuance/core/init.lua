@@ -15,6 +15,17 @@ require('nuance.core.promise').async_promise(100, require('nuance.core.diagnosti
   vim.notify(err, vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
 end)
 
+if vim.version() >= vim.version { major = 0, minor = 12, patch = 0 } then
+  require('nuance.core.promise')
+    .async_promise(100, function()
+      vim.cmd [[ packadd nvim.difftool ]]
+      vim.cmd [[ packadd nvim.undotree ]]
+    end)
+    :catch(function(err)
+      vim.notify('Failed to load 0.12 Native plugins: ' .. err, vim.log.levels.ERROR)
+    end)
+end
+
 require('nuance.core.bufline').setup()
 require('nuance.core.rain').setup()
 

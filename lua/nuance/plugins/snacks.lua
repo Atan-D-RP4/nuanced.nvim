@@ -49,7 +49,6 @@ M.keys = {
   },
 
   -- Picker maps
-  { '<leader>u', '<cmd>lua Snacks.picker.undo()<CR>', desc = 'Snacks undotree' },
   { '<leader>ef', '<cmd>lua Snacks.picker.buffers({sort_lastused=true})<CR>', desc = '[E]xisting Buffers [F]zf', mode = 'n' },
   { '<leader>eo', '<cmd>lua Snacks.picker.explorer()<CR>', desc = '[E]xplorer [O]pen', mode = 'n' },
 
