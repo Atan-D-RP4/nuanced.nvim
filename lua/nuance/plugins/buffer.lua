@@ -7,19 +7,6 @@ local dropbar = {
   opts = { menu = { win_configs = { border = 'rounded' } } },
 }
 
-local undotree = {
-  -- Undotree
-  'mbbill/undotree',
-  cmd = 'UndotreeToggle',
-  keys = {
-    { '<leader>u', '<cmd>UndotreeToggle<CR>', desc = 'Toggle undotree' },
-  },
-
-  config = function()
-    vim.g.undotree_WindowLayout = 4
-  end,
-}
-
 local grugfar = {
   -- find/replace across multiple files
   'MagicDuck/grug-far.nvim',
@@ -47,5 +34,4 @@ return {
   }, -- For auto-detecting indent settings
   dropbar,
   grugfar,
-  -- undotree,
 }
