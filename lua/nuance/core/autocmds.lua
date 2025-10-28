@@ -18,7 +18,7 @@ autocmd('TextYankPost', {
 
 autocmd('Colorscheme', {
   desc = 'Set custom colors for diff highlighting',
-  group = augroup('diffcolors', { clear = true }),
+  group = augroup('diffcolors'),
   callback = function()
     if vim.o.background == 'dark' then
       vim.api.nvim_set_hl(0, 'DiffAdd', { bold = true, fg = 'none', bg = '#2e4b2e' })
@@ -208,71 +208,44 @@ autocmd('BufWinEnter', {
   end,
 })
 
-autocmd('BufEnter', {
+autocmd('FileType', {
+  group = augroup('close-with-q'),
   desc = 'Close miscellaneous buffers with q',
-  group = augroup 'close-with-q',
-  callback = function(event)
-    local bufnr = event.buf
-    local ft = vim.bo[bufnr].filetype
+  -- stylua: ignore
+  pattern = {
+    'checkhealth', 'cmdwin', 'dbout', 'git', 'help', 'lspinfo', 'qf', 'query', 'startuptime',
+    'fugitive', 'fugitiveblame', 'fugitivediff', 'fugitivediffsplit', 'fugitivediffvsplit',
+    'gitsigns-blame', 'grug-far',
+    'neotest-output', 'neotest-output-panel', 'neotest-summary',
+    'PlenaryTestPopup', 'DiffviewFiles',
+    'notify', 'trouble',
+    'tsplayground',
+  },
+  callback = function(args)
+    local bufnr = args.buf
 
-    local q_fts = {
-      '',
-      'PlenaryTestPopup',
-      'DiffviewFiles',
-      'checkhealth',
-      'dbout',
-      'gitsigns-blame',
-      'query',
-      'grug-far',
-      'help',
-      'lspinfo',
-      'neotest-output',
-      'neotest-output-panel',
-      'neotest-summary',
-      'notify',
-      'git',
-      'fugitive',
-      'fugitiveblame',
-      'fugitivediff',
-      'fugitivediffsplit',
-      'fugitivediffvsplit',
-      'qf',
-      'startuptime',
-      'tsplayground',
-      'cmdwin',
-    }
+    -- Mark as unlisted if needed
+    vim.bo[bufnr].buflisted = false
 
-    -- Check if it's a special filetype or an empty buffer
-    local is_qft = vim.tbl_contains(q_fts, ft)
-
-    local is_empty = vim.api.nvim_buf_get_name(bufnr) == '' and (ft == '' or ft == nil)
-
-    if is_qft or is_empty then
-      if is_qft then
-        vim.bo[bufnr].buflisted = false
+    -- Set buffer-local keymap: q to close
+    vim.keymap.set('n', 'q', function()
+      if vim.fn.getcmdwintype() ~= '' then
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<C-c>', true, false, true), 'n', false)
+        return
       end
+      pcall(vim.cmd.close)
 
-      vim.keymap.set('n', 'q', function()
-        if vim.fn.getcmdwintype() ~= '' then
-          vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<C-c>', true, false, true), 'n', false)
-          return
-        end
-
-        pcall(vim.api.nvim_exec2, 'close', {})
-
-        local has_snacks, snacks = pcall(require, 'snacks')
-        if has_snacks == false then
-          vim.notify('Falling back to default forced buffer deletion', vim.log.levels.WARN, { title = 'Autocmd Warning' })
-          pcall(require('nuance.core.utils').safe_buf_delete, bufnr)
-        else
-          snacks.bufdelete.delete(bufnr)
-        end
-      end, {
-        buffer = bufnr,
-        silent = true,
-        desc = 'Quit buffer',
-      })
-    end
+      local ok, snacks = pcall(require, 'snacks')
+      if ok then
+        snacks.bufdelete.delete(bufnr)
+      else
+        pcall(require('nuance.core.utils').safe_buf_delete, bufnr)
+      end
+    end, {
+      buffer = bufnr,
+      silent = true,
+      desc = 'Quit buffer',
+    })
   end,
 })
 
@@ -350,7 +323,7 @@ autocmd('FileType', {
 -- autocmd BufNewFile,BufRead *.service* set ft=systemd
 autocmd({ 'BufRead', 'BufNewFile' }, {
   desc = 'Set filetype for systemd service files',
-  group = augroup('set-systemd-ft', { clear = true }),
+  group = augroup('set-systemd-ft'),
   pattern = { '*.service', '*.socket', '*.target', '*.path', '*.timer', '*.mount', '*.automount', '*.swap', '*.slice', '*.scope' },
   callback = function()
     vim.bo.filetype = 'systemd'
@@ -430,7 +403,7 @@ vim.api.nvim_create_user_command('SearchEngineQuery', function(args)
 end, { nargs = '?', range = true, desc = 'Search using a specified engine' })
 
 autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusLost', 'CmdwinEnter' }, {
-  group = augroup('toggle-relative-number', { clear = true }),
+  group = augroup('toggle-relative-number'),
   pattern = '*',
   callback = function(ev)
     if vim.bo[ev.buf].filetype:match '^snacks_' then

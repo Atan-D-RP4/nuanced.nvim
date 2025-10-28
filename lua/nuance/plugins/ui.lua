@@ -91,7 +91,7 @@ local statusline = {
       vim.api.nvim_set_hl(0, hl_fg .. '2', fghl)
     end
 
-    require('nuance.core.utils').async_promise(100, 0, function(opts)
+    require('nuance.core.promise').async_promise(100, function(opts)
       statusline.setup {
 
         content = {
@@ -235,7 +235,7 @@ local noice = {
   event = 'VeryLazy',
   dependencies = { 'MunifTanjim/nui.nvim' },
   -- config = function(_, opts)
-  --   require('nuance.core.utils').async_promise(100, 0, function()
+  --   require('nuance.core.promise').async_promise(100, function()
   --     require('noice').setup(opts)
   --     if Snacks ~= nil then
   --       Snacks.picker.notifications = function()
@@ -356,7 +356,7 @@ local which_key = { -- Useful plugin to show you pending keybinds.
   },
 
   config = function(_, opts)
-    require('nuance.core.utils').async_promise(100, 0, function()
+    require('nuance.core.promise').async_promise(100, function()
       require('which-key').setup(opts)
     end)
   end,

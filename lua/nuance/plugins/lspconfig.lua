@@ -134,7 +134,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
       -- word under your cursor when your cursor rests there for a little while.
       -- When you move your cursor, the highlights will be cleared (the second autocommand).
       -- if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
-      --   local highlight_augroup = augroup('lsp-highlight', { clear = true })
+      --   local highlight_augroup = augroup('lsp-highlight')
       --   vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
       --     group = highlight_augroup,
       --     callback = vim.lsp.buf.document_highlight,
@@ -154,7 +154,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
       -- end
 
       if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentColor) then
-        local color_augroup = augroup('lsp-color', { clear = true })
+        local color_augroup = augroup 'lsp-color'
         vim.api.nvim_create_autocmd('ColorScheme', {
           group = color_augroup,
           callback = function(ev)
@@ -171,7 +171,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
       end
 
       if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_codeLens) then
-        local codelens_augroup = augroup('lsp-codelens', { clear = true })
+        local codelens_augroup = augroup('lsp-codelens')
         vim.b.codelens_enabled = vim.b.codelens_enabled or false
 
         require('nuance.core.utils').nmap('<leader>tr', function()

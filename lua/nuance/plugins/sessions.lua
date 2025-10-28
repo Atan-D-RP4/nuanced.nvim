@@ -144,12 +144,12 @@ local session_pick = function()
         return
       end
 
-      require('nuance.core.utils')
-        .async_promise(100, 0, function()
+      require('nuance.core.promise')
+        .async_promise(100, function()
           require('mini.sessions').read(item.name, {})
           return true
         end)
-        .after(function(_)
+        :after(function(_)
           local msg = ''
           if vim.g.active_session == '' then
             msg = 'Loaded Session: ' .. item.name
@@ -173,6 +173,7 @@ M = {
   dependencies = {
     'folke/snacks.nvim',
   },
+  event = 'VeryLazy',
 
   opts = {
     autoread = false,
@@ -231,7 +232,7 @@ M.config = function(_, opts)
       -- use an icon for default session
       session = '■'
     else
-      session = ' ' .. session
+      session = '' .. session
     end
     return session .. ' ' .. default_section_filename(args)
   end

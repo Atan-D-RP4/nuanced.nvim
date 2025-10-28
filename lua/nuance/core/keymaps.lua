@@ -127,6 +127,8 @@ local maps = {
     { noremap = true },
   },
 
+  vim.version() >= vim.version { major = 0, minor = 11, patch = 0 } and { 'n', '<leader>u', '<cmd>Undotree<CR>', 'Toggle Undotree' } or {},
+
   { 'x', '/', '<Esc>/\\%V', 'Search in Visual Selection' },
   { 'x', '?', '<Esc>?\\%V', 'Search in Visual Selection' },
 

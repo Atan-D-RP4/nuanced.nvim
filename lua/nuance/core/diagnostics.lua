@@ -3,7 +3,7 @@ local M = {}
 local augroup = require('nuance.core.utils').augroup
 local autocmd = vim.api.nvim_create_autocmd
 
-function M.conf()
+function M.setup()
   vim.diagnostic.config {
     underline = true,
     severity_sort = true,
@@ -47,9 +47,7 @@ function M.conf()
       end,
     },
   }
-end
 
-function M.setup()
   if vim.g.treesitter_lint_available == true then
     autocmd({ 'FileType', 'TextChanged', 'InsertLeave' }, {
       desc = 'Treesitter-based Diagnostics',
@@ -93,12 +91,13 @@ function M.setup()
     end, { nargs = 0, desc = 'Toggle Treesitter diagnostics' })
   end
 
+  local diagnostic_float_or_virtlines_by_count = augroup 'diagnostic-float-or-virtlines-by-count'
   if vim.diagnostic.config().virtual_lines then
     local og_virt_text
     local og_virt_line
-    autocmd({ 'CursorMoved', 'DiagnosticChanged' }, {
+    autocmd({ 'CursorHold' }, {
       desc = 'Toggle virtual lines based on diagnostics count',
-      group = augroup('diagnostic_only_virtlines', {}),
+      group = diagnostic_float_or_virtlines_by_count,
       callback = function(ev)
         if og_virt_line == nil then
           og_virt_line = vim.diagnostic.config().virtual_lines
@@ -138,10 +137,10 @@ function M.setup()
   else
     autocmd('CursorHold', {
       desc = 'Toggle Diagnostic Float based on diagnostic count',
-      group = augroup 'diagnostic-float',
+      group = diagnostic_float_or_virtlines_by_count,
       pattern = '*',
       callback = function(ev)
-        if not Snacks.toggle.diagnostics():get() then
+        if not vim.diagnostic.is_enabled() then
           return
         end
         local line = vim.api.nvim_win_get_cursor(0)[1] - 1

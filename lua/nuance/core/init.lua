@@ -11,8 +11,7 @@ vim.api.nvim_create_autocmd('User', {
   end,
 })
 
-require('nuance.core.diagnostics').conf()
-require('nuance.core.utils').async_promise(100, 0, require('nuance.core.diagnostics').setup).catch(function(err)
+require('nuance.core.promise').async_promise(100, require('nuance.core.diagnostics').setup):catch(function(err)
   vim.notify(err, vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
 end)
 

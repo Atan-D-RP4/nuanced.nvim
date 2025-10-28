@@ -17,7 +17,7 @@ function Bufline.buftab_setup()
   -- NOTE: This does not work since any of the buffer delete operations don't seemd to trigger this autocommand
   vim.api.nvim_create_autocmd({ 'BufAdd', 'BufDelete', 'BufEnter', 'BufUnload', 'BufHidden', 'BufNewFile', 'BufNew' }, {
     desc = 'Trigger an Autocommand everytime the buffer list changes',
-    group = vim.api.nvim_create_augroup('nuance-buftabs', { clear = true }),
+    group = require('nuance.core.utils').augroup('buftabs-setup'),
     callback = function()
       local bufs = vim.api.nvim_exec2('exec "buffers"', { output = true }).output
       bufs = vim.split(bufs, '\n', { trimempty = true })

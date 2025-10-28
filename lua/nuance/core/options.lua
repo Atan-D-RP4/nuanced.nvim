@@ -189,7 +189,7 @@ opt.swapfile = true
 opt.backup = true
 
 global.treesitter_diagnostics = true
-global.treesitter_lint_available = vim.fn.has 'nvim-0.11' == 1
+global.treesitter_lint_available = vim.version() >= vim.version { major = 0, minor = 11, patch = 0 }
 global.treesitter_folding_enabled = true
 
 global.loaded_node_provider = 0
