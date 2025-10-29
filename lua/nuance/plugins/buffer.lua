@@ -28,10 +28,7 @@ local grugfar = {
 }
 
 return {
-  {
-    'tpope/vim-sleuth',
-    event = 'InsertEnter',
-  }, -- For auto-detecting indent settings
+  { 'tpope/vim-sleuth', event = 'InsertEnter' }, -- For auto-detecting indent settings
   dropbar,
   grugfar,
 }

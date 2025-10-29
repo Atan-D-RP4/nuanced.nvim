@@ -1,7 +1,7 @@
 local lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspLog' },
-  event = { 'Filetype', 'LspAttach' },
+  event = { 'Filetype' },
 
   -- stylua: ignore
   ft = {
@@ -16,38 +16,6 @@ local lspconfig = {
     'tex', 'typst',
     'systemd', 'yaml'
   },
-
-  dependencies = {
-    {
-      'rmagatti/goto-preview',
-      -- dependencies = { 'rmagatti/logger.nvim' },
-      event = 'LspAttach',
-      config = true, -- necessary as per https://github.com/rmagatti/goto-preview/issues/88
-
-      opts = {
-        references = { -- Configure the UI for slowing the references cycling window.
-          provider = 'snacks', -- telescope|fzf_lua|snacks|mini_pick|default
-        },
-        post_open_hook = function(bufnr, _win_id)
-          -- Close the preview window on `q`
-          vim.keymap.set('n', 'q', '<cmd>close<CR>', { buffer = bufnr, silent = true })
-        end,
-      },
-    },
-  },
-
-  init = function()
-    -- vim.lsp.log.set_level(vim.lsp.log.levels.WARN)
-    vim.lsp.log.set_format_func(function(level, timestamp, message)
-      -- Make message readable (handles tables)
-      if vim.lsp.log.levels[level] < vim.lsp.log.levels.WARN then
-        return nil
-      end
-      local msg = type(message) == 'table' and vim.inspect(message) or tostring(message)
-      msg = msg:gsub('\t', '  ')
-      return string.format('[%s] [%s] %s\n', level, timestamp, msg)
-    end)
-  end,
 
   ---@module 'lspconfig'
   ---@type lspconfig.Config
@@ -64,9 +32,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
     end
 
     local mappings = {
-      { 'gus', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', 'LSP [D]ocument [S]ymbols' },
+      { 'gO', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', 'LSP Document [S]ymbols' },
       { 'gws', '<cmd>lua Snacks.picker.lsp_workspace_symbols()<CR>', 'LSP [W]orkspace [S]ymbols' },
-      { 'gwd', '<cmd>lua vim.lsp.buf.workspace_diagnostics { client_id = ' .. client.id .. ' }<CR>', 'LSP [W]orkspace [D]iagnostics' },
 
       -- { 'gD', '<cmd>lua Snacks.picker.lsp_type_definitions()<CR>', 'LSP [T]ype [D]efinition' },
       -- { 'gd', '<cmd>lua Snacks.picker.lsp_definitions()<CR>', 'LSP [G]oto [D]efinition' },
@@ -78,7 +45,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
       { 'gri', '<cmd>lua require("goto-preview").goto_preview_references()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
 
       { 'grn', "<cmd>lua vim.lsp.buf.rename() vim.cmd [[ exec 'wa' ]]<CR>", 'LSP [R]ename' }, -- override `grn` mapping
-      { 'gs', '<cmd>lua Snacks.picker.lsp_symbols({ layout = { preset = "vscode", preview = "main" } })<CR>', 'LSP Document [S]ymbols' },
+      { 'gwd', '<cmd>lua vim.lsp.buf.workspace_diagnostics { client_id = ' .. client.id .. ' }<CR>', 'LSP [W]orkspace [D]iagnostics' },
     }
 
     local nmap = require('nuance.core.utils').nmap
@@ -107,6 +74,16 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   -- that of Treesitter, so that Treesitter is always highlighting
   -- over LSP semantic tokens.
   vim.hl.priorities.semantic_tokens = 95
+  -- vim.lsp.log.set_level(vim.lsp.log.levels.WARN)
+  vim.lsp.log.set_format_func(function(level, timestamp, message)
+    -- Make message readable (handles tables)
+    if vim.lsp.log.levels[level] < vim.lsp.log.levels.WARN then
+      return nil
+    end
+    local msg = type(message) == 'table' and vim.inspect(message) or tostring(message)
+    msg = msg:gsub('\t', '  ')
+    return string.format('[%s] [%s] %s\n', level, timestamp, msg)
+  end)
 
   local has_blink, blink = pcall(require, 'blink.cmp')
 
@@ -171,7 +148,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
       end
 
       if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_codeLens) then
-        local codelens_augroup = augroup('lsp-codelens')
+        local codelens_augroup = augroup 'lsp-codelens'
         vim.b.codelens_enabled = vim.b.codelens_enabled or false
 
         require('nuance.core.utils').nmap('<leader>tr', function()
@@ -218,6 +195,9 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
             end
             local attached_buffers_count = vim.tbl_count(cur_client.attached_buffers)
             if attached_buffers_count == 0 then
+              local msg = 'No buffers attached to client: ' .. client.name .. '\n'
+              msg = msg .. 'Stopping Server: ' .. client.name
+              vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
               cur_client:stop(true)
             end
           end, 3000)
@@ -243,17 +223,14 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         return
       end
 
-      vim.schedule(function()
-        for ns_id, ns in pairs(vim.diagnostic.get_namespaces()) do
-          if ns.name and ns.name:match(client.name) then
+      for ns_id, ns in pairs(vim.diagnostic.get_namespaces()) do
+        if ns.name and ns.name:match(client.name) then
+          vim.schedule(function()
             vim.diagnostic.reset(ns_id)
-          end
+          end)
         end
-      end)
+      end
 
-      local msg = 'No buffers attached to client: ' .. client.name .. '\n'
-      msg = msg .. 'Stopping Server: ' .. client.name
-      vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
       vim.notify('De-Initialized Language Server: ' .. client.name, vim.log.levels.INFO, { title = 'LSP' })
     end,
   })
@@ -270,7 +247,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   end
 end
 
-local lazydev = {
+local _lazydev = {
   -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
   -- used for completion, annotations and signatures of Neovim apis
   'folke/lazydev.nvim',
@@ -301,32 +278,109 @@ local mason = {
   cmd = { 'Mason', 'MasonInstall', 'MasonLog' },
 } -- NOTE: Must be loaded before dependants
 
-local rustowl = {
-  'cordx56/rustowl',
-  -- lazy = false, -- This plugin is already lazy
-  enabled = vim.fn.executable 'rustowl' == 1,
-  ft = 'rust',
-  dependencies = {
-    lspconfig,
-  },
+local rustowl = vim.fn.executable 'rustowl' == 1
+    and {
+      'cordx56/rustowl',
+      -- lazy = false, -- This plugin is already lazy
+      enabled = vim.fn.executable 'rustowl' == 1,
+      ft = 'rust',
+      dependencies = {
+        lspconfig,
+      },
+
+      opts = {
+        client = {
+          on_attach = function(_, buffer)
+            vim.keymap.set('n', '<C-l>', function()
+              vim.cmd [[ exec 'silent! redraw' ]]
+              require('rustowl').toggle(buffer)
+            end, { buffer = buffer, desc = 'Toggle RustOwl' })
+          end,
+        },
+      },
+    }
+  or nil
+
+local tiny_inline_diagnostic = {
+  'rachartier/tiny-inline-diagnostic.nvim',
+  event = 'LspAttach',
+  priority = 1000,
+  config = function()
+    local augroup = require('nuance.core.utils').augroup
+    local autocmd = vim.api.nvim_create_autocmd
+    vim.api.nvim_clear_autocmds { group = augroup 'diagnostic-float-or-virtlines-by-count' }
+    vim.diagnostic.config { jump = { on_jump = nil }, virtual_text = true, virtual_lines = false } -- Disable Neovim's default virtual text diagnostics
+
+    autocmd('CursorHold', {
+      group = augroup 'tiny-inline-diagnostic-cursorhold',
+      callback = function(ev)
+        -- If there are diagnostics at the current cursor position, disable virtual text
+        local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
+        local diagnostic_count = #vim.diagnostic.get(ev.buf, { lnum = lnum })
+        if diagnostic_count > 0 then
+          vim.diagnostic.config { virtual_text = false }
+        else
+          vim.diagnostic.config { virtual_text = true }
+        end
+      end,
+    })
+
+    require('tiny-inline-diagnostic').setup {
+      signs = {
+        left = '',
+        right = '',
+        diag = '●',
+        arrow = '    ',
+        up_arrow = '    ',
+        vertical = ' │',
+        vertical_end = ' └',
+      },
+      blend = {
+        factor = 0.22,
+      },
+      options = {
+        -- Display the source of diagnostics (e.g., "lua_ls", "pyright")
+        show_source = {
+          enabled = true, -- Enable showing source names
+          if_many = true, -- Only show source if multiple sources exist for the same diagnostic
+        },
+        -- Automatically disable diagnostics when opening diagnostic float windows
+        override_open_float = true,
+        -- Display related diagnostics from LSP relatedInformation
+        show_related = { enabled = true },
+        -- Use icons from vim.diagnostic.config instead of preset icons
+        use_icons_from_diagnostic = true,
+        -- Color the arrow to match the severity of the first diagnostic
+        set_arrow_to_diag_color = true,
+      },
+    }
+  end,
+}
+
+local goto_preview = {
+  'rmagatti/goto-preview',
+  -- dependencies = { 'rmagatti/logger.nvim' },
+  event = 'LspAttach',
+  config = true, -- necessary as per https://github.com/rmagatti/goto-preview/issues/88
 
   opts = {
-    client = {
-      on_attach = function(_, buffer)
-        vim.keymap.set('n', '<C-l>', function()
-          vim.cmd [[ exec 'silent! redraw' ]]
-          require('rustowl').toggle(buffer)
-        end, { buffer = buffer, desc = 'Toggle RustOwl' })
-      end,
+    references = { -- Configure the UI for slowing the references cycling window.
+      provider = 'snacks', -- telescope|fzf_lua|snacks|mini_pick|default
     },
+    post_open_hook = function(bufnr, _win_id)
+      -- Close the preview window on `q`
+      vim.keymap.set('n', 'q', '<cmd>close<CR>', { buffer = bufnr, silent = true })
+    end,
   },
 }
 
 return {
   mason,
-  lazydev,
+  -- lazydev,
   lspconfig,
-  vim.fn.executable 'rustowl' == 1 and rustowl or nil,
+  tiny_inline_diagnostic,
+  goto_preview,
+  rustowl,
 }
 
 -- vim: ts=2 sts=2 sw=2 et

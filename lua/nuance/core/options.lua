@@ -103,7 +103,7 @@ opt.breakindent = true
 -- go to previous/next line with h,l,left arrow and right arrow
 -- when cursor reaches end/beginning of line
 opt.whichwrap:append '<>[]hl'
-opt.wrap = true
+opt.wrap = false
 opt.textwidth = 80
 opt.linebreak = true
 
