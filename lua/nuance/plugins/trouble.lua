@@ -19,7 +19,7 @@ M.opts = {
     position = 'top',
     width = 100,
   },
-  auto_preview = false
+  auto_preview = false,
   -- modes = {
   --   symbols = {
   --     focus = true,

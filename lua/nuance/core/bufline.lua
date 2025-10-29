@@ -17,7 +17,7 @@ function Bufline.buftab_setup()
   -- NOTE: This does not work since any of the buffer delete operations don't seemd to trigger this autocommand
   vim.api.nvim_create_autocmd({ 'BufAdd', 'BufDelete', 'BufEnter', 'BufUnload', 'BufHidden', 'BufNewFile', 'BufNew' }, {
     desc = 'Trigger an Autocommand everytime the buffer list changes',
-    group = require('nuance.core.utils').augroup('buftabs-setup'),
+    group = require('nuance.core.utils').augroup 'buftabs-setup',
     callback = function()
       local bufs = vim.api.nvim_exec2('exec "buffers"', { output = true }).output
       bufs = vim.split(bufs, '\n', { trimempty = true })
@@ -37,6 +37,23 @@ function Bufline.buftab_setup()
       Bufline.curr_buf_idx = tab_idx_map[current_bufnr] or 0
     end,
   })
+
+  -- Keymaps to jump to buffer by index
+  local nmap = require('nuance.core.utils').nmap
+  vim.tbl_map(
+    function(keymaps)
+      nmap(keymaps.cmd, keymaps.callback, keymaps.desc)
+    end,
+    vim.tbl_map(function(index)
+      return {
+        desc = string.format('Jump to buffer %d', index),
+        cmd = string.format('<leader>e%d', index),
+        callback = function()
+          Bufline.buf_switch(index)
+        end,
+      }
+    end, { 1, 2, 3, 4, 5, 6, 7, 8, 9 })
+  )
 end
 
 ---Get a list of all listed buffers
@@ -54,7 +71,7 @@ end
 ---Get the buffer index from the global index map
 ---@param bufnr number Buffer number
 ---@return string Index string
-local function getBufferIndex(bufnr)
+function Bufline.getBufferIndex(bufnr)
   local idx_map = Bufline.tab_idx_map
   return idx_map[bufnr] and tostring(idx_map[bufnr]) or ''
 end
@@ -78,7 +95,7 @@ Bufline.build = function()
       break
     end
 
-    local bufIndex = getBufferIndex(bufnr)
+    local bufIndex = Bufline.getBufferIndex(bufnr)
     local isActive = bufnr == currBufNr
 
     -- Basic setup
@@ -189,21 +206,6 @@ Bufline.setup = function()
   vim.opt.showtabline = 2
 
   defineBufferCommands()
-  local nmap = require('nuance.core.utils').nmap
-  vim.tbl_map(
-    function(keymaps)
-      nmap(keymaps.cmd, keymaps.callback, keymaps.desc)
-    end,
-    vim.tbl_map(function(index)
-      return {
-        desc = string.format('Jump to buffer %d', index),
-        cmd = string.format('<leader>e%d', index),
-        callback = function()
-          Bufline.buf_switch(index)
-        end,
-      }
-    end, { 1, 2, 3, 4, 5, 6, 7, 8, 9 })
-  )
 
   -- Run the buffer tab setup
   Bufline.buftab_setup()

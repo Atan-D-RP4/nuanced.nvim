@@ -5,7 +5,7 @@
 -- -o- O--o o-o o-o o   o   o-O-o
 --  |  |  | |-' | |  \ /  | | | |
 --  o  o  o o-o o-o   o   | o o o
---
+
 -- Initialize buftabline with:
 -- - Clickable buffer list
 -- - Buffer index from nuance_buftabs_count

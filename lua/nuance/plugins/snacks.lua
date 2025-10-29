@@ -11,9 +11,6 @@ M.keys = {
   { '<leader>cR', '<cmd>lua Snacks.rename.rename_file()<CR>', desc = 'Rename File' },
   { '<leader>gB', '<cmd>lua Snacks.gitbrowse()<CR>', desc = '[G]it [B]rowse', mode = { 'n', 'v' } },
 
-  { '<C-w>t', '<cmd>lua Snacks.terminal.toggle(vim.o.shell)<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
-  { '<C-w><C-t>', '<cmd>lua Snacks.terminal.toggle(vim.o.shell)<CR>', mode = { 'n', 't' }, desc = '[T]oggle [T]erminal' },
-
   -- Create some toggle mappings
   { '<leader>tz', '<cmd>lua Snacks.zen()<CR>', desc = 'Toggle Zen Mode' },
   { '<leader>tZ', '<cmd>lua Snacks.zen.zoom()<CR>', desc = 'Toggle Zoom' },
@@ -68,6 +65,18 @@ M.keys = {
   --   "<cmd>lua Snacks.toggle.option('background', { off = 'light', on = 'dark', name = 'Dark Background' }):toggle()<CR>",
   --   desc = '[T]oggle [B]ackground',
   -- },
+  {
+    '<C-w><C-t>',
+    function()
+      if #Snacks.terminal.list() > 0 then
+        Snacks.terminal.toggle()
+      else
+        Snacks.terminal.open()
+      end
+    end,
+    mode = { 'n', 't' },
+    desc = '[T]oggle [T]erminal',
+  },
 }
 
 ---@module 'snacks'
@@ -98,34 +107,17 @@ M.opts = {
 
 M.opts.terminal = {
   enabled = true,
-  win = { border = 'rounded' },
-  keys = {
-    gf = function(self)
-      local f = vim.fn.findfile(vim.fn.expand '<cfile>', '**')
-      if f == '' then
-        Snacks.notify.warn 'No file under cursor'
-      else
-        self:hide()
-        vim.schedule(function()
-          vim.cmd('e ' .. f)
-        end)
-      end
-    end,
-    term_normal = {
-      '<esc>',
-      function(self)
-        self.esc_timer = self.esc_timer or (vim.uv or vim.loop).new_timer()
-        if self.esc_timer:is_active() then
-          self.esc_timer:stop()
-          vim.cmd 'stopinsert'
-        else
-          self.esc_timer:start(200, 0, function() end)
-          return '<esc>'
-        end
-      end,
-      mode = 't',
-      expr = true,
-      desc = 'Double escape to normal mode',
+  win = {
+    position = 'float',
+    border = 'rounded',
+    keys = {
+      ['<C-d>'] = {
+        function(self)
+          self:destroy()
+        end,
+        desc = 'Close Terminal',
+        mode = { 't', 'n' },
+      },
     },
   },
 }

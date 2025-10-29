@@ -18,7 +18,7 @@ autocmd('TextYankPost', {
 
 autocmd('Colorscheme', {
   desc = 'Set custom colors for diff highlighting',
-  group = augroup('diffcolors'),
+  group = augroup 'diffcolors',
   callback = function()
     if vim.o.background == 'dark' then
       vim.api.nvim_set_hl(0, 'DiffAdd', { bold = true, fg = 'none', bg = '#2e4b2e' })
@@ -209,7 +209,7 @@ autocmd('BufWinEnter', {
 })
 
 autocmd('FileType', {
-  group = augroup('close-with-q'),
+  group = augroup 'close-with-q',
   desc = 'Close miscellaneous buffers with q',
   -- stylua: ignore
   pattern = {
@@ -323,7 +323,7 @@ autocmd('FileType', {
 -- autocmd BufNewFile,BufRead *.service* set ft=systemd
 autocmd({ 'BufRead', 'BufNewFile' }, {
   desc = 'Set filetype for systemd service files',
-  group = augroup('set-systemd-ft'),
+  group = augroup 'set-systemd-ft',
   pattern = { '*.service', '*.socket', '*.target', '*.path', '*.timer', '*.mount', '*.automount', '*.swap', '*.slice', '*.scope' },
   callback = function()
     vim.bo.filetype = 'systemd'
@@ -403,7 +403,7 @@ vim.api.nvim_create_user_command('SearchEngineQuery', function(args)
 end, { nargs = '?', range = true, desc = 'Search using a specified engine' })
 
 autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusLost', 'CmdwinEnter' }, {
-  group = augroup('toggle-relative-number'),
+  group = augroup 'toggle-relative-number',
   pattern = '*',
   callback = function(ev)
     if vim.bo[ev.buf].filetype:match '^snacks_' then
