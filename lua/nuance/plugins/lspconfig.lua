@@ -160,9 +160,19 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         require('nuance.core.utils').nmap('<leader>tr', function()
           vim.b.codelens_enabled = not vim.b.codelens_enabled
 
-          -- stylua: ignore
-          if vim.b.codelens_enabled then vim.lsp.codelens.refresh()
-          else vim.lsp.codelens.clear() end
+          if vim.b.codelens_enabled then
+            vim.lsp.codelens.refresh()
+
+            vim.api.nvim_create_autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
+              group = codelens_augroup,
+              callback = function()
+                vim.lsp.codelens.refresh()
+              end,
+            })
+          else
+            vim.api.nvim_clear_autocmds { group = codelens_augroup }
+            vim.lsp.codelens.clear()
+          end
 
           vim.notify(
             'LSP CodeLens ' .. (vim.b.codelens_enabled and 'Enabled' or 'Disabled'),
@@ -170,15 +180,6 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
             { title = 'LSP' }
           )
         end, { desc = 'LSP [T]oggle [R]efresh CodeLens', noremap = false })
-
-        vim.api.nvim_create_autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
-          group = codelens_augroup,
-          callback = function()
-            if vim.b.codelens_enabled then
-              vim.lsp.codelens.refresh()
-            end
-          end,
-        })
 
         vim.api.nvim_create_autocmd('LspDetach', {
           group = codelens_augroup,
@@ -314,50 +315,69 @@ local tiny_inline_diagnostic = {
   config = function()
     local augroup = require('nuance.core.utils').augroup
     local autocmd = vim.api.nvim_create_autocmd
-    vim.api.nvim_clear_autocmds { group = augroup 'diagnostic-float-or-virtlines-by-count' }
-    vim.diagnostic.config { jump = { on_jump = nil }, virtual_text = true, virtual_lines = false } -- Disable Neovim's default virtual text diagnostics
+    local api = vim.api
+
+    -- Cache frequently used functions
+    local buf_is_valid = api.nvim_buf_is_valid
+    local win_get_cursor = api.nvim_win_get_cursor
+    local diagnostic_get = vim.diagnostic.get
+    local diagnostic_config = vim.diagnostic.config
+
+    -- Clear old autocmds
+    api.nvim_clear_autocmds { group = augroup 'diagnostic-float-or-virtlines-by-count' }
+
+    -- Capture original virtual_text config before modifying
+    local og_virt_text = diagnostic_config().virtual_text
+
+    -- Configure diagnostics
+    diagnostic_config {
+      jump = { on_jump = nil },
+      virtual_text = true,
+      virtual_lines = false,
+    }
 
     autocmd('CursorHold', {
       group = augroup 'tiny-inline-diagnostic-cursorhold',
       callback = function(ev)
-        -- If there are diagnostics at the current cursor position, disable virtual text
-        local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
-        local diagnostic_count = #vim.diagnostic.get(ev.buf, { lnum = lnum })
+        -- Fast validation
+        if not buf_is_valid(ev.buf) or not vim.diagnostic.is_enabled() then
+          return
+        end
+
+        -- Safely get cursor position
+        local ok, cursor = pcall(win_get_cursor, 0)
+        if not ok then
+          return
+        end
+
+        local lnum = cursor[1] - 1
+        local diagnostic_count = #diagnostic_get(ev.buf, { lnum = lnum })
+
         if diagnostic_count > 0 then
-          vim.diagnostic.config { virtual_text = false }
+          diagnostic_config { virtual_text = false }
         else
-          vim.diagnostic.config { virtual_text = true }
+          -- Reset to original virtual_text state
+          diagnostic_config { virtual_text = og_virt_text }
         end
       end,
     })
 
     require('tiny-inline-diagnostic').setup {
-      signs = {
-        left = '',
-        right = '',
-        diag = '●',
-        arrow = '    ',
-        up_arrow = '    ',
-        vertical = ' │',
-        vertical_end = ' └',
-      },
-      blend = {
-        factor = 0.22,
-      },
+      preset = 'powerline',
       options = {
         -- Display the source of diagnostics (e.g., "lua_ls", "pyright")
-        show_source = {
-          enabled = true, -- Enable showing source names
-          if_many = true, -- Only show source if multiple sources exist for the same diagnostic
-        },
+        show_source = { enabled = true }, -- Enable showing source names
         -- Automatically disable diagnostics when opening diagnostic float windows
         override_open_float = true,
-        -- Display related diagnostics from LSP relatedInformation
+        -- Display related diagnostics from LSP related information
         show_related = { enabled = true },
         -- Use icons from vim.diagnostic.config instead of preset icons
         use_icons_from_diagnostic = true,
         -- Color the arrow to match the severity of the first diagnostic
         set_arrow_to_diag_color = true,
+        format = function(diag)
+          return string.format('[%s] %s', diag.code, diag.message)
+        end,
       },
     }
   end,

@@ -2,9 +2,29 @@ local M = {}
 
 local augroup = require('nuance.core.utils').augroup
 local autocmd = vim.api.nvim_create_autocmd
+local api = vim.api
+
+-- Cache frequently used functions
+local buf_is_valid = api.nvim_buf_is_valid
+local get_current_buf = api.nvim_get_current_buf
+local win_get_cursor = api.nvim_win_get_cursor
+local diagnostic_get = vim.diagnostic.get
+local diagnostic_config = vim.diagnostic.config
+local diagnostic_reset = vim.diagnostic.reset
+local diagnostic_set = vim.diagnostic.set
+
+-- Pre-allocate diagnostic severity for faster access
+local SEVERITY = vim.diagnostic.severity
+
+-- Initialize namespace once
+M.namespace = api.nvim_create_namespace 'nuance-treesitter-diagnostics'
+
+-- Cache diagnostic config values
+local og_virt_text
+local og_virt_line
 
 function M.setup()
-  vim.diagnostic.config {
+  diagnostic_config {
     underline = true,
     severity_sort = true,
     float = {
@@ -23,10 +43,10 @@ function M.setup()
     },
     signs = vim.g.have_nerd_font and {
       text = {
-        [vim.diagnostic.severity.ERROR] = '󰅚 ',
-        [vim.diagnostic.severity.WARN] = '󰀪 ',
-        [vim.diagnostic.severity.INFO] = '󰋽 ',
-        [vim.diagnostic.severity.HINT] = '󰌶 ',
+        [SEVERITY.ERROR] = '󰅚 ',
+        [SEVERITY.WARN] = '󰀪 ',
+        [SEVERITY.INFO] = '󰋽 ',
+        [SEVERITY.HINT] = '󰌶 ',
       },
     } or {},
     update_in_insert = false,
@@ -35,53 +55,79 @@ function M.setup()
     virtual_text = {
       source = true,
       spacing = 2,
+      -- prefix = function(diagnostic, i, total)
+      --   local symbols = vim.diagnostic.config().signs.text
+      --   local symbol = symbols[diagnostic.severity] or '●'
+      --   return symbol
+      -- end,
+
       ---@param diagnostic vim.Diagnostic
       format = function(diagnostic)
-        local diagnostic_message = {
-          [vim.diagnostic.severity.ERROR] = diagnostic.message,
-          [vim.diagnostic.severity.WARN] = diagnostic.message,
-          [vim.diagnostic.severity.INFO] = diagnostic.message,
-          [vim.diagnostic.severity.HINT] = diagnostic.message,
-        }
-        return string.format('[%s] %s', diagnostic.code, diagnostic_message[diagnostic.severity])
+        return string.format('[%s] %s', diagnostic.code, diagnostic.message)
       end,
     },
   }
 
   if vim.g.treesitter_lint_available == true then
+    -- Pre-compile excluded filetypes set for O(1) lookup
+    local excluded_filetypes = {
+      rust = true,
+      markdown = true,
+      text = true,
+    }
+
     autocmd({ 'FileType', 'TextChanged', 'InsertLeave' }, {
       desc = 'Treesitter-based Diagnostics',
       pattern = '*',
       group = augroup 'treesitter-diagnostics',
       callback = vim.schedule_wrap(function()
-        local bufnr = vim.api.nvim_get_current_buf()
-        local excluded_filetypes = { 'rust', 'markdown', 'text' } -- Add filetypes to exclude here
-        local ft = vim.bo[bufnr].filetype
+        local bufnr = get_current_buf()
 
-        if vim.g.treesitter_diagnostics == false or vim.tbl_contains(excluded_filetypes, ft) then
-          vim.diagnostic.reset(M.namespace, bufnr)
+        -- Fast validation
+        if not buf_is_valid(bufnr) or vim.bo[bufnr].buftype ~= '' then
           return
         end
-        M.diagnostics(bufnr)
+
+        local ft = vim.bo[bufnr].filetype
+        if vim.g.treesitter_diagnostics == false or excluded_filetypes[ft] then
+          diagnostic_reset(M.namespace, bufnr)
+          return
+        end
+
+        local ok, err = pcall(M.diagnostics, bufnr)
+        if not ok then
+          vim.notify(
+            'Treesitter diagnostics error: ' .. tostring(err),
+            vim.log.levels.ERROR,
+            { title = 'Treesitter Diagnostics' }
+          )
+        end
       end),
     })
 
-    vim.api.nvim_create_user_command('TSDiagnosticsToggle', function(_)
-      -- Toggle the global flag
+    api.nvim_create_user_command('TSDiagnosticsToggle', function(_)
       vim.g.treesitter_diagnostics = not vim.g.treesitter_diagnostics
+      local bufnr = get_current_buf()
 
-      local bufnr = vim.api.nvim_get_current_buf()
-
-      -- Reset existing diagnostics
-      vim.diagnostic.reset(M.namespace, bufnr)
-
-      -- If diagnostics are now enabled, run diagnostics immediately
-      if vim.g.treesitter_diagnostics then
-        -- Force run the diagnostics function directly
-        M.diagnostics(bufnr)
+      if not buf_is_valid(bufnr) then
+        vim.notify('Invalid buffer', vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
+        return
       end
 
-      -- Notify the user about the current state
+      diagnostic_reset(M.namespace, bufnr)
+
+      if vim.g.treesitter_diagnostics then
+        local ok, err = pcall(M.diagnostics, bufnr)
+        if not ok then
+          vim.notify(
+            'Failed to run diagnostics: ' .. tostring(err),
+            vim.log.levels.ERROR,
+            { title = 'Treesitter Diagnostics' }
+          )
+          return
+        end
+      end
+
       local state = vim.g.treesitter_diagnostics and 'Enabled' or 'Disabled'
       vim.notify(
         state .. ' Treesitter diagnostics',
@@ -92,45 +138,45 @@ function M.setup()
   end
 
   local diagnostic_float_or_virtlines_by_count = augroup 'diagnostic-float-or-virtlines-by-count'
-  if vim.diagnostic.config().virtual_lines then
-    local og_virt_text
-    local og_virt_line
+  local current_config = diagnostic_config()
+
+  if current_config.virtual_lines then
     autocmd({ 'CursorHold' }, {
       desc = 'Toggle virtual lines based on diagnostics count',
       group = diagnostic_float_or_virtlines_by_count,
       callback = function(ev)
-        if og_virt_line == nil then
-          og_virt_line = vim.diagnostic.config().virtual_lines
-        end
-
-        -- ignore if virtual_lines.current_line is disabled
-        if not (og_virt_line and og_virt_line.current_line) then
-          if og_virt_text then
-            vim.diagnostic.config { virtual_text = og_virt_text }
-            og_virt_text = nil
-          end
+        if not buf_is_valid(ev.buf) then
           return
         end
 
-        if og_virt_text == nil then
-          og_virt_text = vim.diagnostic.config().virtual_text
+        -- Lazy initialization
+        if not og_virt_line then
+          og_virt_line = diagnostic_config().virtual_lines
+          if not (og_virt_line and og_virt_line.current_line) then
+            return
+          end
+          og_virt_text = diagnostic_config().virtual_text
         end
 
-        local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
+        local ok, cursor = pcall(win_get_cursor, 0)
+        if not ok then
+          return
+        end
 
-        local diagnostic_count = #vim.diagnostic.get(ev.buf, { lnum = lnum })
+        local lnum = cursor[1] - 1
+        local diagnostic_count = #diagnostic_get(ev.buf, { lnum = lnum })
+
         if diagnostic_count < 5 then
-          vim.diagnostic.config { virtual_text = og_virt_text }
-          vim.diagnostic.config { virtual_lines = false }
+          diagnostic_config { virtual_text = og_virt_text, virtual_lines = false }
         else
-          vim.diagnostic.config { virtual_text = false }
-          vim.diagnostic.open_float {
+          diagnostic_config { virtual_text = false }
+          pcall(vim.diagnostic.open_float, {
             focusable = false,
             close_events = { 'CursorMoved', 'InsertEnter', 'FocusLost' },
             border = 'rounded',
             source = 'if_many',
             prefix = ' ',
-          }
+          })
         end
       end,
     })
@@ -140,103 +186,189 @@ function M.setup()
       group = diagnostic_float_or_virtlines_by_count,
       pattern = '*',
       callback = function(ev)
-        if not vim.diagnostic.is_enabled() then
+        if not buf_is_valid(ev.buf) or not vim.diagnostic.is_enabled() then
           return
         end
-        local line = vim.api.nvim_win_get_cursor(0)[1] - 1
-        local diagnostics = vim.diagnostic.get(ev.buf, { lnum = line })
 
-        if #diagnostics < 2 then
-          vim.diagnostic.config { virtual_text = true }
+        -- Lazy initialization of original virtual_text config
+        if not og_virt_text then
+          og_virt_text = diagnostic_config().virtual_text
+        end
+
+        local ok, cursor = pcall(win_get_cursor, 0)
+        if not ok then
+          return
+        end
+
+        local line = cursor[1] - 1
+        local diagnostics = diagnostic_get(ev.buf, { lnum = line })
+        local count = #diagnostics
+
+        if count < 2 then
+          diagnostic_config { virtual_text = og_virt_text }
         else
-          vim.diagnostic.config { virtual_text = false }
-          vim.diagnostic.open_float {
+          diagnostic_config { virtual_text = false }
+          pcall(vim.diagnostic.open_float, {
             focusable = false,
             close_events = { 'CursorMoved', 'InsertEnter', 'FocusLost' },
             border = 'rounded',
             source = 'if_many',
             prefix = ' ',
-          }
+          })
         end
       end,
     })
   end
 end
 
--- https://www.reddit.com/r/neovim/comments/1ir069p/treesitter_diagnostics/
--- language-independent query for syntax errors and missing elements
+-- Cache the error query to avoid repeated parsing
+local error_query
+local function get_error_query()
+  if not error_query then
+    local ok, query = pcall(vim.treesitter.query.parse, 'query', '[(ERROR)(MISSING)] @a')
+    if ok then
+      error_query = query
+    end
+  end
+  return error_query
+end
+
 ---@param buf integer
 function M.diagnostics(buf)
-  -- don't diagnose strange stuff
-  if vim.bo[buf].buftype ~= '' then
+  -- Fast path: validate buffer and buffer type
+  if not buf or not buf_is_valid(buf) or vim.bo[buf].buftype ~= '' then
     return
   end
 
-  M.namespace = vim.api.nvim_create_namespace 'nuance-treesitter-diagnostics'
-  local error_query = vim.treesitter.query.parse('query', '[(ERROR)(MISSING)] @a')
+  -- Check if treesitter is available
+  local has_parser = pcall(vim.treesitter.get_parser, buf)
+  if not has_parser then
+    return
+  end
+
+  local query = get_error_query()
+  if not query then
+    return
+  end
 
   local diagnostics = {}
   local parser = vim.treesitter.get_parser(buf, nil, { error = false })
-  if parser then
+
+  if not parser then
+    return
+  end
+
+  -- Pre-allocate diagnostic template to reduce table allocations
+  local diag_template = {
+    source = 'Treesitter',
+    bufnr = buf,
+    namespace = M.namespace,
+    severity = SEVERITY.ERROR,
+  }
+
+  local parse_ok = pcall(function()
     parser:parse(false, function(_, trees)
       if not trees then
         return
       end
-      parser:for_each_tree(function(tree, ltree)
-        -- only process trees containing errors
-        if tree:root():has_error() then
-          for _, node in error_query:iter_captures(tree:root(), buf) do
-            local lnum, col, end_lnum, end_col = node:range()
 
-            -- collapse nested syntax errors that occur at the exact same position
-            local parent = node:parent()
-            if parent and parent:type() == 'ERROR' and parent:range() == node:range() then
+      parser:for_each_tree(function(tree, ltree)
+        if not tree or not tree:root() or not tree:root():has_error() then
+          return
+        end
+
+        -- Cache language once per tree
+        local lang = 'unknown'
+        if ltree then
+          local ok_lang, result = pcall(ltree.lang, ltree)
+          if ok_lang then
+            lang = result
+          end
+        end
+        local code = lang .. '-syntax'
+
+        for _, node in query:iter_captures(tree:root(), buf) do
+          if not node then
+            goto continue
+          end
+
+          local ok_range, lnum, col, end_lnum, end_col = pcall(node.range, node)
+          if not ok_range then
+            goto continue
+          end
+
+          -- Fast parent check for nested errors
+          local parent = node:parent()
+          if parent and parent:type() == 'ERROR' then
+            local parent_ok, p_lnum, p_col, p_end_lnum, p_end_col = pcall(parent.range, parent)
+            if parent_ok and p_lnum == lnum and p_col == col and p_end_lnum == end_lnum and p_end_col == end_col then
               goto continue
             end
-
-            -- clamp large syntax error ranges to just the line to reduce noise
-            if end_lnum > lnum then
-              end_lnum = lnum + 1
-              end_col = 0
-            end
-
-            --- @type vim.Diagnostic
-            local diagnostic = {
-              source = 'Treesitter',
-              lnum = lnum,
-              end_lnum = end_lnum,
-              col = col,
-              end_col = end_col,
-              message = '',
-              code = string.format('%s-syntax', ltree:lang()),
-              bufnr = buf,
-              namespace = M.namespace,
-              severity = vim.diagnostic.severity.ERROR,
-            }
-            if node:missing() then
-              diagnostic.message = string.format('missing `%s`', node:type())
-            else
-              diagnostic.message = 'error'
-            end
-
-            -- add context to the error using sibling and parent nodes
-            local previous = node:prev_sibling()
-            if previous and previous:type() ~= 'ERROR' then
-              local previous_type = previous:named() and previous:type() or string.format('`%s`', previous:type())
-              diagnostic.message = diagnostic.message .. ' after ' .. previous_type
-            end
-
-            if parent and parent:type() ~= 'ERROR' and (previous == nil or previous:type() ~= parent:type()) then
-              diagnostic.message = diagnostic.message .. ' in ' .. parent:type()
-            end
-
-            table.insert(diagnostics, diagnostic)
-            ::continue::
           end
+
+          -- Clamp ranges
+          if end_lnum > lnum then
+            end_lnum = lnum + 1
+            end_col = 0
+          end
+
+          -- Build message
+          local message
+          local ok_missing, is_missing = pcall(node.missing, node)
+          if ok_missing and is_missing then
+            local ok_type, node_type = pcall(node.type, node)
+            message = ok_type and string.format('missing `%s`', node_type) or 'missing element'
+          else
+            message = 'error'
+          end
+
+          -- Add context efficiently
+          local previous = node:prev_sibling()
+          if previous then
+            local ok_prev_type, prev_type = pcall(previous.type, previous)
+            if ok_prev_type and prev_type ~= 'ERROR' then
+              local ok_named, is_named = pcall(previous.named, previous)
+              local prev_name = (ok_named and is_named) and prev_type or string.format('`%s`', prev_type)
+              message = message .. ' after ' .. prev_name
+            end
+          end
+
+          if parent then
+            local ok_parent_type, parent_type = pcall(parent.type, parent)
+            if ok_parent_type and parent_type ~= 'ERROR' then
+              local should_add = true
+              if previous then
+                local ok_prev_type, prev_type = pcall(previous.type, previous)
+                should_add = not (ok_prev_type and prev_type == parent_type)
+              end
+              if should_add then
+                message = message .. ' in ' .. parent_type
+              end
+            end
+          end
+
+          -- Create diagnostic using template (reduces allocations)
+          diagnostics[#diagnostics + 1] = {
+            source = diag_template.source,
+            lnum = lnum,
+            end_lnum = end_lnum,
+            col = col,
+            end_col = end_col,
+            message = message,
+            code = code,
+            bufnr = diag_template.bufnr,
+            namespace = diag_template.namespace,
+            severity = diag_template.severity,
+          }
+
+          ::continue::
         end
       end)
     end)
-    vim.diagnostic.set(M.namespace, buf, diagnostics)
+  end)
+
+  if parse_ok then
+    pcall(diagnostic_set, M.namespace, buf, diagnostics)
   end
 end
 
