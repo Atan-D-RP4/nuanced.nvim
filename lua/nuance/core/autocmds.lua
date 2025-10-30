@@ -262,30 +262,34 @@ autocmd({ 'BufWritePre' }, {
 })
 
 -- ref: https://vi.stackexchange.com/a/169/15292
-autocmd('BufReadPre', {
-  group = augroup 'bigfile-optimization',
-  pattern = '*',
-  desc = 'Optimize for large file',
-  callback = function(ev)
-    local file_size_limit = 524288 -- 0.5MB
-    local f = ev.file
+-- autocmd('BufReadPre', {
+--   group = augroup 'bigfile-optimization',
+--   pattern = '*',
+--   desc = 'Optimize for large file',
+--   callback = function(ev)
+--     local file_size_limit = 524288 -- 0.5MB
+--     local f = ev.file
 
-    if vim.fn.getfsize(f) > file_size_limit or vim.fn.getfsize(f) == -2 then
-      vim.o.eventignore = 'all'
+--     if vim.fn.getfsize(f) > file_size_limit or vim.fn.getfsize(f) == -2 then
+--       vim.o.eventignore = 'all'
 
-      -- show ruler
-      vim.o.ruler = true
+--       -- show ruler
+--       vim.bo.ruler = true
 
-      --  turning off relative number helps a lot
-      vim.wo.relativenumber = false
-      vim.wo.number = false
+--       --  turning off relative number helps a lot
+--       vim.wo.relativenumber = false
+--       vim.wo.number = false
 
-      vim.bo.swapfile = false
-      vim.bo.bufhidden = 'unload'
-      vim.bo.undolevels = -1
-    end
-  end,
-})
+--       vim.bo.swapfile = false
+--       vim.bo.bufhidden = 'unload'
+--       vim.bo.undolevels = -1
+--       vim.notify('Large file detected, optimizations applied', vim.log.levels.WARN, {
+--         title = 'Big File',
+--         timeout = 5000,
+--       })
+--     end
+--   end,
+-- })
 
 autocmd({ 'BufEnter', 'BufRead', 'BufNew' }, {
   desc = 'Treesitter Folding',

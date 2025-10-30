@@ -230,9 +230,9 @@ M.config = function(_, opts)
     local session = vim.g.active_session
     if session == '' then
       -- use an icon for default session
-      session = '■'
+      session = ''
     else
-      session = '' .. session
+      session = ' ' .. session
     end
     return session .. ' ' .. default_section_filename(args)
   end

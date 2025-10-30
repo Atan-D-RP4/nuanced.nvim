@@ -1,4 +1,5 @@
 local M = {}
+
 --- A Promise-like object for asynchronous operations
 ---@class AsyncPromise
 ---@field after fun(self: AsyncPromise, cb: fun(result: any)): AsyncPromise
