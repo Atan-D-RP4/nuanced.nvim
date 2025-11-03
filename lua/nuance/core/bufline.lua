@@ -13,6 +13,36 @@ Bufline = {
   logo = vim.g.have_nerd_font and '  ' or ' [B] ',
 }
 
+---Update keymap descriptions with current buffer names
+local function update_keymap_descriptions()
+  local nmap = require('nuance.core.utils').nmap
+
+  for index = 1, Bufline.buftabs_count do
+    local desc = string.format('Jump to buffer %d', index)
+
+    -- Find the buffer at this index
+    local buffers = {}
+    for b = 1, vim.fn.bufnr '$' do
+      if vim.fn.buflisted(b) == 1 then
+        table.insert(buffers, b)
+      end
+    end
+
+    if index <= #buffers then
+      local bufnr = buffers[index]
+      local bufname = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':t')
+      if bufname == '' then
+        bufname = '[No Name]'
+      end
+      desc = string.format('Jump to buffer %d: %s', index, bufname)
+    end
+
+    nmap(string.format('<leader>e%d', index), function()
+      Bufline.buf_switch(index)
+    end, desc)
+  end
+end
+
 function Bufline.buftab_setup()
   -- NOTE: This does not work since any of the buffer delete operations don't seemd to trigger this autocommand
   vim.api.nvim_create_autocmd({ 'BufAdd', 'BufDelete', 'BufEnter', 'BufUnload', 'BufHidden', 'BufNewFile', 'BufNew' }, {
@@ -35,25 +65,14 @@ function Bufline.buftab_setup()
       -- Store current buffer index
       local current_bufnr = vim.fn.bufnr()
       Bufline.curr_buf_idx = tab_idx_map[current_bufnr] or 0
+
+      -- Update keymap descriptions with current buffer names
+      update_keymap_descriptions()
     end,
   })
 
-  -- Keymaps to jump to buffer by index
-  local nmap = require('nuance.core.utils').nmap
-  vim.tbl_map(
-    function(keymaps)
-      nmap(keymaps.cmd, keymaps.callback, keymaps.desc)
-    end,
-    vim.tbl_map(function(index)
-      return {
-        desc = string.format('Jump to buffer %d', index),
-        cmd = string.format('<leader>e%d', index),
-        callback = function()
-          Bufline.buf_switch(index)
-        end,
-      }
-    end, { 1, 2, 3, 4, 5, 6, 7, 8, 9 })
-  )
+  -- Initial keymap setup
+  update_keymap_descriptions()
 end
 
 ---Get a list of all listed buffers
@@ -111,7 +130,7 @@ Bufline.build = function()
     end
 
     local success, icons = pcall(require, 'mini.icons')
-    local icon = success and icons.get('file', 'file.' .. vim.bo[bufnr].filetype) or '' -- Default icon if Mini Icons is not available
+    local icon = success and icons.get('file', 'file.' .. vim.bo[bufnr].filetype) or '' -- Default icon if Mini Icons is not available
     s = s .. icon .. ' '
 
     -- Buffer name
@@ -138,7 +157,7 @@ Bufline.build = function()
 
     -- Add close button
     s = s .. ' %' .. bufnr .. '@BufferClose@'
-    s = s .. (vim.g.have_nerd_font and '' or 'X')
+    s = s .. (vim.g.have_nerd_font and '' or 'X')
     s = s .. '%X'
 
     s = s .. ' '

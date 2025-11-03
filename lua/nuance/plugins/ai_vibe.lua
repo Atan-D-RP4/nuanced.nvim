@@ -132,13 +132,9 @@ M.avante = {
   ---@type avante.Config
   opts = {
     system_prompt = avante_sys_prompt,
-
-    mappings = {
-      files = { add_current = '<leader>ab' },
-    },
-    -- add any opts here
-    -- for example
+    mappings = { files = { add_current = '<leader>ab' } },
     provider = 'copilot',
+
     providers = {
       openrouter = {
         __inherited_from = 'openai',
@@ -146,6 +142,7 @@ M.avante = {
         endpoint = 'https://openrouter.ai/api/v1',
         disable_tools = true, -- disable tools!
         model = 'deepseek/deepseek-r1-0528-qwen3-8b:free', -- your desired model (or use gpt-4o, etc.)
+
         extra_request_body = {
           timeout = 30000, -- Timeout in milliseconds, increase this for reasoning models
           temperature = 0.75,

@@ -4,8 +4,8 @@ local gitcore = {
 
   keys = {
     { '<leader>gg', '<cmd>Git ++curwin<CR>', desc = '[G]it', mode = 'n' },
-    { '<leader>gl', '<cmd>vsplit | Git ++curwin log<CR>', desc = '[G]it log', mode = 'n' },
     { '<leader>gh', '<cmd>vsplit | Git ++curwin reflog<CR>', desc = '[G]it log', mode = 'n' },
+    { '<leader>gl', '<cmd>Git ++curwin log --oneline --decorate --graph<CR>p', desc = '[G]it log', mode = 'n' },
     { '<leader>gL', '<cmd>GcLog<CR>', desc = '[G]it log', mode = 'n' },
     { '<leader>gs', '<cmd>Git status -s<CR>', desc = '[G]it log', mode = 'n' },
     { '<leader>gd', '<cmd>Gdiffsplit<CR>', desc = '[G]it [d]iff against index', mode = 'n' },

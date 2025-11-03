@@ -52,6 +52,15 @@ local ai = {
       -- idle time if user input is required.
       silent = false,
       custom_textobjects = {
+        -- Text object for git conflict regions
+        G = function()
+          local from = { line = vim.fn.search('^<<<<<<< ', 'bnW'), col = 1 }
+          local to = { line = vim.fn.search('^>>>>>>> ', 'nW'), col = 1 }
+          if from.line == 0 or to.line == 0 then
+            return nil
+          end
+          return { from = from, to = to }
+        end,
         g = function()
           local from = { line = 1, col = 1 }
           local to = {

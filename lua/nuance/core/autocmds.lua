@@ -235,9 +235,8 @@ autocmd('FileType', {
       end
       pcall(vim.cmd.close)
 
-      local ok, snacks = pcall(require, 'snacks')
-      if ok then
-        snacks.bufdelete.delete(bufnr)
+      if Snacks and Snacks.bufdelete then
+        Snacks.bufdelete.delete(bufnr)
       else
         pcall(require('nuance.core.utils').safe_buf_delete, bufnr)
       end
@@ -250,14 +249,20 @@ autocmd('FileType', {
 })
 
 autocmd({ 'BufWritePre' }, {
-  desc = 'Auto-create directory for file',
-  group = augroup 'auto-create-dir',
+  desc = 'Auto-create parent directory for file',
+  group = augroup 'auto-create-parent-dir',
   callback = function(event)
-    if event.match:match '^%w%w+:[\\/][\\/]' then
+    local bufname = vim.api.nvim_buf_get_name(event.buf)
+    if bufname:match '^oil://' then
       return
     end
-    local file = vim.uv.fs_realpath(event.match) or event.match
-    vim.fn.mkdir(vim.fn.fnamemodify(file, ':p:h'), 'p')
+    local dir = vim.fn.expand '<afile>:p:h'
+    -- if vim.fn.isdirectory(dir) == 0 then
+    --   vim.fn.mkdir(dir, 'p')
+    -- end
+    if vim.uv.fs_stat(dir) == nil then
+      vim.uv.fs_mkdir(dir, 493) -- 0755 in decimal
+    end
   end,
 })
 

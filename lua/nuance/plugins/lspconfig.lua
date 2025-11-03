@@ -354,10 +354,10 @@ local tiny_inline_diagnostic = {
         local diagnostic_count = #diagnostic_get(ev.buf, { lnum = lnum })
 
         if diagnostic_count > 0 then
-          diagnostic_config { virtual_text = false }
+          pcall(diagnostic_config, { virtual_text = false })
         else
           -- Reset to original virtual_text state
-          diagnostic_config { virtual_text = og_virt_text }
+          pcall(diagnostic_config, { virtual_text = og_virt_text })
         end
       end,
     })
