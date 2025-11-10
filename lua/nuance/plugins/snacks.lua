@@ -30,6 +30,10 @@ M.keys = {
   {
     '<leader>tc',
     function()
+      if not Snacks or not Snacks.statuscolumn then
+        vim.notify('Snacks statuscolumn not available', vim.log.levels.WARN)
+        return
+      end
       local flag = vim.o.statuscolumn == ''
       if flag then
         vim.o.statuscolumn = [[%!v:lua.require'snacks.statuscolumn'.get()]]
@@ -147,7 +151,7 @@ M.opts.terminal = {
 }
 
 M.opts.dashboard = {
-  enabled = false,
+  enabled = true,
   preset = {
     ---@type fun(cmd:string, opts:table)|nil
     pick = nil,

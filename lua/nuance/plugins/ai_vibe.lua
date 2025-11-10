@@ -180,6 +180,6 @@ M.copilot = {
 
 return {
   M.copilot,
-  M.avante,
+  -- M.avante,
   -- M.augment
 }

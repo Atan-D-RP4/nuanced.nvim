@@ -1,7 +1,7 @@
 local M = {}
 
 -- Configuration
-local config = {
+local CONFIG = {
   namespace_name = '_rain',
   chars = { '⋅', '•' },
   drop_count = 5,
@@ -15,7 +15,7 @@ local config = {
 }
 
 -- State management
-local state = {
+local STATE = {
   namespace = nil,
   global_timer = nil,
   window = nil,
@@ -42,29 +42,40 @@ end
 
 local function cleanup_all_timers()
   -- Clean up global timer
-  cleanup_timer(state.global_timer)
-  state.global_timer = nil
+  cleanup_timer(STATE.global_timer)
+  STATE.global_timer = nil
 
   -- Clean up all drop timers
-  for _, timer in ipairs(state.drop_timers) do
+  for _, timer in ipairs(STATE.drop_timers) do
     cleanup_timer(timer)
   end
-  state.drop_timers = {}
+  STATE.drop_timers = {}
+end
+
+-- Remove a specific timer from the drop_timers list
+---@param timer_to_remove uv.uv_timer_t
+local function remove_timer(timer_to_remove)
+  for i = #STATE.drop_timers, 1, -1 do
+    if STATE.drop_timers[i] == timer_to_remove then
+      table.remove(STATE.drop_timers, i)
+      break
+    end
+  end
 end
 
 local function cleanup_window_and_buffer()
   -- Close window
-  if is_valid_window(state.window) then
-    vim.api.nvim_win_close(state.window, true)
+  if is_valid_window(STATE.window) then
+    vim.api.nvim_win_close(STATE.window, true)
   end
-  state.window = nil
+  STATE.window = nil
 
   -- Delete buffer
-  if is_valid_buffer(state.buffer) then
-    vim.api.nvim_buf_clear_namespace(state.buffer, state.namespace, 0, -1)
-    vim.api.nvim_buf_delete(state.buffer, { force = true })
+  if is_valid_buffer(STATE.buffer) then
+    vim.api.nvim_buf_clear_namespace(STATE.buffer, STATE.namespace, 0, -1)
+    vim.api.nvim_buf_delete(STATE.buffer, { force = true })
   end
-  state.buffer = nil
+  STATE.buffer = nil
 end
 
 local function get_rain_dimensions()
@@ -129,8 +140,8 @@ local function create_rain_window(buf)
   end
 
   -- Configure window appearance
-  vim.cmd 'highlight NormalFloat guibg=none'
-  vim.wo[win].winblend = config.winblend
+  pcall(vim.cmd, 'highlight NormalFloat guibg=none')
+  vim.wo[win].winblend = CONFIG.winblend
 
   return win
 end
@@ -139,12 +150,12 @@ local function create_single_raindrop(buf, start_col, char)
   local drop_state = { l = 0, c = start_col }
 
   -- Add randomization to movement pattern
-  local move_diagonally = math.random() < config.diagonal_chance
-  local speed_variance = math.random(-config.speed_variance, config.speed_variance)
-  local actual_speed = math.max(10, config.drop_interval + speed_variance)
+  local move_diagonally = math.random() < CONFIG.diagonal_chance
+  local speed_variance = math.random(-CONFIG.speed_variance, CONFIG.speed_variance)
+  local actual_speed = math.max(10, CONFIG.drop_interval + speed_variance)
 
   -- Create initial extmark
-  local ok, extmark_id = pcall(vim.api.nvim_buf_set_extmark, buf, state.namespace, drop_state.l, drop_state.c, {
+  local ok, extmark_id = pcall(vim.api.nvim_buf_set_extmark, buf, STATE.namespace, drop_state.l, drop_state.c, {
     virt_text = { { char, 'Identifier' } },
     virt_text_pos = 'overlay',
   })
@@ -156,40 +167,34 @@ local function create_single_raindrop(buf, start_col, char)
   -- Create timer for this specific raindrop
   local drop_timer = vim.uv.new_timer()
   if not drop_timer then
-    pcall(vim.api.nvim_buf_del_extmark, buf, state.namespace, extmark_id)
+    pcall(vim.api.nvim_buf_del_extmark, buf, STATE.namespace, extmark_id)
     return nil
   end
 
-  table.insert(state.drop_timers, drop_timer)
+  table.insert(STATE.drop_timers, drop_timer)
 
   drop_timer:start(
     0,
     actual_speed,
     vim.schedule_wrap(function()
       local current_dimensions = get_rain_dimensions()
-
       -- Check if raindrop should stop (reached bottom or right edge)
       if
-        not state.is_running
+        not STATE.is_running
         or not is_valid_buffer(buf)
         or drop_state.l >= current_dimensions.height
         or drop_state.c >= current_dimensions.width
       then
         -- Clean up extmark and timer
-        pcall(vim.api.nvim_buf_del_extmark, buf, state.namespace, extmark_id)
+        pcall(vim.api.nvim_buf_del_extmark, buf, STATE.namespace, extmark_id)
         cleanup_timer(drop_timer)
         -- Remove from tracking list
-        for i, timer in ipairs(state.drop_timers) do
-          if timer == drop_timer then
-            table.remove(state.drop_timers, i)
-            break
-          end
-        end
+        remove_timer(drop_timer)
         return
       end
 
       -- Update raindrop position
-      local ok_update = pcall(vim.api.nvim_buf_set_extmark, buf, state.namespace, drop_state.l, drop_state.c, {
+      local ok_update = pcall(vim.api.nvim_buf_set_extmark, buf, STATE.namespace, drop_state.l, drop_state.c, {
         virt_text = { { char, 'Identifier' } },
         virt_text_pos = 'overlay',
         id = extmark_id,
@@ -201,14 +206,9 @@ local function create_single_raindrop(buf, start_col, char)
         drop_state.c = drop_state.c + (move_diagonally and 1 or 0)
       else
         -- Failed to update, clean up
-        pcall(vim.api.nvim_buf_del_extmark, buf, state.namespace, extmark_id)
+        pcall(vim.api.nvim_buf_del_extmark, buf, STATE.namespace, extmark_id)
         cleanup_timer(drop_timer)
-        for i, timer in ipairs(state.drop_timers) do
-          if timer == drop_timer then
-            table.remove(state.drop_timers, i)
-            break
-          end
-        end
+        remove_timer(drop_timer)
       end
     end)
   )
@@ -218,73 +218,74 @@ end
 
 -- Public API
 function M.rain()
-  if state.is_running then
+  if STATE.is_running then
     print 'Rain animation is already running'
     return
   end
 
   -- Initialize namespace
-  if not state.namespace then
-    state.namespace = vim.api.nvim_create_namespace(config.namespace_name)
+  if not STATE.namespace then
+    STATE.namespace = vim.api.nvim_create_namespace(CONFIG.namespace_name)
   end
 
   -- Create buffer and window
   local ok, result = pcall(function()
-    state.buffer = create_rain_buffer()
-    state.window = create_rain_window(state.buffer)
+    STATE.buffer = create_rain_buffer()
+    STATE.window = create_rain_window(STATE.buffer)
   end)
 
   if not ok then
-    print('Failed to create rain animation: ' .. tostring(result))
+    vim.notify('Failed to create rain animation: ' .. tostring(result), vim.log.levels.ERROR)
     M.stop()
+
+    -- Ensure buffer cleanup
+    if STATE.buffer and vim.api.nvim_buf_is_valid(STATE.buffer) then
+      vim.api.nvim_buf_delete(STATE.buffer, { force = true })
+    end
+    STATE.buffer = nil
     return
   end
 
-  state.is_running = true
+  STATE.is_running = true
 
   -- Create global timer for spawning raindrop batches (like the original)
-  state.global_timer = vim.uv.new_timer()
-  if not state.global_timer then
+  STATE.global_timer = vim.uv.new_timer()
+  if not STATE.global_timer then
     print 'Failed to create global timer'
     M.stop()
     return
   end
 
-  state.global_timer:start(
-    config.initial_delay,
-    config.spawn_interval,
+  STATE.global_timer:start(
+    CONFIG.initial_delay,
+    CONFIG.spawn_interval,
     vim.schedule_wrap(function()
-      if not state.is_running or not is_valid_buffer(state.buffer) then
+      if not STATE.is_running or not is_valid_buffer(STATE.buffer) then
         return
       end
 
       local dimensions = get_rain_dimensions()
 
       -- Create raindrops with staggered spawn times for more natural effect
-      for i = 1, config.drop_count do
-        local spawn_delay = math.random(0, config.spawn_interval - 50) -- Random delay within spawn interval
+      for i = 1, CONFIG.drop_count do
+        local spawn_delay = math.random(0, CONFIG.spawn_interval - 50) -- Random delay within spawn interval
         local start_col = math.random(1, math.max(1, dimensions.width))
-        local char = config.chars[math.random(1, #config.chars)]
+        local char = CONFIG.chars[math.random(1, #CONFIG.chars)]
 
         -- Create a timer for delayed spawning of this individual raindrop
         local spawn_timer = vim.uv.new_timer()
         if spawn_timer then
-          table.insert(state.drop_timers, spawn_timer)
+          table.insert(STATE.drop_timers, spawn_timer)
           spawn_timer:start(
             spawn_delay,
             0,
             vim.schedule_wrap(function()
-              if state.is_running and is_valid_buffer(state.buffer) then
-                create_single_raindrop(state.buffer, start_col, char)
+              if STATE.is_running and is_valid_buffer(STATE.buffer) then
+                create_single_raindrop(STATE.buffer, start_col, char)
               end
               -- Clean up the spawn timer
               cleanup_timer(spawn_timer)
-              for j, timer in ipairs(state.drop_timers) do
-                if timer == spawn_timer then
-                  table.remove(state.drop_timers, j)
-                  break
-                end
-              end
+              remove_timer(spawn_timer)
             end)
           )
         end
@@ -294,7 +295,7 @@ function M.rain()
 end
 
 function M.stop()
-  state.is_running = false
+  STATE.is_running = false
 
   -- Clean up all timers
   cleanup_all_timers()
@@ -306,8 +307,8 @@ function M.stop()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if is_valid_buffer(buf) then
       local buf_name = vim.api.nvim_buf_get_name(buf)
-      if buf_name:match(config.namespace_name) then
-        pcall(vim.api.nvim_buf_clear_namespace, buf, state.namespace, 0, -1)
+      if buf_name:match(CONFIG.namespace_name) then
+        pcall(vim.api.nvim_buf_clear_namespace, buf, STATE.namespace, 0, -1)
         pcall(vim.api.nvim_buf_delete, buf, { force = true })
       end
     end
@@ -315,7 +316,7 @@ function M.stop()
 end
 
 function M.toggle()
-  if state.is_running then
+  if STATE.is_running then
     M.stop()
   else
     M.rain()
@@ -323,29 +324,37 @@ function M.toggle()
 end
 
 function M.is_running()
-  return state.is_running
+  return STATE.is_running
 end
 
 -- Clean up on script reload
-if state.is_running then
+if STATE.is_running then
   M.stop()
 end
 
 M.setup = function(user_config)
+  -- Clean up old namespace if exists
+  if STATE.namespace then
+    pcall(function()
+      vim.api.nvim_get_namespaces()[STATE.namespace] = nil
+    end)
+  end
+
+  -- Merge user config
   if user_config then
     for key, value in pairs(user_config) do
-      if config[key] ~= nil then
-        config[key] = value
+      if CONFIG[key] ~= nil then
+        CONFIG[key] = value
       end
     end
   end
 
   -- Conditionally add '' character to config.chars based on diagonal chance
-  table.insert(config.chars, config.diagonal_chance and '' or '|')
+  table.insert(CONFIG.chars, CONFIG.diagonal_chance and '' or '|')
 
   -- Ensure namespace is created
-  if not state.namespace then
-    state.namespace = vim.api.nvim_create_namespace(config.namespace_name)
+  if not STATE.namespace then
+    STATE.namespace = vim.api.nvim_create_namespace(CONFIG.namespace_name)
   end
 
   vim.api.nvim_create_user_command('Rain', M.toggle, {

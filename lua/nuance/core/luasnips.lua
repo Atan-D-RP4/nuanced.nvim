@@ -22,6 +22,7 @@ local types = require 'luasnip.util.types'
 local parse = require('luasnip.util.parser').parse_snippet
 local k = require('luasnip.nodes.key_indexer').new_key
 
+-- stylua: ignore
 local clipboard = function() return vim.fn.getreg '+' end
 
 require('luasnip.session.snippet_collection').clear_snippets 'lua'

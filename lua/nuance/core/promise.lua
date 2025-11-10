@@ -222,9 +222,11 @@ function M.async_promise(ms, fn, ...)
       end
 
       if timer and not timer:is_closing() then
-        timer:close()
+        pcall(function()
+          timer:close()
+        end)
+        timer = nil
       end
-      timer = nil
     end)
   )
 

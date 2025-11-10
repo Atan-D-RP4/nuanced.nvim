@@ -21,7 +21,7 @@ function M.lsp_dial(inc)
   local full_word = vim.fn.expand '<cWORD>' -- Backup for substitution if needed
 
   -- Get LSP completion at current position
-  local params = vim.lsp.util.make_position_params(0, 'utf-8')
+  local params = vim.lsp.util.make_position_params(0, vim.bo.fileencoding or 'utf-8')
   local results = vim.lsp.buf_request_sync(0, vim.lsp.protocol.Methods.textDocument_completion, params)
 
   -- Process LSP completion items

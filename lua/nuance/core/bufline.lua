@@ -44,7 +44,6 @@ local function update_keymap_descriptions()
 end
 
 function Bufline.buftab_setup()
-  -- NOTE: This does not work since any of the buffer delete operations don't seemd to trigger this autocommand
   vim.api.nvim_create_autocmd({ 'BufAdd', 'BufDelete', 'BufEnter', 'BufUnload', 'BufHidden', 'BufNewFile', 'BufNew' }, {
     desc = 'Trigger an Autocommand everytime the buffer list changes',
     group = require('nuance.core.utils').augroup 'buftabs-setup',
@@ -111,7 +110,7 @@ Bufline.build = function()
   for _, bufnr in pairs(buffers) do
     -- Skip invalid buffers
     if not vim.api.nvim_buf_is_valid(bufnr) then
-      break
+      goto continue
     end
 
     local bufIndex = Bufline.getBufferIndex(bufnr)
@@ -162,6 +161,7 @@ Bufline.build = function()
 
     s = s .. ' '
     s = s .. '%#TabLineFill# '
+    ::continue::
   end
 
   -- ========== Middle ==========

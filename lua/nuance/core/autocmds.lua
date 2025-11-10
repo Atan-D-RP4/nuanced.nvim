@@ -3,7 +3,50 @@
 local augroup = require('nuance.core.utils').augroup
 local autocmd = vim.api.nvim_create_autocmd
 
--- Highlight when yanking (copying) text
+autocmd('FileType', {
+  pattern = { 'markdown', 'text' },
+  desc = 'Use K to show dictionary definition of word under cursor',
+  group = augroup 'dictionary-keymap',
+  callback = function()
+    if vim.executable 'wn' ~= 1 then
+      return
+    end
+    vim.keymap.set('n', 'K', function()
+      local word = vim.fn.expand '<cword>'
+      if word == '' then
+        vim.notify('No word under cursor', vim.log.levels.WARN)
+        return
+      end
+
+      local cmd
+      if vim.fn.executable 'wn' == 1 then
+        cmd = { 'wn', word, '-over' }
+      else
+        vim.notify('No dictionary program found (install `dict` or `wordnet`)', vim.log.levels.ERROR)
+        return
+      end
+
+      -- Run asynchronously and show in LSP-style hover
+      vim.system(cmd, { text = true }, function(res)
+        if not res.stdout or res.stdout == '' then
+          vim.schedule(function()
+            vim.notify("No definition found for '" .. word .. "'", vim.log.levels.INFO)
+          end)
+          return
+        end
+
+        vim.schedule(function()
+          vim.lsp.util.open_floating_preview(vim.split(res.stdout, '\n'), 'markdown', {
+            border = 'rounded',
+            focusable = true,
+            title = 'Definition: ' .. word,
+          })
+        end)
+      end)
+    end, { buffer = true, desc = 'Show dictionary definition' })
+  end,
+})
+
 autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = augroup 'highlight-yank',
@@ -34,19 +77,39 @@ autocmd('Colorscheme', {
   end,
 })
 
--- Create autocmd for TextYankPost event
-autocmd('TextYankPost', {
+autocmd({ 'TextYankPost' }, {
   group = augroup 'yank-ring',
+  pattern = '*', -- apply for all buffers / files
+  desc = 'Maintain ring of recent yanks or deletes in numbered registers 1-9',
   callback = function()
-    local event = vim.v.event
-    if event.operator == 'y' then
-      for i = 9, 1, -1 do
-        vim.fn.setreg(tostring(i), vim.fn.getreg(tostring(i - 1)))
-      end
+    -- ev is a table with info: ev.operator, ev.regname, ev.regtype, ev.buf, etc :contentReference[oaicite:1]{index=1}
+    local ev = vim.v.event
+
+    -- Filter: only handle operator "y" (yank) or "d" (delete)
+    -- and the default register (i.e., no explicit regname)
+    if ev.operator ~= 'y' and ev.operator ~= 'd' and ev.regname ~= '' then
+      return
+    end
+
+    -- Optionally, skip huge yanks/deletes: for example if register 0 contents > X lines
+    local latest = vim.fn.getreg '0'
+    local max_lines = 1000 -- for example: skip if too many lines
+    local newline_count = #vim.fn.split(latest, '\n')
+    if newline_count > max_lines then
+      return
+    end
+
+    -- Slide the registers: 9 ← 8 ← … ← 1 ← 0
+    for i = 9, 1, -1 do
+      local from = tostring(i - 1)
+      local to = tostring(i)
+      local text = vim.fn.getreg(from)
+      local regtype = vim.fn.getregtype(from)
+      vim.fn.setreg(to, text, regtype)
     end
   end,
 })
--- Automatically restore the previous cursor position when entering a new buffer.
+
 autocmd('BufWinEnter', {
   desc = 'Restore Cursor position when entering a buffer',
   group = augroup 'restore-cursor',
@@ -81,7 +144,6 @@ autocmd('VimResized', {
   end,
 })
 
--- Check if we need to reload the file when it changed
 autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
   desc = 'Check if we need to reload the file when it changed',
   group = augroup 'checktime',
@@ -103,7 +165,9 @@ autocmd('BufWritePre', {
     local cs = vim.bo.commentstring or ''
 
     -- Skip files with no commentstring or excluded filetypes
-    if not vim.tbl_contains({ 'oil' }, ft) and cs ~= '' then
+    local skip_filetypes = vim.g.clear_whitespace_empty_comments_exclude or {}
+    vim.tbl_extend('keep', skip_filetypes, { 'oil' })
+    if not vim.tbl_contains(skip_filetypes, ft) and cs ~= '' then
       -- Extract prefix/suffix from commentstring pattern like "-- %s" or "<!-- %s -->"
       local prefix, suffix = cs:match '^(.-)%%s(.-)$'
       if prefix then
@@ -141,7 +205,7 @@ autocmd('BufWritePre', {
 
 -- Close buffer if the terminal is closed
 autocmd({ 'TermClose', 'TermOpen' }, {
-  desc = 'Terminal Buffer Management',
+  desc = 'Close terminal buffer on exit and disable line numbers in terminal',
   group = augroup 'term-management',
   pattern = '*',
   callback = function(ev)
@@ -159,7 +223,6 @@ autocmd({ 'TermClose', 'TermOpen' }, {
   end,
 })
 
--- don't auto comment new line
 autocmd('BufEnter', {
   desc = 'Disable auto comment on new line',
   group = augroup 'disable-auto-comment',
@@ -322,13 +385,16 @@ autocmd({ 'BufWritePre' }, {
 --   end,
 -- })
 
-autocmd({ 'BufEnter', 'BufRead', 'BufNew' }, {
+autocmd({ 'FileType' }, {
   desc = 'Treesitter Folding',
   group = augroup 'treesitter-folding',
   pattern = '*',
-  callback = function()
+  callback = function(ev)
+    local ft = ev.match
+    local skip_filetypes = vim.g.treesitter_folding_exclude or {}
+    vim.tbl_extend('keep', skip_filetypes, { 'markdown', 'text', 'gitcommit', 'gitrebase', 'help' })
     vim.defer_fn(function()
-      if vim.g.treesitter_folding_enabled then
+      if vim.g.treesitter_folding_enabled and not vim.tbl_contains(skip_filetypes, ft) then
         vim.opt.foldenable = true
         vim.opt.foldlevel = 99
         vim.opt.foldmethod = 'expr'

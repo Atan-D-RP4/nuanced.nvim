@@ -136,6 +136,7 @@ opt.autoread = true
 vim.schedule(function()
   -- Check if clipboard support is available
   if vim.fn.has 'clipboard' == 0 then
+    vim.notify('Clipboard support is not available', vim.log.levels.WARN)
     return
   end
 
@@ -157,10 +158,12 @@ vim.schedule(function()
     local name, path = unpack(dir)
     local created_or_exist = (function()
       -- Create directories if they don't exist
-      local ok, err, err_name = vim.uv.fs_mkdir(path, 493) -- 0755 in octal
+      local ok, err, err_name = vim.uv.fs_mkdir(path, 493)
       if not ok and err_name ~= 'EEXIST' then
-        vim.notify('Error creating ' .. name .. ' directory: ' .. err, vim.log.levels.ERROR)
-        return false
+        vim.notify('Error creating ' .. name .. ': ' .. err, vim.log.levels.ERROR)
+        error(err) -- Let caller handle
+      else
+        opt[name] = path
       end
       return true
     end)()

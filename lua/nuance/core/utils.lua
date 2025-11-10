@@ -134,6 +134,7 @@ M.zeroIndexedTable = setmetatable({}, {
 })
 
 -- Usage Example for the zero-indexed table
+-- Basically debug code
 function M.test()
   local table = { 1, 2, 3, 4 }
   local test = M.zeroIndexedTable(table)
@@ -279,23 +280,25 @@ end
 
 -- Pure Lua workspace file collection and workspace diagnostics trigger
 ---@param client vim.lsp.Client
+---@return string[]|string files List of file paths in the workspace
 function M.get_workspace_files(client)
-  local cwd = client.root_dir or vim.fn.getcwd()
-  local results = {}
+  local workspace_dir = client.root_dir or vim.fn.getcwd()
 
-  -- Use ripgrep to collect files
-  local function scan_files_with_ripgrep(path)
-    local handle = io.popen('rg --files --hidden ' .. path)
-    if handle then
-      for line in handle:lines() do
-        table.insert(results, line)
-      end
-      handle:close()
-    end
+  -- Synchronously collect files using ripgrep via systemlist
+  -- Returns an array of file paths (newline-separated output split into lines)
+  local ok, results = pcall(vim.fn.systemlist, {
+    'rg',
+    '--files',
+    '--hidden',
+    workspace_dir,
+  })
+
+  if not ok or vim.v.shell_error ~= 0 then
+    vim.notify('Failed to collect workspace files with ripgrep: ' .. (results or 'unknown error'), vim.log.levels.WARN)
+    return {}
   end
 
-  scan_files_with_ripgrep(cwd)
-  return results
+  return results or {}
 end
 
 return M

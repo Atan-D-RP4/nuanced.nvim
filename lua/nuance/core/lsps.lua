@@ -213,7 +213,7 @@ return {
   },
 
   zuban = {
-    enabled = true and vim.fn.executable 'uv' == 1,
+    enabled = false and vim.fn.executable 'uv' == 1,
     cmd = { 'uv', 'tool', 'run', 'zuban', 'server' },
   },
 
@@ -223,7 +223,7 @@ return {
   },
 
   pyrefly = {
-    enabled = false and vim.fn.executable 'uv' == 1,
+    enabled = true and vim.fn.executable 'uv' == 1,
     cmd = { 'uv', 'tool', 'run', 'pyrefly', 'lsp' },
   },
 

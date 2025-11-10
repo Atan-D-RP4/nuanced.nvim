@@ -307,7 +307,7 @@ local maps = {
 
   { { 'n', 'i' }, '<M-a>', '<cmd>%y<CR>', 'Yank All Text in Buffer' },
 
-  { { 'i' }, '<C-g>', '<C-g>u<ESC>1z=`]a<C-g>u', 'Fix Current Word Under Cursor' },
+  { { 'i' }, '<C-k>', '<C-g>u<ESC>1z=`]a<C-g>u', 'Fix Current Word Under Cursor' },
 }
 
 local map = require('nuance.core.utils').map

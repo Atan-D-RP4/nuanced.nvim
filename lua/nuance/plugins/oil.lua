@@ -70,10 +70,22 @@ M.opts.keymaps = {
   ['<C-p>'] = 'actions.preview',
   ['<Right>'] = 'actions.select',
   ['l'] = { 'actions.select', mode = 'n' },
+  ['Y'] = { 'actions.copy_entry_path', mode = 'n' },
   ['q'] = 'actions.close',
-  ['='] = function()
-    vim.cmd 'write'
-  end, -- Save the current buffer
+  ['='] = function() -- Save the current buffer
+    require('oil').save({}, function(err)
+      if err then
+        vim.notify('Error syncing Oil buffer: ' .. tostring(err), vim.log.levels.ERROR)
+        return
+      end
+      vim.tbl_map(function(bufnr)
+        if vim.api.nvim_buf_is_valid(bufnr) and not vim.uv.fs_stat(vim.api.nvim_buf_get_name(bufnr)) then
+          -- File no longer exists — close the buffer
+          vim.api.nvim_buf_delete(bufnr, { force = true })
+        end
+      end, vim.tbl_keys(Bufline.tab_idx_map))
+    end)
+  end,
   ['-'] = 'actions.parent',
   ['_'] = 'actions.open_cwd',
   ['`'] = 'actions.cd',

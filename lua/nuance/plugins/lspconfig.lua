@@ -14,7 +14,8 @@ local lspconfig = {
     'c', 'cpp', 'rust', 'java',
     -- Document Filetypes
     'tex', 'typst',
-    'systemd', 'yaml'
+    -- Data Filetypes
+    'systemd', 'yaml', 'json',
   },
 
   ---@module 'lspconfig'
@@ -23,6 +24,7 @@ local lspconfig = {
 }
 
 vim.api.nvim_create_autocmd('LspAttach', {
+  buffer = 0,
   callback = function(args)
     local bufnr = args.buf
     local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -42,7 +44,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
       { 'gD', '<cmd>lua require("goto-preview").goto_preview_type_definition()<CR>', 'LSP [T]ype [D]efinition' },
       { 'gd', '<cmd>lua require("goto-preview").goto_preview_definition()<CR>', 'LSP [G]oto [D]efinition' },
       { 'grr', '<cmd>lua require("goto-preview").goto_preview_references()<CR>', 'LSP [G]oto [R]eferences' }, -- override `grr` mapping
-      { 'gri', '<cmd>lua require("goto-preview").goto_preview_references()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
+      { 'gri', '<cmd>lua require("goto-preview").goto_preview_implementation()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
 
       { 'grn', "<cmd>lua vim.lsp.buf.rename() vim.cmd [[ exec 'wa' ]]<CR>", 'LSP [R]ename' }, -- override `grn` mapping
       { 'gwd', '<cmd>lua vim.lsp.buf.workspace_diagnostics { client_id = ' .. client.id .. ' }<CR>', 'LSP [W]orkspace [D]iagnostics' },
@@ -65,7 +67,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 ---@module 'lspconfig'
 ---@param opts lspconfig.Config
 lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
-  -- LSP servers and clients are able to communicate to each other what features they support.nvim-config/blob/main/.luarc.json
+  -- LSP servers and clients are able to communicate to each other what features they support.
   -- By default, Neovim doesn't support everything that is in the LSP specification.
   -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
   -- So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
@@ -116,29 +118,33 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
       -- The following two autocommands are used to highlight references of the
       -- word under your cursor when your cursor rests there for a little while.
       -- When you move your cursor, the highlights will be cleared (the second autocommand).
-      -- if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
-      --   local highlight_augroup = augroup('lsp-highlight')
-      --   vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-      --     group = highlight_augroup,
-      --     callback = vim.lsp.buf.document_highlight,
-      --   })
+      if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+        local highlight_augroup = augroup 'lsp-highlight'
+        vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+          buffer = 0,
+          group = highlight_augroup,
+          callback = vim.lsp.buf.document_highlight,
+        })
 
-      --   vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-      --     group = highlight_augroup,
-      --     callback = vim.lsp.buf.clear_references,
-      --   })
+        vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+          buffer = 0,
+          group = highlight_augroup,
+          callback = vim.lsp.buf.clear_references,
+        })
 
-      --   vim.api.nvim_create_autocmd('LspDetach', {
-      --     group = highlight_augroup,
-      --     callback = function(ev)
-      --       vim.api.nvim_clear_autocmds { group = highlight_augroup, buffer = ev.buf }
-      --     end,
-      --   })
-      -- end
+        vim.api.nvim_create_autocmd('LspDetach', {
+          buffer = 0,
+          group = highlight_augroup,
+          callback = function(ev)
+            vim.api.nvim_clear_autocmds { group = highlight_augroup, buffer = ev.buf }
+          end,
+        })
+      end
 
       if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentColor) then
         local color_augroup = augroup 'lsp-color'
         vim.api.nvim_create_autocmd('ColorScheme', {
+          buffer = 0,
           group = color_augroup,
           callback = function(ev)
             vim.lsp.buf.clear_references()
@@ -146,6 +152,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
           end,
         })
         vim.api.nvim_create_autocmd('LspDetach', {
+          buffer = 0,
           group = color_augroup,
           callback = function(ev)
             vim.api.nvim_clear_autocmds { group = color_augroup, buffer = ev.buf }
@@ -164,6 +171,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
             vim.lsp.codelens.refresh()
 
             vim.api.nvim_create_autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
+              buffer = 0,
               group = codelens_augroup,
               callback = function()
                 vim.lsp.codelens.refresh()
@@ -182,6 +190,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         end, { desc = 'LSP [T]oggle [R]efresh CodeLens', noremap = false })
 
         vim.api.nvim_create_autocmd('LspDetach', {
+          buffer = 0,
           group = codelens_augroup,
           callback = function(ev)
             vim.api.nvim_clear_autocmds { buffer = ev.buf, group = codelens_augroup }
@@ -191,6 +200,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
 
       local cleanup_group = augroup('lsp-detach-cleanup', { clear = false })
       vim.api.nvim_create_autocmd('LspDetach', {
+        buffer = 0,
         group = cleanup_group,
         callback = function(ev)
           vim.api.nvim_clear_autocmds { group = cleanup_group, buffer = ev.buf }
