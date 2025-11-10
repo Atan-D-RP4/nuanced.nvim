@@ -4,10 +4,18 @@ local gitcore = {
 
   keys = {
     { '<leader>gg', '<cmd>Git ++curwin<CR>', desc = '[G]it', mode = 'n' },
-    { '<leader>gh', '<cmd>vsplit | Git ++curwin reflog<CR>', desc = '[G]it log', mode = 'n' },
-    { '<leader>gl', '<cmd>Git ++curwin log --oneline --decorate --graph<CR>p', desc = '[G]it log', mode = 'n' },
-    { '<leader>gL', '<cmd>GcLog<CR>', desc = '[G]it log', mode = 'n' },
-    { '<leader>gs', '<cmd>Git status -s<CR>', desc = '[G]it log', mode = 'n' },
+    { '<leader>gh', '<cmd>vsplit | Git ++curwin reflog<CR>', desc = '[G]it [h]istory', mode = 'n' },
+    {
+      '<leader>gl',
+      '<cmd>'
+        .. 'Git ++curwin log --oneline --decorate --graph'
+        .. ' --pretty=format:"%C(bold blue)%h%Creset %C(bold green)(%ar)%Creset %C(bold red)%d%Creset %s %C(dim white)<%an>%Creset" --abbrev-commit'
+        .. '<CR>p',
+      desc = '[G]it [l]og',
+      mode = 'n',
+    },
+    { '<leader>gL', '<cmd>GcLog<CR>', desc = '[G]it [L]og (Descriptive)', mode = 'n' },
+    { '<leader>gs', '<cmd>Git status -s<CR>', desc = '[G]it [s]tatus', mode = 'n' },
     { '<leader>gd', '<cmd>Gdiffsplit<CR>', desc = '[G]it [d]iff against index', mode = 'n' },
     { '<leader>gD', '<cmd>Gdiffsplit!<CR>', desc = '[G]it [D]iff against last commit', mode = 'n' },
   },
@@ -123,6 +131,9 @@ gitsigns.opts.on_attach = function(bufnr)
   map('n', '<leader>gR', signs.reset_buffer, '[G]it [R]eset buffer')
   map('n', '<leader>gp', signs.preview_hunk, '[G]it [p]review hunk')
   map('n', '<leader>gb', signs.blame_line, '[G]it [b]lame line')
+  -- map('n', '<leader>gd', function()
+  --   signs.diffthis ''
+  -- end, 'git [D]iff against index')
   -- map('n', '<leader>gD', function()
   --   signs.diffthis '@'
   -- end, 'git [D]iff against last commit')

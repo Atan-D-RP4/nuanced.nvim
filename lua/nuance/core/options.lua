@@ -75,7 +75,7 @@ opt.wildoptions = 'pum,fuzzy,tagfile'
 opt.pumheight = 10
 opt.display = 'truncate'
 
--- Keep signcolumn on by default
+-- Display signs in the number column
 opt.signcolumn = 'number'
 
 -- Decrease update time

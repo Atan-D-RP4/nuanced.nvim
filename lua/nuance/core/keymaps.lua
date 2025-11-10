@@ -138,8 +138,8 @@ local maps = {
   { 't', '<C-w><C-q>', '<C-\\><C-n>', 'Exit terminal mode' },
 
   -- Better Escape
-  { 'n', '<Esc>', '<C-c><C-c>', 'Better Escape' },
-  { 'i', '<Esc>', '<Esc><Esc>', 'Better Escape' },
+  { 'n', '<Esc>', '<C-c><C-c><cmd>nohlsearch<CR>', 'Better Escape' },
+  { 'i', '<Esc>', '<Esc><Esc><cmd>nohlsearch<CR>', 'Better Escape' },
 
   { 'n', '<C-I>', '<C-I>' },
 

@@ -176,6 +176,24 @@ return {
     filetypes = { 'html', 'css', 'scss', 'less', 'javascriptreact', 'typescriptreact' },
   },
 
+  cssls = {
+    enabled = vim.fn.executable 'deno' == 1,
+    cmd = { 'deno', 'run', '-A', 'npm:vscode-langservers-extracted/vscode-css-language-server', '--stdio' },
+    before_init = function(init_params, config)
+      ---@diagnostic disable-next-line: need-check-nil
+      init_params.capabilities.textDocument.completion.completionItem.snippetSupport = true
+    end,
+  },
+
+  jsonls = {
+    enabled = vim.fn.executable 'deno' == 1,
+    cmd = { 'deno', 'run', '-A', 'npm:vscode-langservers-extracted/vscode-json-language-server', '--stdio' },
+    before_init = function(init_params, config)
+      ---@diagnostic disable-next-line: need-check-nil
+      init_params.capabilities.textDocument.completion.completionItem.snippetSupport = true
+    end,
+  },
+
   vimls = {
     enabled = vim.fn.executable 'deno' == 1,
     cmd = { 'deno', 'run', '-A', 'npm:vim-language-server', '--stdio' },
@@ -241,7 +259,9 @@ return {
     cmd = { 'uv', 'tool', 'run', 'jedi-language-server' },
 
     before_init = function(_, config)
-      config.init_options.workspace.environmentPath = require('nuance.core.utils').get_python_path(config.root_dir)
+      local pythonPath = require('nuance.core.utils').get_python_path(config.root_dir)
+      ---@diagnostic disable-next-line: need-check-nil
+      config.init_options.workspace.pythonPath = pythonPath
     end,
 
     init_options = {

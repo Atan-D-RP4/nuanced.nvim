@@ -39,8 +39,7 @@ local ai = {
         goto_right = '<leader>]',
       },
 
-      -- Number of lines within which textobject is searched
-      n_lines = 300,
+      n_lines = 300, -- Number of lines within which textobject is searched
 
       -- How to search for object (first inside current line, then inside
       -- neighborhood). One of 'cover', 'cover_or_next', 'cover_or_prev',
@@ -51,6 +50,7 @@ local ai = {
       -- This also affects (purely informational) helper messages shown after
       -- idle time if user input is required.
       silent = false,
+
       custom_textobjects = {
         -- Text object for git conflict regions
         G = function()
@@ -61,6 +61,7 @@ local ai = {
           end
           return { from = from, to = to }
         end,
+
         g = function()
           local from = { line = 1, col = 1 }
           local to = {
@@ -69,14 +70,17 @@ local ai = {
           }
           return { from = from, to = to }
         end,
+
         o = require('mini.ai').gen_spec.treesitter { -- code block
           a = { '@block.outer', '@conditional.outer', '@loop.outer' },
           i = { '@block.inner', '@conditional.inner', '@loop.inner' },
         },
+
         f = require('mini.ai').gen_spec.treesitter { a = '@function.outer', i = '@function.inner' }, -- function
         c = require('mini.ai').gen_spec.treesitter { a = '@class.outer', i = '@class.inner' }, -- class
         t = { '<([%p%w]-)%f[^<%w][^<>]->.-</%1>', '^<.->().*()</[^/]->$' }, -- tags
         d = { '%f[%d]%d+' }, -- digits
+
         e = { -- Word with case
           { '%u[%l%d]+%f[^%l%d]', '%f[%S][%l%d]+%f[^%l%d]', '%f[%P][%l%d]+%f[^%l%d]', '^[%l%d]+%f[^%l%d]' },
           '^().*()$',

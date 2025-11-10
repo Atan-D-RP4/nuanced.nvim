@@ -167,42 +167,68 @@ autocmd('BufEnter', {
   command = [[set formatoptions-=cro]],
 })
 
--- NOTE: Originally tried to put this in FileType event autocmd but it is apparently
--- too early for `set modifiable` to take effect
-autocmd('BufWinEnter', {
-  desc = 'Allow editing of quickfix window',
-  group = augroup 'edit-quickfix',
-  pattern = 'quickfix',
+autocmd('FileType', {
+  desc = 'Allow editing and reloading of quickfix window',
+  group = augroup('edit-quickfix', { clear = true }),
+  pattern = 'qf',
   callback = function()
     vim.bo.modifiable = true
     vim.bo.buflisted = false
-    -- :vimgrep's quickfix window display format now includes start and end column (in vim and nvim) so adding 2nd format to match that
-    vim.bo.errorformat = '%f|%l col %c| %m,%f|%l col %c-%k| %m'
 
-    -- Enhanced keymap for updating quickfix
+    -- Handle both legacy and modern quickfix formats (with column ranges)
+    vim.bo.errorformat = table.concat({
+      '%f|%l col %c| %m',
+      '%f|%l col %c-%k| %m',
+    }, ',')
+
+    -- Update quickfix list after editing entries
     vim.keymap.set('n', '<C-s>', function()
-      vim.cmd [[ exec 'cgetbuffer' ]]
-      vim.bo.modified = false
-      vim.notify('Quickfix/location list updated', vim.log.levels.INFO, {
-        title = 'Quickfix',
-        timeout = 2000,
-      })
-    end, { buffer = true, desc = 'Update quickfix/location list with changes made in quickfix window' })
+      if vim.bo.modified then
+        vim.cmd 'cgetbuffer'
+        vim.bo.modified = false
+        vim.notify('Quickfix/location list updated', vim.log.levels.INFO, {
+          title = 'Quickfix',
+          timeout = 1500,
+        })
+      else
+        vim.notify('No changes to update', vim.log.levels.WARN, {
+          title = 'Quickfix',
+          timeout = 1000,
+        })
+      end
+    end, { buffer = true, desc = 'Update quickfix/location list from buffer' })
 
-    -- Additional useful keymaps for quickfix editing
+    -- Proper reload: repopulate quickfix from the previous command (not just :edit!)
     vim.keymap.set('n', '<C-r>', function()
-      vim.cmd [[ exec "edit!" ]]
-      vim.notify('Quickfix list reloaded', vim.log.levels.INFO, {
-        title = 'Quickfix',
-        timeout = 2000,
-      })
-    end, { buffer = true, desc = 'Reload quickfix list' })
+      local qf = vim.fn.getqflist { title = 0 }
+      local title = qf.title or ''
+      if title:match '^vimgrep' or title:match '^grep' then
+        -- Re-run the same vimgrep command if available
+        vim.cmd [[ exec "cexpr []" ]] -- clear
+        vim.cmd('silent ' .. title)
+        vim.cmd [[ exec "copen" ]]
+        vim.notify('Quickfix list reloaded from previous vimgrep', vim.log.levels.INFO, {
+          title = 'Quickfix',
+          timeout = 1500,
+        })
+      else
+        -- Fallback: reload buffer content into quickfix
+        vim.cmd 'cgetbuffer'
+        vim.notify('Quickfix list reloaded from buffer', vim.log.levels.INFO, {
+          title = 'Quickfix',
+          timeout = 1500,
+        })
+      end
+    end, { buffer = true, desc = 'Reload quickfix list (re-run vimgrep or buffer)' })
 
-    -- Quick navigation keymaps
+    -- Smart deletion
     vim.keymap.set('n', 'dd', function()
-      vim.cmd [[ exec 'delete' ]]
+      local line = vim.fn.line '.'
+      vim.cmd [[ exec "delete" ]]
       if vim.fn.line '$' == 1 then
-        vim.cmd [[ exec 'cclose' ]]
+        vim.cmd [[ exec "cclose" ]]
+      else
+        vim.cmd(('cgetbuffer | call cursor(%d, 1)'):format(math.max(1, line)))
       end
     end, { buffer = true, desc = 'Delete quickfix entry' })
   end,
@@ -213,12 +239,12 @@ autocmd('FileType', {
   desc = 'Close miscellaneous buffers with q',
   -- stylua: ignore
   pattern = {
-    'checkhealth', 'cmdwin', 'dbout', 'git', 'help', 'lspinfo', 'qf', 'query', 'startuptime',
+    'checkhealth', 'cmdwin', 'dbout', 'help', 'lspinfo', 'qf', 'query', 'startuptime',
     'fugitive', 'fugitiveblame', 'fugitivediff', 'fugitivediffsplit', 'fugitivediffvsplit',
-    'gitsigns-blame', 'grug-far',
+    'git', 'gitsigns-blame',
     'neotest-output', 'neotest-output-panel', 'neotest-summary',
     'PlenaryTestPopup', 'DiffviewFiles',
-    'notify', 'trouble',
+    'notify', 'trouble', 'grug-far',
     'tsplayground',
   },
   callback = function(args)
@@ -236,7 +262,7 @@ autocmd('FileType', {
       pcall(vim.cmd.close)
 
       if Snacks and Snacks.bufdelete then
-        Snacks.bufdelete.delete(bufnr)
+        pcall(Snacks.bufdelete, bufnr)
       else
         pcall(require('nuance.core.utils').safe_buf_delete, bufnr)
       end
@@ -464,82 +490,5 @@ end, {
   nargs = 0,
   desc = 'Toggle OS clipboard',
 })
-
--- NOTE: DO NOT NEED THIS WITH snacks.nvim in use
--- autocmd({ 'CursorMoved', 'InsertEnter' }, {
---   group = augroup 'toggle-hl-search' ,
---   callback = function(ev)
---     if ev.event == 'InsertEnter' then
---       vim.schedule(function()
---         vim.cmd 'nohlsearch'
---       end)
---     end
---     -- No bloat lua adpatation of: https://github.com/romainl/vim-cool
---     local view, rpos = vim.fn.winsaveview(), vim.fn.getpos '.'
---     -- Move the cursor to a position where (whereas in active search) pressing `n`
---     -- brings us to the original cursor position, in a forward search / that means
---     -- one column before the match, in a backward search ? we move one col forward
---     vim.cmd(string.format('silent! keepjumps go%s', (vim.fn.line2byte(view.lnum) + view.col + 1 - (vim.v.searchforward == 1 and 2 or 0))))
---     -- Attempt to goto next match, if we're in an active search cursor position
---     -- should be equal to original cursor position
---     local ok, _ = pcall(vim.cmd, 'silent! keepjumps norm! n')
---     local insearch = ok and (function()
---       local npos = vim.fn.getpos '.'
---       return npos[2] == rpos[2] and npos[3] == rpos[3]
---     end)()
---     -- restore original view and position
---     vim.fn.winrestview(view)
---     if not insearch then
---       vim.schedule(function()
---         vim.cmd 'nohlsearch'
---       end)
---     end
---   end,
--- })
-
--- Define highlight groups
--- vim.api.nvim_command 'highlight Filepath gui=underline cterm=underline guifg=#F38BA8'
-
--- Match filepaths (fixed regex)
--- vim.cmd 'match Filepath /\\v(\\~\\/|\\.\\.\\/|\\.\\/|\\/)([^\\/ ]+\\/)*[^\\/ ]+(\\.[a-zA-Z0-9]+)*(:\\d+){0,2}/'
-
--- local ns = vim.api.nvim_create_namespace 'filepath_highlighter'
-
--- local function highlight_filepaths(bufnr)
---   vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
---   local content = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
---   local pattern = "(/[%w%._%-]+)+"
-
---   for lnum, line in ipairs(content) do
---     local start = 0
---     while true do
---       local start_idx, end_idx = line:find(pattern, start)
---       if not start_idx then
---         break
---       end
-
---       vim.g.filepath_highlighter = ns
---       vim.api.nvim_buf_set_extmark(bufnr, ns, lnum - 1, start_idx - 1, {
---         end_row = lnum - 1,
---         end_col = end_idx,
---         hl_group = 'Filepath',
---         priority = 100,
---       })
-
---       start = end_idx + 1
---     end
---   end
--- end
-
--- -- Attach to buffers
--- vim.api.nvim_create_autocmd({ 'BufEnter', 'TextChanged', 'InsertLeave' }, {
---   callback = function(args)
---     vim.print(vim.api.nvim_buf_get_extmarks(args.buf, ns, 0, -1, { details = true }))
---     vim.schedule(function()
---       highlight_filepaths(args.buf)
---     end)
---   end,
---   pattern = '*',
--- })
 
 -- vim: ts=2 sts=2 sw=2 et

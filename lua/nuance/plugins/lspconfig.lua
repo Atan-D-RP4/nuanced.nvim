@@ -200,6 +200,9 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
             if cur_client == nil or cur_client.name == 'copilot' then
               return
             end
+            if cur_client:is_stopped() then
+              return
+            end
             local attached_buffers_count = vim.tbl_count(cur_client.attached_buffers)
             if attached_buffers_count == 0 then
               local msg = 'No buffers attached to client: ' .. client.name .. '\n'
