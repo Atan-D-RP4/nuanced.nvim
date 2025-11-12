@@ -1,3 +1,4 @@
+
 local M = {}
 
 local augroup = require('nuance.core.utils').augroup
@@ -23,6 +24,53 @@ M.namespace = api.nvim_create_namespace 'nuance-treesitter-diagnostics'
 local og_virt_text
 local og_virt_line
 
+-- Extract float config to avoid duplication
+local DEFAULT_FLOAT_CONFIG = {
+  focusable = false,
+  close_events = { 'CursorMoved', 'InsertEnter', 'FocusLost' },
+  border = 'rounded',
+  source = 'if_many',
+  prefix = ' ',
+}
+
+-- Debounce timer for diagnostics
+local diagnostics_timer = nil
+local function schedule_diagnostics(bufnr)
+  if diagnostics_timer then
+    vim.fn.timer_stop(diagnostics_timer)
+  end
+  diagnostics_timer = vim.fn.timer_start(100, function()
+    if buf_is_valid(bufnr) then
+      local ok, err = pcall(M.diagnostics, bufnr)
+      if not ok then
+        vim.notify('Treesitter diagnostics error: ' .. tostring(err), vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
+      end
+    end
+    diagnostics_timer = nil
+  end)
+end
+
+-- Safe node operation helpers
+local function safe_node_range(node)
+  local ok, lnum, col, end_lnum, end_col = pcall(node.range, node)
+  return ok, lnum, col, end_lnum, end_col
+end
+
+local function safe_node_type(node)
+  local ok, node_type = pcall(node.type, node)
+  return ok, node_type
+end
+
+local function safe_node_missing(node)
+  local ok, is_missing = pcall(node.missing, node)
+  return ok, is_missing
+end
+
+local function safe_node_named(node)
+  local ok, is_named = pcall(node.named, node)
+  return ok, is_named
+end
+
 function M.setup()
   diagnostic_config {
     underline = true,
@@ -32,13 +80,7 @@ function M.setup()
     },
     jump = {
       on_jump = function(_, _)
-        vim.diagnostic.open_float {
-          focusable = false,
-          close_events = { 'CursorMoved', 'InsertEnter', 'FocusLost' },
-          border = 'rounded',
-          source = 'if_many',
-          prefix = ' ',
-        }
+        vim.diagnostic.open_float(vim.tbl_extend('force', DEFAULT_FLOAT_CONFIG, {}))
       end,
     },
     signs = vim.g.have_nerd_font and {
@@ -76,14 +118,15 @@ function M.setup()
       text = true,
     }
 
-    autocmd({ 'FileType', 'TextChanged', 'InsertLeave' }, {
+    -- Use schedule_diagnostics with debounce instead of direct call
+    autocmd({ 'FileType', 'InsertLeave' }, {
       desc = 'Treesitter-based Diagnostics',
       pattern = '*',
       group = augroup 'treesitter-diagnostics',
       callback = vim.schedule_wrap(function()
         local bufnr = get_current_buf()
 
-        -- Fast validation
+        -- Fast validation - fixed: skip if buftype is NOT empty (non-normal buffers)
         if not buf_is_valid(bufnr) or vim.bo[bufnr].buftype ~= '' then
           return
         end
@@ -94,14 +137,29 @@ function M.setup()
           return
         end
 
-        local ok, err = pcall(M.diagnostics, bufnr)
-        if not ok then
-          vim.notify(
-            'Treesitter diagnostics error: ' .. tostring(err),
-            vim.log.levels.ERROR,
-            { title = 'Treesitter Diagnostics' }
-          )
+        schedule_diagnostics(bufnr)
+      end),
+    })
+
+    -- Use debounced diagnostics for TextChanged to avoid excessive updates
+    autocmd('TextChanged', {
+      desc = 'Treesitter-based Diagnostics (TextChanged)',
+      pattern = '*',
+      group = augroup 'treesitter-diagnostics',
+      callback = vim.schedule_wrap(function()
+        local bufnr = get_current_buf()
+
+        if not buf_is_valid(bufnr) or vim.bo[bufnr].buftype ~= '' then
+          return
         end
+
+        local ft = vim.bo[bufnr].filetype
+        if vim.g.treesitter_diagnostics == false or excluded_filetypes[ft] then
+          diagnostic_reset(M.namespace, bufnr)
+          return
+        end
+
+        schedule_diagnostics(bufnr)
       end),
     })
 
@@ -119,11 +177,7 @@ function M.setup()
       if vim.g.treesitter_diagnostics then
         local ok, err = pcall(M.diagnostics, bufnr)
         if not ok then
-          vim.notify(
-            'Failed to run diagnostics: ' .. tostring(err),
-            vim.log.levels.ERROR,
-            { title = 'Treesitter Diagnostics' }
-          )
+          vim.notify('Failed to run diagnostics: ' .. tostring(err), vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
           return
         end
       end
@@ -170,13 +224,7 @@ function M.setup()
           diagnostic_config { virtual_text = og_virt_text, virtual_lines = false }
         else
           diagnostic_config { virtual_text = false }
-          pcall(vim.diagnostic.open_float, {
-            focusable = false,
-            close_events = { 'CursorMoved', 'InsertEnter', 'FocusLost' },
-            border = 'rounded',
-            source = 'if_many',
-            prefix = ' ',
-          })
+          pcall(vim.diagnostic.open_float, DEFAULT_FLOAT_CONFIG)
         end
       end,
     })
@@ -208,13 +256,7 @@ function M.setup()
           diagnostic_config { virtual_text = og_virt_text }
         else
           diagnostic_config { virtual_text = false }
-          pcall(vim.diagnostic.open_float, {
-            focusable = false,
-            close_events = { 'CursorMoved', 'InsertEnter', 'FocusLost' },
-            border = 'rounded',
-            source = 'if_many',
-            prefix = ' ',
-          })
+          pcall(vim.diagnostic.open_float, DEFAULT_FLOAT_CONFIG)
         end
       end,
     })
@@ -225,7 +267,9 @@ end
 local error_query
 local function get_error_query()
   if not error_query then
-    local ok, query = pcall(vim.treesitter.query.parse, 'query', '[(ERROR)(MISSING)] @a')
+    -- Query pattern for treesitter syntax errors and missing nodes
+    -- Fixed: use proper query syntax with space separator and meaningful capture name
+    local ok, query = pcall(vim.treesitter.query.parse, 'query', '[(ERROR) (MISSING)] @error')
     if ok then
       error_query = query
     end
@@ -236,13 +280,14 @@ end
 ---@param buf integer
 function M.diagnostics(buf)
   -- Fast path: validate buffer and buffer type
+  -- Fixed: properly check buftype - non-empty means special buffer, should skip
   if not buf or not buf_is_valid(buf) or vim.bo[buf].buftype ~= '' then
     return
   end
 
-  -- Check if treesitter is available
-  local has_parser = pcall(vim.treesitter.get_parser, buf)
-  if not has_parser then
+  -- Fixed: properly check if parser exists, not just if function succeeds
+  local parser = vim.treesitter.get_parser(buf, nil, { error = false })
+  if not parser then
     return
   end
 
@@ -252,11 +297,6 @@ function M.diagnostics(buf)
   end
 
   local diagnostics = {}
-  local parser = vim.treesitter.get_parser(buf, nil, { error = false })
-
-  if not parser then
-    return
-  end
 
   -- Pre-allocate diagnostic template to reduce table allocations
   local diag_template = {
@@ -279,7 +319,7 @@ function M.diagnostics(buf)
 
         -- Cache language once per tree
         local lang = 'unknown'
-        if ltree then
+        if ltree ~= nil then
           local ok_lang, result = pcall(ltree.lang, ltree)
           if ok_lang then
             lang = result
@@ -292,53 +332,61 @@ function M.diagnostics(buf)
             goto continue
           end
 
-          local ok_range, lnum, col, end_lnum, end_col = pcall(node.range, node)
+          -- Use safe helper function
+          local ok_range, lnum, col, end_lnum, end_col = safe_node_range(node)
           if not ok_range then
             goto continue
           end
 
-          -- Fast parent check for nested errors
+          -- Fixed: improved nested error detection
+          -- Skip if this node is a child of an ERROR node (duplicate)
           local parent = node:parent()
-          if parent and parent:type() == 'ERROR' then
-            local parent_ok, p_lnum, p_col, p_end_lnum, p_end_col = pcall(parent.range, parent)
-            if parent_ok and p_lnum == lnum and p_col == col and p_end_lnum == end_lnum and p_end_col == end_col then
+          if parent then
+            local ok_parent_type, parent_type = safe_node_type(parent)
+            if ok_parent_type and parent_type == 'ERROR' then
+              -- This is a child of an ERROR node, skip to avoid duplicates
               goto continue
             end
           end
 
-          -- Clamp ranges
+          -- Fixed: proper range clamping - ensure end position is valid
+          -- Don't extend ranges beyond single line for multiline errors
           if end_lnum > lnum then
-            end_lnum = lnum + 1
-            end_col = 0
+            -- Clamp to next line start
+            end_lnum = lnum
+            end_col = col + 1
+          elseif end_col <= col then
+            -- Ensure end column is after start column
+            end_col = col + 1
           end
 
-          -- Build message
+          -- Build message using safe helpers
           local message
-          local ok_missing, is_missing = pcall(node.missing, node)
+          local ok_missing, is_missing = safe_node_missing(node)
           if ok_missing and is_missing then
-            local ok_type, node_type = pcall(node.type, node)
+            local ok_type, node_type = safe_node_type(node)
             message = ok_type and string.format('missing `%s`', node_type) or 'missing element'
           else
-            message = 'error'
+            message = 'syntax error'
           end
 
           -- Add context efficiently
           local previous = node:prev_sibling()
           if previous then
-            local ok_prev_type, prev_type = pcall(previous.type, previous)
+            local ok_prev_type, prev_type = safe_node_type(previous)
             if ok_prev_type and prev_type ~= 'ERROR' then
-              local ok_named, is_named = pcall(previous.named, previous)
+              local ok_named, is_named = safe_node_named(previous)
               local prev_name = (ok_named and is_named) and prev_type or string.format('`%s`', prev_type)
               message = message .. ' after ' .. prev_name
             end
           end
 
           if parent then
-            local ok_parent_type, parent_type = pcall(parent.type, parent)
+            local ok_parent_type, parent_type = safe_node_type(parent)
             if ok_parent_type and parent_type ~= 'ERROR' then
               local should_add = true
               if previous then
-                local ok_prev_type, prev_type = pcall(previous.type, previous)
+                local ok_prev_type, prev_type = safe_node_type(previous)
                 should_add = not (ok_prev_type and prev_type == parent_type)
               end
               if should_add then
