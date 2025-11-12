@@ -1,3 +1,6 @@
+local augroup = require('nuance.core.utils').augroup
+local nmap = require('nuance.core.utils').nmap
+
 local lspconfig = {
   'neovim/nvim-lspconfig',
   cmd = { 'LspStart', 'LspInfo', 'LspLog' },
@@ -24,7 +27,8 @@ local lspconfig = {
 }
 
 vim.api.nvim_create_autocmd('LspAttach', {
-  buffer = 0,
+  once = true,
+  group = augroup 'lsp-attach-mappings',
   callback = function(args)
     local bufnr = args.buf
     local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -50,7 +54,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
       { 'gwd', '<cmd>lua vim.lsp.buf.workspace_diagnostics { client_id = ' .. client.id .. ' }<CR>', 'LSP [W]orkspace [D]iagnostics' },
     }
 
-    local nmap = require('nuance.core.utils').nmap
     vim.tbl_map(function(map)
       local key, rhs, desc = unpack(map)
       nmap(key, rhs, { desc = desc, buffer = bufnr })
@@ -113,8 +116,6 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
       end
       vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
 
-      local augroup = require('nuance.core.utils').augroup
-
       -- The following two autocommands are used to highlight references of the
       -- word under your cursor when your cursor rests there for a little while.
       -- When you move your cursor, the highlights will be cleared (the second autocommand).
@@ -164,7 +165,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         local codelens_augroup = augroup 'lsp-codelens'
         vim.b.codelens_enabled = vim.b.codelens_enabled or false
 
-        require('nuance.core.utils').nmap('<leader>tr', function()
+        nmap('<leader>tr', function()
           vim.b.codelens_enabled = not vim.b.codelens_enabled
 
           if vim.b.codelens_enabled then
@@ -225,7 +226,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
       })
 
       if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
-        require('nuance.core.utils').nmap('<leader>th', function()
+        nmap('<leader>th', function()
           vim.notify('LSP Inlay Hints ' .. (vim.lsp.inlay_hint.is_enabled() and 'Disabled' or 'Enabled'), vim.log.levels.INFO, { title = 'LSP' })
           vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
         end, { desc = 'LSP [T]oggle Inlay [H]ints', noremap = false })
@@ -326,18 +327,16 @@ local tiny_inline_diagnostic = {
   event = 'LspAttach',
   priority = 1000,
   config = function()
-    local augroup = require('nuance.core.utils').augroup
     local autocmd = vim.api.nvim_create_autocmd
-    local api = vim.api
 
     -- Cache frequently used functions
-    local buf_is_valid = api.nvim_buf_is_valid
-    local win_get_cursor = api.nvim_win_get_cursor
+    local buf_is_valid = vim.api.nvim_buf_is_valid
+    local win_get_cursor = vim.api.nvim_win_get_cursor
     local diagnostic_get = vim.diagnostic.get
     local diagnostic_config = vim.diagnostic.config
 
     -- Clear old autocmds
-    api.nvim_clear_autocmds { group = augroup 'diagnostic-float-or-virtlines-by-count' }
+    vim.api.nvim_clear_autocmds { group = augroup 'diagnostic-float-or-virtlines-by-count' }
 
     -- Capture original virtual_text config before modifying
     local og_virt_text = diagnostic_config().virtual_text
