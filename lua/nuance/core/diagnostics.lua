@@ -36,7 +36,7 @@ local DEFAULT_FLOAT_CONFIG = {
 -- Debounce timer for diagnostics
 local diagnostics_timer = nil
 local function schedule_diagnostics(bufnr)
-  if diagnostics_timer then
+  if diagnostics_timer ~= nil then
     vim.fn.timer_stop(diagnostics_timer)
   end
   diagnostics_timer = vim.fn.timer_start(100, function()
@@ -50,39 +50,50 @@ local function schedule_diagnostics(bufnr)
   end)
 end
 
--- Safe node operation helpers
-local function safe_node_range(node)
+-- Optimized node operation helpers - reduced overhead
+local function get_node_range(node)
   local ok, lnum, col, end_lnum, end_col = pcall(node.range, node)
-  return ok, lnum, col, end_lnum, end_col
+  if ok then
+    return lnum, col, end_lnum, end_col
+  end
+  return nil
 end
 
-local function safe_node_type(node)
+local function get_node_type(node)
   local ok, node_type = pcall(node.type, node)
-  return ok, node_type
+  if ok then
+    return node_type
+  end
+  return nil
 end
 
-local function safe_node_missing(node)
+local function is_node_missing(node)
   local ok, is_missing = pcall(node.missing, node)
-  return ok, is_missing
+  return ok and is_missing
 end
 
-local function safe_node_named(node)
+local function is_node_named(node)
   local ok, is_named = pcall(node.named, node)
-  return ok, is_named
+  return ok and is_named
 end
 
 function M.setup()
+  -- Cache diagnostic config values upfront
+  local current_config = diagnostic_config()
+  local has_virtual_lines = current_config.virtual_lines
+
   diagnostic_config {
     underline = true,
     severity_sort = true,
     float = {
       border = 'rounded',
     },
-    jump = {
-      on_jump = function(_, _)
-        vim.diagnostic.open_float(vim.tbl_extend('force', DEFAULT_FLOAT_CONFIG, {}))
-      end,
-    },
+     jump = {
+       on_jump = function(_, _)
+         -- Use DEFAULT_FLOAT_CONFIG directly without tbl_extend
+         vim.diagnostic.open_float(DEFAULT_FLOAT_CONFIG)
+       end,
+     },
     signs = vim.g.have_nerd_font and {
       text = {
         [SEVERITY.ERROR] = '󰅚 ',
@@ -94,20 +105,14 @@ function M.setup()
     update_in_insert = false,
     virtual_lines = { current_line = true },
 
-    virtual_text = {
-      source = true,
-      spacing = 2,
-      -- prefix = function(diagnostic, i, total)
-      --   local symbols = vim.diagnostic.config().signs.text
-      --   local symbol = symbols[diagnostic.severity] or '●'
-      --   return symbol
-      -- end,
-
-      ---@param diagnostic vim.Diagnostic
-      format = function(diagnostic)
-        return string.format('[%s] %s', diagnostic.code, diagnostic.message)
-      end,
-    },
+     virtual_text = {
+       source = true,
+       spacing = 2,
+       ---@param diagnostic vim.Diagnostic
+       format = function(diagnostic)
+         return string.format('[%s] %s', diagnostic.code, diagnostic.message)
+       end,
+     },
   }
 
   if vim.g.treesitter_lint_available == true then
@@ -118,27 +123,41 @@ function M.setup()
       text = true,
     }
 
+    -- Helper to check if diagnostics should run
+    local function should_run_diagnostics()
+      local bufnr = get_current_buf()
+
+      if not buf_is_valid(bufnr) then
+        return false, nil
+      end
+
+      -- Cache buffer properties to avoid repeated API calls
+      local buftype = vim.bo[bufnr].buftype
+      local filetype = vim.bo[bufnr].filetype
+
+      if buftype ~= '' or vim.g.treesitter_diagnostics == false or excluded_filetypes[filetype] then
+        return false, bufnr
+      end
+
+      return true, bufnr
+    end
+
     -- Use schedule_diagnostics with debounce instead of direct call
+    -- FileType and InsertLeave are immediate (no reason for debounce)
     autocmd({ 'FileType', 'InsertLeave' }, {
       desc = 'Treesitter-based Diagnostics',
       pattern = '*',
       group = augroup 'treesitter-diagnostics',
-      callback = vim.schedule_wrap(function()
-        local bufnr = get_current_buf()
-
-        -- Fast validation - fixed: skip if buftype is NOT empty (non-normal buffers)
-        if not buf_is_valid(bufnr) or vim.bo[bufnr].buftype ~= '' then
+      callback = function()
+        local should_run, bufnr = should_run_diagnostics()
+        if not should_run then
+          if bufnr then
+            diagnostic_reset(M.namespace, bufnr)
+          end
           return
         end
-
-        local ft = vim.bo[bufnr].filetype
-        if vim.g.treesitter_diagnostics == false or excluded_filetypes[ft] then
-          diagnostic_reset(M.namespace, bufnr)
-          return
-        end
-
         schedule_diagnostics(bufnr)
-      end),
+      end,
     })
 
     -- Use debounced diagnostics for TextChanged to avoid excessive updates
@@ -146,21 +165,16 @@ function M.setup()
       desc = 'Treesitter-based Diagnostics (TextChanged)',
       pattern = '*',
       group = augroup 'treesitter-diagnostics',
-      callback = vim.schedule_wrap(function()
-        local bufnr = get_current_buf()
-
-        if not buf_is_valid(bufnr) or vim.bo[bufnr].buftype ~= '' then
+      callback = function()
+        local should_run, bufnr = should_run_diagnostics()
+        if not should_run then
+          if bufnr then
+            diagnostic_reset(M.namespace, bufnr)
+          end
           return
         end
-
-        local ft = vim.bo[bufnr].filetype
-        if vim.g.treesitter_diagnostics == false or excluded_filetypes[ft] then
-          diagnostic_reset(M.namespace, bufnr)
-          return
-        end
-
         schedule_diagnostics(bufnr)
-      end),
+      end,
     })
 
     api.nvim_create_user_command('TSDiagnosticsToggle', function(_)
@@ -332,19 +346,21 @@ function M.diagnostics(buf)
             goto continue
           end
 
-          -- Use safe helper function
-          local ok_range, lnum, col, end_lnum, end_col = safe_node_range(node)
-          if not ok_range then
+          -- Get node range - early exit if invalid
+           local lnum, col, end_lnum, end_col = get_node_range(node)
+           if not lnum then
             goto continue
           end
 
           -- Fixed: improved nested error detection
           -- Skip if this node is a child of an ERROR node (duplicate)
           local parent = node:parent()
+          local parent_type = nil
+
+          -- Check if this is a nested error (child of ERROR node) - skip to avoid duplicates
           if parent then
-            local ok_parent_type, parent_type = safe_node_type(parent)
-            if ok_parent_type and parent_type == 'ERROR' then
-              -- This is a child of an ERROR node, skip to avoid duplicates
+            parent_type = get_node_type(parent)
+            if parent_type == 'ERROR' then
               goto continue
             end
           end
@@ -360,40 +376,36 @@ function M.diagnostics(buf)
             end_col = col + 1
           end
 
-          -- Build message using safe helpers
-          local message
-          local ok_missing, is_missing = safe_node_missing(node)
-          if ok_missing and is_missing then
-            local ok_type, node_type = safe_node_type(node)
-            message = ok_type and string.format('missing `%s`', node_type) or 'missing element'
-          else
-            message = 'syntax error'
-          end
+           -- Build message
+           local message
+           if is_node_missing(node) ~= nil then
+             local node_type = get_node_type(node)
+             message = node_type and string.format('missing `%s`', node_type) or 'missing element'
+           else
+             message = 'syntax error'
+           end
 
-          -- Add context efficiently
-          local previous = node:prev_sibling()
-          if previous then
-            local ok_prev_type, prev_type = safe_node_type(previous)
-            if ok_prev_type and prev_type ~= 'ERROR' then
-              local ok_named, is_named = safe_node_named(previous)
-              local prev_name = (ok_named and is_named) and prev_type or string.format('`%s`', prev_type)
-              message = message .. ' after ' .. prev_name
-            end
-          end
+           -- Add context efficiently
+           local previous = node:prev_sibling()
+           if previous then
+             local prev_type = get_node_type(previous)
+             if prev_type and prev_type ~= 'ERROR' then
+               local prev_name = is_node_named(previous) and prev_type or string.format('`%s`', prev_type)
+               message = message .. ' after ' .. prev_name
+             end
+           end
 
-          if parent then
-            local ok_parent_type, parent_type = safe_node_type(parent)
-            if ok_parent_type and parent_type ~= 'ERROR' then
-              local should_add = true
-              if previous then
-                local ok_prev_type, prev_type = safe_node_type(previous)
-                should_add = not (ok_prev_type and prev_type == parent_type)
-              end
-              if should_add then
-                message = message .. ' in ' .. parent_type
-              end
-            end
-          end
+           -- Use cached parent_type to avoid second lookup
+           if parent_type and parent_type ~= 'ERROR' then
+             local should_add = true
+             if previous then
+               local prev_type = get_node_type(previous)
+               should_add = not (prev_type and prev_type == parent_type)
+             end
+             if should_add then
+               message = message .. ' in ' .. parent_type
+             end
+           end
 
           -- Create diagnostic using template (reduces allocations)
           diagnostics[#diagnostics + 1] = {
