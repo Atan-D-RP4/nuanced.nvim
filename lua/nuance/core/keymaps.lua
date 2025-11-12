@@ -109,24 +109,6 @@ local maps = {
     'Treesitter Jump to Node-End',
   },
 
-  {
-    'n',
-    '<C-a>',
-    function()
-      require('nuance.core.lsp_dial').lsp_dial(true)
-    end,
-    { noremap = true },
-  },
-
-  {
-    'n',
-    '<C-x>',
-    function()
-      require('nuance.core.lsp_dial').lsp_dial(false)
-    end,
-    { noremap = true },
-  },
-
   vim.version() >= vim.version { major = 0, minor = 11, patch = 0 } and { 'n', '<leader>u', '<cmd>Undotree<CR>', 'Toggle Undotree' } or {},
 
   { 'x', '/', '<Esc>/\\%V', 'Search in Visual Selection' },
