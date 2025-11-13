@@ -1,3 +1,4 @@
+local autocmd = vim.api.nvim_create_autocmd
 local augroup = require('nuance.core.utils').augroup
 local nmap = require('nuance.core.utils').nmap
 
@@ -26,7 +27,7 @@ local lspconfig = {
   opts = {},
 }
 
-vim.api.nvim_create_autocmd('LspAttach', {
+autocmd('LspAttach', {
   once = true,
   group = augroup 'lsp-attach-mappings',
   callback = function(args)
@@ -67,14 +68,67 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end,
 })
 
+autocmd('LspAttach', {
+  callback = function(event)
+    local bufnr = event.buf
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
+    if not client then
+      vim.notify('LSP client not found for id: ' .. tostring(event.data.client_id), vim.log.levels.WARN, { title = 'LSP' })
+      return
+    end
+
+    -- The following two autocommands are used to highlight references of the
+    -- word under your cursor when your cursor rests there for a little while.
+    -- When you move your cursor, the highlights will be cleared (the second autocommand).
+    if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+      local highlight_augroup = augroup 'lsp-highlight'
+      autocmd({ 'CursorHold', 'CursorHoldI' }, {
+        buffer = bufnr,
+        group = highlight_augroup,
+        callback = vim.lsp.buf.document_highlight,
+      })
+
+      autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+        buffer = bufnr,
+        group = highlight_augroup,
+        callback = vim.lsp.buf.clear_references,
+      })
+
+      autocmd('LspDetach', {
+        buffer = bufnr,
+        group = highlight_augroup,
+        callback = function(ev)
+          pcall(vim.api.nvim_clear_autocmds, { group = highlight_augroup, buffer = ev.buf })
+        end,
+      })
+    end
+
+    if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentColor) then
+      local color_augroup = augroup 'lsp-color'
+
+      autocmd('ColorScheme', {
+        buffer = bufnr,
+        group = color_augroup,
+        callback = function(ev)
+          vim.lsp.buf.clear_references()
+          vim.lsp.document_color._buf_refresh(ev.buf, client.id)
+        end,
+      })
+
+      autocmd('LspDetach', {
+        buffer = bufnr,
+        group = color_augroup,
+        callback = function(ev)
+          pcall(vim.api.nvim_clear_autocmds, { group = color_augroup, buffer = ev.buf })
+        end,
+      })
+    end
+  end,
+})
+
 ---@module 'lspconfig'
 ---@param opts lspconfig.Config
 lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
-  -- LSP servers and clients are able to communicate to each other what features they support.
-  -- By default, Neovim doesn't support everything that is in the LSP specification.
-  -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
-  -- So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
-
   -- Set the priority of the semantic tokens to be lower than
   -- that of Treesitter, so that Treesitter is always highlighting
   -- over LSP semantic tokens.
@@ -97,6 +151,10 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
   -- So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
 
+  -- LSP servers and clients are able to communicate to each other what features they support.
+  -- By default, Neovim doesn't support everything that is in the LSP specification.
+  -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
+  -- So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
   local has_blink, blink = pcall(require, 'blink.cmp')
   local capabilities = vim.tbl_deep_extend(
     'force',
@@ -116,51 +174,6 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
       end
       vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
 
-      -- The following two autocommands are used to highlight references of the
-      -- word under your cursor when your cursor rests there for a little while.
-      -- When you move your cursor, the highlights will be cleared (the second autocommand).
-      if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
-        local highlight_augroup = augroup 'lsp-highlight'
-        vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-          buffer = 0,
-          group = highlight_augroup,
-          callback = vim.lsp.buf.document_highlight,
-        })
-
-        vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-          buffer = 0,
-          group = highlight_augroup,
-          callback = vim.lsp.buf.clear_references,
-        })
-
-        vim.api.nvim_create_autocmd('LspDetach', {
-          buffer = 0,
-          group = highlight_augroup,
-          callback = function(ev)
-            vim.api.nvim_clear_autocmds { group = highlight_augroup, buffer = ev.buf }
-          end,
-        })
-      end
-
-      if client:supports_method(vim.lsp.protocol.Methods.textDocument_documentColor) then
-        local color_augroup = augroup 'lsp-color'
-        vim.api.nvim_create_autocmd('ColorScheme', {
-          buffer = 0,
-          group = color_augroup,
-          callback = function(ev)
-            vim.lsp.buf.clear_references()
-            vim.lsp.document_color._buf_refresh(ev.buf, client.id)
-          end,
-        })
-        vim.api.nvim_create_autocmd('LspDetach', {
-          buffer = 0,
-          group = color_augroup,
-          callback = function(ev)
-            vim.api.nvim_clear_autocmds { group = color_augroup, buffer = ev.buf }
-          end,
-        })
-      end
-
       if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_codeLens) then
         local codelens_augroup = augroup 'lsp-codelens'
         vim.b.codelens_enabled = vim.b.codelens_enabled or false
@@ -171,15 +184,14 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
           if vim.b.codelens_enabled then
             vim.lsp.codelens.refresh()
 
-            vim.api.nvim_create_autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
-              buffer = 0,
+            autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
               group = codelens_augroup,
               callback = function()
                 vim.lsp.codelens.refresh()
               end,
             })
           else
-            vim.api.nvim_clear_autocmds { group = codelens_augroup }
+            pcall(vim.api.nvim_clear_autocmds, { group = codelens_augroup })
             vim.lsp.codelens.clear()
           end
 
@@ -190,21 +202,30 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
           )
         end, { desc = 'LSP [T]oggle [R]efresh CodeLens', noremap = false })
 
-        vim.api.nvim_create_autocmd('LspDetach', {
-          buffer = 0,
+        autocmd('LspDetach', {
           group = codelens_augroup,
           callback = function(ev)
-            vim.api.nvim_clear_autocmds { buffer = ev.buf, group = codelens_augroup }
+            pcall(vim.api.nvim_clear_autocmds, { group = codelens_augroup, buffer = ev.buf })
           end,
         })
       end
 
+      if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+        nmap('<leader>th', function()
+          vim.notify(
+            'LSP Inlay Hints ' .. (vim.lsp.inlay_hint.is_enabled() and 'Disabled' or 'Enabled'),
+            (vim.lsp.inlay_hint.is_enabled() and log_levels.WARN or log_levels.INFO),
+            { title = 'LSP' }
+          )
+          vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+        end, { desc = 'LSP [T]oggle Inlay [H]ints', noremap = false })
+      end
+
       local cleanup_group = augroup('lsp-detach-cleanup', { clear = false })
-      vim.api.nvim_create_autocmd('LspDetach', {
-        buffer = 0,
+      autocmd('LspDetach', {
         group = cleanup_group,
         callback = function(ev)
-          vim.api.nvim_clear_autocmds { group = cleanup_group, buffer = ev.buf }
+          pcall(vim.api.nvim_clear_autocmds, { group = cleanup_group, buffer = ev.buf })
           vim.defer_fn(function()
             -- Kill the LS process if no buffers are attached to the client
             local cur_client = vim.lsp.get_client_by_id(ev.data.client_id)
@@ -224,13 +245,6 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
           end, 3000)
         end,
       })
-
-      if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
-        nmap('<leader>th', function()
-          vim.notify('LSP Inlay Hints ' .. (vim.lsp.inlay_hint.is_enabled() and 'Disabled' or 'Enabled'), vim.log.levels.INFO, { title = 'LSP' })
-          vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-        end, { desc = 'LSP [T]oggle Inlay [H]ints', noremap = false })
-      end
     end,
 
     -- before_init = function(_params, client_config)
@@ -256,8 +270,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     end,
   })
 
-  local configured_servers = require 'nuance.core.lsps'
-  for name, server in pairs(configured_servers) do
+  for name, server in pairs(require 'nuance.core.lsps') do
     vim.tbl_map(function(key)
       vim.lsp.config(name, { [key] = server[key] })
     end, vim.tbl_keys(server)) -- just to avoid a warning from luacheck (unused variable '
@@ -327,8 +340,6 @@ local tiny_inline_diagnostic = {
   event = 'LspAttach',
   priority = 1000,
   config = function()
-    local autocmd = vim.api.nvim_create_autocmd
-
     -- Cache frequently used functions
     local buf_is_valid = vim.api.nvim_buf_is_valid
     local win_get_cursor = vim.api.nvim_win_get_cursor
@@ -336,7 +347,7 @@ local tiny_inline_diagnostic = {
     local diagnostic_config = vim.diagnostic.config
 
     -- Clear old autocmds
-    vim.api.nvim_clear_autocmds { group = augroup 'diagnostic-float-or-virtlines-by-count' }
+    pcall(vim.api.nvim_clear_autocmds, { group = augroup 'diagnostic-float-or-virtlines-by-count' })
 
     -- Capture original virtual_text config before modifying
     local og_virt_text = diagnostic_config().virtual_text

@@ -8,7 +8,8 @@ autocmd('FileType', {
   desc = 'Use K to show dictionary definition of word under cursor',
   group = augroup 'dictionary-keymap',
   callback = function()
-    if vim.executable 'wn' ~= 1 then
+    if not vim.fn.executable 'dict' == 1 and not vim.fn.executable 'wn' == 1 then
+      vim.notify('Neither "dict" nor "wn" command is available for dictionary lookup', vim.log.levels.WARN)
       return
     end
     vim.keymap.set('n', 'K', function()
@@ -22,8 +23,7 @@ autocmd('FileType', {
       if vim.fn.executable 'wn' == 1 then
         cmd = { 'wn', word, '-over' }
       else
-        vim.notify('No dictionary program found (install `dict` or `wordnet`)', vim.log.levels.ERROR)
-        return
+        cmd = { 'dict', word }
       end
 
       -- Run asynchronously and show in LSP-style hover
@@ -512,12 +512,14 @@ autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusL
     end
     -- Check if the event is one of the specified events or if the window is a command window
     if vim.tbl_contains({ 'WinEnter', 'BufEnter', 'FocusGained', 'CmdwinLeave' }, ev.event) then
-      vim.wo.relativenumber = true
-      vim.wo.number = true
+      vim.opt_local.relativenumber = true
+      vim.opt_local.number = true
+      vim.opt_local.cursorline = true
     end
     if vim.tbl_contains({ 'WinLeave', 'BufLeave', 'FocusLost', 'CmdwinEnter' }, ev.event) then
-      vim.wo.relativenumber = false
-      vim.wo.number = false
+      vim.opt_local.relativenumber = false
+      vim.opt_local.number = false
+      vim.opt_local.cursorline = false
     end
   end,
 })

@@ -25,16 +25,43 @@ end
 
 ---@param modes string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
-function M.is_key_mapped(modes, lhs)
+---@param opts? table          Optional parameters. If {buffer = 0}, checks buffer-local mappings.
+---@return boolean
+function M.is_key_mapped(modes, lhs, opts)
   -- Normalize modes to a list if it's a single string
   if type(modes) == 'string' then
     modes = { modes }
   end
 
+  -- Get the leader key and expand it to its notation form
+  local leader = vim.g.mapleader
+  if leader then
+    -- Convert the leader character to its key notation (e.g., '\r' -> '<CR>')
+    local leader_notation = vim.api.nvim_replace_termcodes(leader, true, true, true)
+    leader_notation = vim.fn.keytrans(leader_notation)
+    -- Replace <leader> with the actual leader key notation
+    lhs = lhs:gsub('<[Ll][Ee][Aa][Dd][Ee][Rr]>', leader_notation)
+  end
+
+  -- Expand terminal codes like <CR>, <C-q>, etc.
+  local expanded_lhs = vim.api.nvim_replace_termcodes(lhs, true, true, true)
+
+  local buffer = opts and opts.buffer or nil
+
   for _, mode in ipairs(modes) do
-    local mappings = vim.api.nvim_get_keymap(mode)
+    local mappings
+    if buffer then
+      -- Check buffer-local mappings
+      mappings = vim.api.nvim_buf_get_keymap(buffer, mode)
+    else
+      -- Check global mappings
+      mappings = vim.api.nvim_get_keymap(mode)
+    end
+
     for _, map in pairs(mappings) do
-      if map.lhs == lhs then
+      -- Compare both the original lhs and expanded version
+      -- because maps can be stored in either form depending on how they were set
+      if map.lhs == lhs or map.lhs == expanded_lhs then
         return true
       end
     end
@@ -45,18 +72,20 @@ end
 
 ---@param modes string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
 ---@param lhs string           Left-hand side |{lhs}| of the mapping.
-function M.unmap(modes, lhs)
+---@param opts? table          Optional parameters. If {buffer = 0}, unmaps buffer-local mappings.
+function M.unmap(modes, lhs, opts)
   -- Normalize modes to a list if it's a single string
   if type(modes) == 'string' then
     modes = { modes }
   end
 
+  local buffer = opts and opts.buffer or nil
+
   -- Delete existing mappings for all specified modes
   for _, mode in ipairs(modes) do
-    local key_is_mapped = M.is_key_mapped(mode, lhs)
-    if key_is_mapped then
-      pcall(vim.keymap.del, mode, lhs, { buffer = vim.api.nvim_get_current_buf() })
-    end
+    -- Try to delete the mapping, ignoring errors if it doesn't exist
+    local del_opts = buffer and { buffer = buffer } or {}
+    pcall(vim.keymap.del, mode, lhs, del_opts)
   end
 end
 
@@ -66,7 +95,14 @@ end
 ---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
 ---@param opts? vim.keymap.set.Opts|string
 function M.map(modes, lhs, rhs, opts)
-  M.unmap(modes, lhs)
+  -- Extract unmap opts from keymap opts if buffer is specified
+  local unmap_opts = nil
+  if opts and type(opts) == 'table' and opts.buffer then
+    unmap_opts = { buffer = opts.buffer }
+  end
+
+  M.unmap(modes, lhs, unmap_opts)
+
   -- Set new mapping
   local options = { noremap = true, silent = true }
   if opts then
@@ -75,6 +111,7 @@ function M.map(modes, lhs, rhs, opts)
     end
     options = vim.tbl_extend('force', options, opts)
   end
+
   local suc, res = pcall(vim.keymap.set, modes, lhs, rhs, options)
   if not suc then
     vim.notify('Error setting keymap: ' .. res, vim.log.levels.ERROR)
@@ -299,6 +336,15 @@ function M.get_workspace_files(client)
   end
 
   return results or {}
+end
+
+---Debug function: Print all keymaps for a given mode
+---@param mode string
+function M.debug_keymaps(mode)
+  local mappings = vim.api.nvim_get_keymap(mode)
+  for i, map in pairs(mappings) do
+    vim.print(string.format('[%d] lhs=%q rhs=%q', i, map.lhs, map.rhs or ''))
+  end
 end
 
 return M

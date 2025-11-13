@@ -19,7 +19,7 @@ local ai = {
   -- Better Around/Inside textobjects
   'echasnovski/mini.ai',
   lazy = true,
-  event = { 'BufRead', 'BufNewFile', 'BufWinEnter' },
+  event = { 'BufRead', 'BufNewFile', 'FileType' },
   branch = 'main',
 
   dependencies = {

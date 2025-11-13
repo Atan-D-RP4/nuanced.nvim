@@ -27,11 +27,12 @@ if vim.version() >= vim.version { major = 0, minor = 12, patch = 0 } then
 end
 
 require('nuance.core.bufline').setup()
-require('nuance.core.rain').setup({
+
+require('nuance.core.rain').setup {
   spawn_interval = 400,
   drop_interval = 35,
   winblend = 100,
   speed_variance = 10,
-})
+}
 
 -- vim: ts=2 sts=2 sw=2 et

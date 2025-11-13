@@ -1,11 +1,10 @@
 vim.g.active_session = ''
-local Sessions = {}
 
 local function create_default()
   local session_path = require('mini.sessions').config.directory .. '/' .. 'default'
   local session_file = io.open(session_path, 'w')
   if session_file == nil then
-    print 'Failed to create session file'
+    vim.notify('Failed to create session file', vim.log.levels.ERROR, { title = 'Session' })
     return
   end
   session_file:write [[
@@ -59,25 +58,33 @@ end
 
 local session_files = function(file)
   if vim.fn.isdirectory(file) == 1 then
-    return {}
+    return ''
   end
-  local lines = {}
-  local cwd, cwd_pat = '', '^cd%s*'
-  local buf_pat = '^badd%s*%+%d+%s*'
-  for line in io.lines(file) do
-    if string.find(line, cwd_pat) then
-      cwd = line:gsub('%p', '%%%1')
+
+  local ok, result = pcall(function()
+    local lines = {}
+    local buf_pat = '^badd%s*%+%d+%s+'
+
+    for line in io.lines(file) do
+      if string.find(line, buf_pat) then
+        table.insert(lines, line)
+      end
     end
-    if string.find(line, buf_pat) then
-      lines[#lines + 1] = line
+
+    local buffers = {}
+    for _, line in ipairs(lines) do
+      local cleaned = line:gsub(buf_pat, '')
+      table.insert(buffers, cleaned)
     end
+
+    return table.concat(buffers, '\n')
+  end)
+
+  if not ok then
+    return ''
   end
-  local buffers = {}
-  for k, v in pairs(lines) do
-    buffers[k] = v:gsub(buf_pat, ''):gsub(cwd:gsub('cd%s*', ''), ''):gsub('^/?%.?/', '')
-  end
-  local buffer_lines = table.concat(buffers, '\n')
-  return buffer_lines
+
+  return result
 end
 
 local session_pick = function()
@@ -120,6 +127,10 @@ local session_pick = function()
 
       rename = function(picker, item, _)
         vim.ui.input({ prompt = 'Rename Session "' .. item.name .. '" to:' }, function(input)
+          if not input or input == '' then
+            vim.notify('Session rename cancelled or empty name', vim.log.levels.WARN, { title = 'Session' })
+            return
+          end
           require('mini.sessions').delete(item.name, { force = true })
           require('mini.sessions').write(input)
           if vim.g.active_session == item.name then
@@ -168,7 +179,7 @@ local session_pick = function()
   }
 end
 
-M = {
+local M = {
   'echasnovski/mini.sessions',
   dependencies = {
     'folke/snacks.nvim',
@@ -205,13 +216,6 @@ M.config = function(_, opts)
     session_pick()
   end, { nargs = 0 })
 
-  -- local read = MiniSessions.read
-  -- ---@diagnostic disable-next-line: redefined-local, duplicate-set-field
-  -- MiniSessions.read = function(name, opts)
-  --   vim.cmd [[ exec 'silent! bufdo w' ]]
-  --   read(name, opts)
-  -- end
-
   -- Check if session dir exists and if not create it
   if vim.fn.isdirectory(require('mini.sessions').config.directory) == 0 then
     vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
@@ -230,9 +234,9 @@ M.config = function(_, opts)
     local session = vim.g.active_session
     if session == '' then
       -- use an icon for default session
-      session = ''
+      session = ''
     else
-      session = ' ' .. session
+      session = ' ' .. session
     end
     return session .. ' ' .. default_section_filename(args)
   end
@@ -247,6 +251,7 @@ M.keys = {
         return
       end
       require('mini.sessions').write(vim.g.active_session)
+      vim.notify('Session saved: ' .. vim.g.active_session, vim.log.levels.INFO, { title = 'Session' })
     end,
     desc = '[S]essions [S]ave/Update',
     mode = 'n',
@@ -256,17 +261,19 @@ M.keys = {
     '<leader>ar',
     function()
       if vim.g.active_session == '' then
-        print 'No session loaded'
+        vim.notify('No session loaded', vim.log.levels.INFO, { title = 'Session' })
         return
       end
-      vim.ui.input({ default = vim.g.active_session, prompt = 'Rename Session' }, function(input)
-        if input == nil then
-          vim.notify('Empty Session Name', vim.log.levels.ERROR, { title = 'Session' })
+      vim.ui.input({ default = vim.g.active_session, prompt = 'Rename Session to:' }, function(input)
+        if input == nil or input == '' then
+          vim.notify('Session rename cancelled or empty name', vim.log.levels.WARN, { title = 'Session' })
           return
         end
-        require('mini.sessions').delete(vim.g.active_session, { force = true })
+        local old_name = vim.g.active_session
+        require('mini.sessions').delete(old_name, { force = true })
         require('mini.sessions').write(input)
         vim.g.active_session = input
+        vim.notify('Session renamed: ' .. old_name .. ' → ' .. input, vim.log.levels.INFO, { title = 'Session' })
       end)
     end,
     desc = '[S]ession [R]ename',
@@ -276,7 +283,7 @@ M.keys = {
     '<leader>aq',
     function()
       if vim.g.active_session == '' then
-        print 'No session loaded'
+        vim.notify('No session loaded', vim.log.levels.INFO, { title = 'Session' })
         return
       end
       require('mini.sessions').write(vim.g.active_session)
@@ -290,13 +297,15 @@ M.keys = {
   {
     '<leader>ac',
     function()
-      local name = vim.fn.input 'Session name: '
-      if name == '' then
-        print 'No session saved'
-        return
-      end
-      require('mini.sessions').write(name)
-      vim.g.active_session = name
+      vim.ui.input({ prompt = 'Session name: ' }, function(name)
+        if name == nil or name == '' then
+          vim.notify('Session creation cancelled or empty name', vim.log.levels.WARN, { title = 'Session' })
+          return
+        end
+        require('mini.sessions').write(name)
+        vim.g.active_session = name
+        vim.notify('Session created: ' .. name, vim.log.levels.INFO, { title = 'Session' })
+      end)
     end,
     desc = '[S]essions [C]reate',
     mode = 'n',

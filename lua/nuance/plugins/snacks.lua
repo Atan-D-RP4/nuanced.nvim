@@ -177,6 +177,7 @@ M.opts.picker = {
     frecency = true,
     cwd_bonus = true,
   },
+
   actions = {
     cd_up = function(picker, _)
       picker:set_cwd(vim.fs.dirname(picker:cwd()))
@@ -246,6 +247,7 @@ M.opts.picker = {
     },
 
     grep = {
+      layout = { preset = 'ivy' },
       win = {
         input = {
           keys = {
@@ -255,6 +257,7 @@ M.opts.picker = {
         },
       },
     },
+
     lsp_symbols = { layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } } },
     treesitter = { layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } } },
   },
