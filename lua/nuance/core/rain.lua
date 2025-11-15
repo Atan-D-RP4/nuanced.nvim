@@ -101,10 +101,12 @@ local STATE = {
   window = nil,
   buffer = nil,
   drop_timers = {},
+  drops = {}, -- list of active drop info { timer, extmark_id, buf, drop_state, char, move_diagonally }
+  _vimresized_autocmd = nil,
   is_running = false,
-  _chars_configured = false, -- FIXED: prevent duplicate char insertion on reload
-  _dimensions_cache = nil, -- OPT-P2: cached dimensions to reduce vim.o reads
-  _dimensions_stale = false, -- OPT-P2: marks cache as needing refresh
+  _chars_configured = false, -- prevent duplicate char insertion on reload
+  _dimensions_cache = nil, -- cached dimensions to reduce vim.o reads
+  _dimensions_stale = false, -- marks cache as needing refresh
 }
 
 ---Check if a window ID is valid and still exists.
@@ -132,13 +134,17 @@ end
 ---@param max_col integer Maximum column index
 ---@return integer Weighted column position (may be negative for off-screen)
 local function get_weighted_column(max_col)
-  local rand = math.random() -- Generate random value between 0 and 1
-  -- Apply exponential weighting: square the random value to bias towards lower values
-  local weighted = math.pow(rand, 2)
-  -- Map to range [-max_col/4, max_col] to allow off-screen left spawning
-  -- This creates natural accumulation: off-screen particles move right while falling
-  local offset = -math.floor(max_col / 4)
-  return math.floor(weighted * (max_col - offset)) + offset
+  -- Ensure a sane upper bound (max column index, e.g. width - 1)
+  local max_index = math.max(0, tonumber(max_col) or 0)
+  local rand = math.random()
+  -- Apply light exponential weighting to bias spawns toward the left
+  local weighted = rand * rand
+  -- Allow off-screen left spawns by offsetting into negative columns
+  local offset = -math.floor(max_index / 4)
+  -- Compute raw value then clamp into the valid range [-offset..max_index]
+  local raw = math.floor(weighted * (max_index - offset)) + offset
+  raw = math.max(offset, math.min(max_index, raw))
+  return raw
 end
 
 ---Safely close and clean up a timer.
@@ -168,6 +174,7 @@ local function cleanup_all_timers()
     cleanup_timer(timer)
   end
   STATE.drop_timers = {}
+  STATE.drops = {}
 end
 
 ---Remove a specific timer from the drop_timers tracking list.
@@ -175,6 +182,50 @@ end
 ---Searches in reverse order to safely remove during iteration.
 ---
 ---@param timer_to_remove uv.uv_timer_t Timer to remove
+local function find_drop_info_by_timer(timer)
+  for i = #STATE.drops, 1, -1 do
+    if STATE.drops[i] and STATE.drops[i].timer == timer then
+      return STATE.drops[i], i
+    end
+  end
+  return nil, nil
+end
+
+local function find_drop_info_by_extmark_id(extmark_id)
+  for i = #STATE.drops, 1, -1 do
+    if STATE.drops[i] and STATE.drops[i].extmark_id == extmark_id then
+      return STATE.drops[i], i
+    end
+  end
+  return nil, nil
+end
+
+local function remove_drop_info_by_timer(timer)
+  local _, idx = find_drop_info_by_timer(timer)
+  if idx then
+    table.remove(STATE.drops, idx)
+  end
+end
+
+local function remove_drop_info_by_extmark_id(extmark_id)
+  local _, idx = find_drop_info_by_extmark_id(extmark_id)
+  if idx then
+    table.remove(STATE.drops, idx)
+  end
+end
+
+local function remove_drop_info_by_dropinfo(di)
+  if not di then
+    return
+  end
+  for i = #STATE.drops, 1, -1 do
+    if STATE.drops[i] == di then
+      table.remove(STATE.drops, i)
+      break
+    end
+  end
+end
+
 local function remove_timer(timer_to_remove)
   for i = #STATE.drop_timers, 1, -1 do
     if STATE.drop_timers[i] == timer_to_remove then
@@ -182,6 +233,7 @@ local function remove_timer(timer_to_remove)
       break
     end
   end
+  remove_drop_info_by_timer(timer_to_remove)
 end
 
 ---Close the rain window and delete the rain buffer.
@@ -216,12 +268,12 @@ end
 ---Subtracts statusline height (if visible) and cmdline height from total lines.
 ---Ensures at least 1 line is available for rain display.
 ---
----OPT-P2: Caches result and only recalculates when dimensions_stale flag is true
+---Caches result and only recalculates when dimensions_stale flag is true
 ---or cache is nil. Cache is invalidated on VimResized event.
 ---
 ---@return RainDimensions Dimensions table with width, height, max_row, max_col
 local function get_rain_dimensions()
-  -- OPT-P2: Return cached dimensions if valid
+  -- Return cached dimensions if valid
   if STATE._dimensions_cache and not STATE._dimensions_stale then
     return STATE._dimensions_cache
   end
@@ -241,7 +293,7 @@ local function get_rain_dimensions()
   -- Ensure we have at least some space for rain
   available_lines = math.max(1, available_lines)
 
-  -- OPT-P2: Cache the result
+  -- Cache the result
   STATE._dimensions_cache = {
     width = vim.o.columns,
     height = available_lines,
@@ -251,6 +303,122 @@ local function get_rain_dimensions()
   STATE._dimensions_stale = false
 
   return STATE._dimensions_cache
+end
+
+---Adjust the rain window and buffer to match current screen dimensions.
+---
+---Ensures the floating window is resized and buffer lines are adjusted so extmarks
+---placed outside the old bounds become visible after a resize.
+---Also clamps extmarks that fall outside the new bounds.
+---
+---This function is safe to call repeatedly and is used by the VimResized autocmd.
+---
+---@return nil
+local function adjust_rain_window_and_buffer()
+  if not STATE.is_running or not is_valid_window(STATE.window) or not is_valid_buffer(STATE.buffer) then
+    STATE._dimensions_stale = false
+    return
+  end
+
+  local dims = get_rain_dimensions()
+
+  -- Resize floating window (preserve minimal/focusable settings)
+  pcall(vim.api.nvim_win_set_config, STATE.window, {
+    relative = 'editor',
+    width = dims.width,
+    height = dims.height,
+    row = 0,
+    col = 0,
+    focusable = false,
+    zindex = 1,
+  })
+
+  -- Adjust buffer lines to new width/height
+  local ok_lines, lines = pcall(vim.api.nvim_buf_get_lines, STATE.buffer, 0, -1, false)
+  if not ok_lines then
+    STATE._dimensions_stale = false
+    return
+  end
+
+  local old_height = #lines
+  local old_width = (old_height > 0 and #lines[1]) or 0
+  local new_lines = {}
+  local pad_line = string.rep(' ', dims.width)
+
+  for i = 1, dims.height do
+    if i <= old_height then
+      local line = lines[i] or pad_line
+      local len = #line
+      if len < dims.width then
+        line = line .. string.rep(' ', dims.width - len)
+      elseif len > dims.width then
+        line = line:sub(1, dims.width)
+      end
+      table.insert(new_lines, line)
+    else
+      table.insert(new_lines, pad_line)
+    end
+  end
+
+  pcall(vim.api.nvim_buf_set_lines, STATE.buffer, 0, -1, false, new_lines)
+
+  -- Clamp any extmarks that exceed new bounds to keep them visible/valid
+  local ok_ext, extmarks = pcall(vim.api.nvim_buf_get_extmarks, STATE.buffer, STATE.namespace, 0, -1, { details = true })
+  if ok_ext and extmarks then
+    for _, m in ipairs(extmarks) do
+      local id = m[1]
+      local row = m[2]
+      local col = m[3]
+      local details = m[4]
+
+      local new_row = math.min(math.max(0, row), dims.height - 1)
+      local new_col = math.min(math.max(0, col), dims.width - 1)
+
+      if new_row ~= row or new_col ~= col then
+        -- Preserve virt_text and virt_text_pos if available
+        local virt_text = details and details.virt_text or nil
+        local virt_text_pos = details and details.virt_text_pos or 'overlay'
+
+        local ok_set, _ = pcall(vim.api.nvim_buf_set_extmark, STATE.buffer, STATE.namespace, new_row, new_col, {
+          id = id,
+          virt_text = virt_text,
+          virt_text_pos = virt_text_pos,
+        })
+        -- If we successfully moved the extmark, update our internal drop state to keep timers in sync
+        if ok_set then
+          local di = (function()
+            local tmp, _ = find_drop_info_by_extmark_id(id)
+            return tmp
+          end)()
+          if di and di.drop_state then
+            di.drop_state.row = new_row
+            di.drop_state.col = new_col
+          end
+        end
+      end
+    end
+  end
+
+  STATE._dimensions_stale = false
+
+  -- If the window width grew, spawn some extra raindrops that cover the newly-available columns
+  if dims.width > old_width and STATE.is_running and is_valid_buffer(STATE.buffer) then
+    local increase = dims.width - old_width
+    -- Number of extra drops to spawn, roughly proportional to width increase
+    local spawn_count = math.min(math.max(1, math.floor(increase / 6)), CONFIG.drop_count * 3)
+    for i = 1, spawn_count do
+      local start_col = math.random(old_width, dims.width - 1)
+      local move_diagonally = math.random() < CONFIG.diagonal_chance
+      local char_pool = move_diagonally and CONFIG.diagonal_chars or CONFIG.chars
+      local char = char_pool[math.random(1, #char_pool)]
+      -- Spawn immediately
+      pcall(function()
+        if STATE.is_running and is_valid_buffer(STATE.buffer) then
+          create_single_raindrop(STATE.buffer, start_col, char, move_diagonally)
+        end
+      end)
+    end
+  end
 end
 
 ---Create a new buffer for displaying rain animation.
@@ -323,7 +491,7 @@ end
 ---  - If start_col < 0, adds |start_col| to start_row and clamps col to 0
 ---  - This creates natural accumulation in bottom-left as particles fall
 ---
----OPT-P3: move_diagonally is now passed as parameter instead of recalculated
+---move_diagonally is now passed as parameter instead of recalculated
 ---
 ---@param buf integer Buffer ID to draw raindrop in
 ---@param start_col integer Starting column (may be negative for off-screen)
@@ -344,8 +512,13 @@ local function create_single_raindrop(buf, start_col, char, move_diagonally)
   local speed_variance = math.random(-CONFIG.speed_variance, CONFIG.speed_variance)
   local actual_speed = math.max(10, CONFIG.drop_interval + speed_variance)
 
-  -- Create initial extmark
-  local ok, extmark_id = pcall(vim.api.nvim_buf_set_extmark, buf, STATE.namespace, drop_state.row, drop_state.col, {
+  -- Create initial extmark; clamp to visible buffer width/height to avoid errors
+  local current_dims = get_rain_dimensions()
+  if drop_state.row < 0 or drop_state.row >= current_dims.height then
+    return nil
+  end
+  local init_col = math.max(0, math.min(drop_state.col, current_dims.width - 1))
+  local ok, extmark_id = pcall(vim.api.nvim_buf_set_extmark, buf, STATE.namespace, drop_state.row, init_col, {
     virt_text = { { char, 'Identifier' } },
     virt_text_pos = 'overlay',
   })
@@ -362,6 +535,9 @@ local function create_single_raindrop(buf, start_col, char, move_diagonally)
   end
 
   table.insert(STATE.drop_timers, drop_timer)
+  local drop_info =
+    { timer = drop_timer, extmark_id = extmark_id, buf = buf, drop_state = drop_state, char = char, move_diagonally = move_diagonally }
+  table.insert(STATE.drops, drop_info)
 
   drop_timer:start(
     0,
@@ -369,12 +545,7 @@ local function create_single_raindrop(buf, start_col, char, move_diagonally)
     vim.schedule_wrap(function()
       local current_dimensions = get_rain_dimensions()
       -- Check if raindrop should stop (reached bottom or right edge)
-      if
-        not STATE.is_running
-        or not is_valid_buffer(buf)
-        or drop_state.row >= current_dimensions.height
-        or drop_state.col >= current_dimensions.width
-      then
+       if not STATE.is_running or not is_valid_buffer(buf) or drop_state.row >= current_dimensions.height or drop_state.col >= current_dimensions.width then
         -- Clean up extmark and timer
         pcall(vim.api.nvim_buf_del_extmark, buf, STATE.namespace, extmark_id)
         cleanup_timer(drop_timer)
@@ -383,8 +554,9 @@ local function create_single_raindrop(buf, start_col, char, move_diagonally)
         return
       end
 
-      -- Update raindrop position
-      local ok_update = pcall(vim.api.nvim_buf_set_extmark, buf, STATE.namespace, drop_state.row, drop_state.col, {
+      -- Clamp extmark column to current width so it remains visible after resize
+      local clipped_col = math.max(0, math.min(drop_state.col, current_dimensions.width - 1))
+      local ok_update = pcall(vim.api.nvim_buf_set_extmark, buf, STATE.namespace, drop_state.row, clipped_col, {
         virt_text = { { char, 'Identifier' } },
         virt_text_pos = 'overlay',
         id = extmark_id,
@@ -413,11 +585,11 @@ end
 ---
 ---On error, stops the animation and cleans up resources.
 ---
----OPT-P1: Uses vim.defer_fn() instead of spawn timers for better performance.
+---Uses vim.defer_fn() instead of spawn timers for better performance.
 ---Replace individual spawn timers with deferred function calls that execute
 ---immediately (no delay) but don't create new timer objects. Saves 50-200 timers/sec.
 ---
----OPT-P2: Sets up VimResized autocommand to invalidate dimension cache.
+---Sets up VimResized autocommand to invalidate dimension cache.
 ---
 ---@return nil
 function M.rain()
@@ -451,11 +623,16 @@ function M.rain()
 
   STATE.is_running = true
 
-  -- OPT-P2: Set up VimResized event to invalidate dimension cache
-  vim.api.nvim_create_autocmd('VimResized', {
-    callback = invalidate_dimensions_cache,
+  -- Set up VimResized event to invalidate dimension cache
+  -- Register VimResized autocmd and keep reference so we can remove it on stop
+  local autocmd_id = vim.api.nvim_create_autocmd('VimResized', {
+    callback = function()
+      invalidate_dimensions_cache()
+      adjust_rain_window_and_buffer()
+    end,
     once = false,
   })
+  STATE._vimresized_autocmd = autocmd_id
 
   -- Create global timer for spawning raindrop batches (like the original)
   STATE.global_timer = vim.uv.new_timer()
@@ -478,8 +655,6 @@ function M.rain()
       -- Create raindrops with staggered spawn times for more natural effect
       for i = 1, CONFIG.drop_count do
         local spawn_delay = math.random(0, CONFIG.spawn_interval - 50) -- Random delay within spawn interval
-        local start_col = get_weighted_column(math.max(1, dimensions.width)) -- Use weighted distribution with off-screen left spawning
-
         -- Determine if this raindrop will move diagonally
         local move_diagonally = math.random() < CONFIG.diagonal_chance
 
@@ -487,17 +662,20 @@ function M.rain()
         local char_pool = move_diagonally and CONFIG.diagonal_chars or CONFIG.chars
         local char = char_pool[math.random(1, #char_pool)]
 
-        -- OPT-P1: Use vim.defer_fn() instead of creating spawn timers
+        -- Use vim.defer_fn() instead of creating spawn timers
         if spawn_delay > 0 then
-          -- Defer the spawn if we need a delay
+          -- Defer the spawn if we need a delay; compute start column at spawn time to support resizing
           vim.defer_fn(function()
             if STATE.is_running and is_valid_buffer(STATE.buffer) then
+              local cur_dims = get_rain_dimensions()
+              local start_col = get_weighted_column(math.max(0, cur_dims.width - 1) or 0)
               create_single_raindrop(STATE.buffer, start_col, char, move_diagonally)
             end
           end, spawn_delay)
         else
-          -- OPT-P1 + OPT-P3: If no delay, create immediately and pass move_diagonally
+          -- Immediate spawn: compute start column now
           if STATE.is_running and is_valid_buffer(STATE.buffer) then
+            local start_col = get_weighted_column(math.max(0, dimensions.width - 1))
             create_single_raindrop(STATE.buffer, start_col, char, move_diagonally)
           end
         end
@@ -520,6 +698,12 @@ function M.stop()
   -- Clean up all timers
   cleanup_all_timers()
 
+  -- Remove VimResized autocmd created when starting
+  if STATE._vimresized_autocmd then
+    pcall(vim.api.nvim_del_autocmd, STATE._vimresized_autocmd)
+    STATE._vimresized_autocmd = nil
+  end
+
   -- Clean up window and buffer
   cleanup_window_and_buffer()
 
@@ -527,7 +711,6 @@ function M.stop()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if is_valid_buffer(buf) then
       local buf_name = vim.api.nvim_buf_get_name(buf)
-      -- OPT-P4: Use :sub() instead of :match() for string checking
       if buf_name:sub(1, #CONFIG.namespace_name) == CONFIG.namespace_name then
         pcall(vim.api.nvim_buf_clear_namespace, buf, STATE.namespace, 0, -1)
         pcall(vim.api.nvim_buf_delete, buf, { force = true })
