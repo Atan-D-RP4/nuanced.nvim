@@ -1,3 +1,150 @@
+local directory_pick = function()
+  require('snacks.picker').pick {
+    title = 'Directories',
+    preview = 'preview',
+    ---@param opts snacks.picker.Config
+    ---@param ctx snacks.picker.finder.ctx
+    finder = function(opts, ctx)
+      local items = {}
+      local cwd = opts.cwd or ctx:cwd()
+      local uv = vim.uv
+
+      -- Read directory entries using vim.uv
+      local ok, entries = pcall(function()
+        local handle = uv.fs_scandir(cwd)
+        local result = {}
+
+        if handle then
+          while true do
+            local name, type = uv.fs_scandir_next(handle)
+
+            if not name then
+              break
+            end
+
+            table.insert(result, { name = name, type = type })
+          end
+        end
+        return result
+      end)
+
+      if not ok or not entries then
+        vim.schedule(function()
+          vim.notify('Error reading directory: ' .. tostring(cwd), vim.log.levels.ERROR)
+        end)
+
+        return items
+      end
+
+      for _, entry in ipairs(entries) do
+        if entry.name ~= '.' and entry.name ~= '..' then
+          local full = vim.fs.joinpath(cwd, entry.name)
+
+          -- Check if it's a directory using vim.uv
+          local stat = uv.fs_stat(full)
+          if stat and stat.type == 'directory' then
+            table.insert(items, {
+              name = entry.name,
+              text = entry.name,
+              path = full,
+              type = 'directory',
+
+              preview = {
+                text = (function()
+                  -- Build preview lines using vim.uv
+                  local lines = {}
+                  local ok2, subents = pcall(function()
+                    local handle = uv.fs_scandir(full)
+                    local result = {}
+
+                    if handle then
+                      while true do
+                        local name, type = uv.fs_scandir_next(handle)
+                        if not name then
+                          break
+                        end
+                        table.insert(result, { name = name, type = type })
+                      end
+                    end
+
+                    return result
+                  end)
+
+                  if not ok2 or not subents then
+                    return 'Error reading: ' .. tostring(full)
+                  end
+
+                  -- Add header with directory info
+                  table.insert(lines, '📁 ' .. entry.name)
+                  table.insert(lines, '📍 ' .. full)
+                  table.insert(lines, '📊 ' .. #subents .. ' entries')
+                  table.insert(lines, '')
+
+                  -- Separate directories and files
+                  local dirs = {}
+                  local files = {}
+
+                  for _, se in ipairs(subents) do
+                    if se.type == 'directory' then
+                      table.insert(dirs, se.name)
+                    else
+                      table.insert(files, se.name)
+                    end
+                  end
+
+                  -- Sort and display directories first
+                  table.sort(dirs)
+                  table.sort(files)
+
+                  -- Display directories
+                  if #dirs > 0 then
+                    table.insert(lines, '📂 Directories:')
+                    for _, dir in ipairs(dirs) do
+                      table.insert(lines, '  📁 ' .. dir)
+                    end
+                    table.insert(lines, '')
+                  end
+
+                  -- Display files
+                  if #files > 0 then
+                    table.insert(lines, '📄 Files:')
+                    for _, file in ipairs(files) do
+                      table.insert(lines, '  📄 ' .. file)
+                    end
+                  end
+
+                  if #dirs == 0 and #files == 0 then
+                    table.insert(lines, '(empty directory)')
+                  end
+
+                  return table.concat(lines, '\n')
+                end)(),
+              },
+            })
+          end
+        end
+      end
+
+      return items
+    end,
+
+    format = function(item, _)
+      return { { item.name, '@string' } }
+    end,
+
+    confirm = function(picker, item, _)
+      local ok, oil = pcall(require, 'oil')
+      if ok and oil then
+        oil.open_float(item.path)
+      else
+        vim.cmd('cd ' .. vim.fn.fnameescape(item.path))
+      end
+      vim.notify('Opened directory: ' .. item.path, vim.log.levels.INFO, { title = 'Oil' })
+      picker:close()
+    end,
+  }
+end
+
 local M = {
   'folke/snacks.nvim',
   lazy = false,
@@ -62,6 +209,7 @@ M.keys = {
   { '<leader>ff', '<cmd>lua Snacks.picker.files()<CR>', desc = '[F]zf [F] files', mode = 'n' },
   { '<leader>f:', '<cmd>lua Snacks.picker.command_history()<CR>', desc = '[F]zf [C]ommands', mode = 'n' },
   { '<leader>ft', '<cmd>lua Snacks.picker.treesitter()<CR>', desc = '[F]zf [T]reesitter [S]ymbols', mode = 'n' },
+  { '<leader>fd', directory_pick, desc = '[F]zf [D]irectories', mode = 'n' },
 
   { '<leader>gt', '<cmd>lua Snacks.picker.git_branches()<CR>', desc = '[G]it [t]oggle branches picker', mode = 'n' },
   -- {
@@ -161,10 +309,10 @@ M.opts.dashboard = {
       { icon = ' ', key = 'a', desc = 'Pick Session', action = '<cmd>SessionPick<CR>' },
       { icon = ' ', key = 'f', desc = 'Find File', action = ":lua Snacks.dashboard.pick('files')" },
       { icon = ' ', key = 'n', desc = 'New File', action = ':ene | startinsert' },
-      -- { icon = ' ', key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
+      { icon = ' ', key = 'd', desc = 'Find Directory', action = directory_pick },
+      { icon = ' ', key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
       { icon = ' ', key = 'G', desc = 'Git', action = '<cmd>Git ++curwin | Git log | wincmd H | wincmd l<CR>' },
       { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
-      { icon = ' ', key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
       { icon = ' ', key = 'o', desc = 'File System', action = '<cmd>Oil<CR>' },
       { icon = '󰒲 ', key = 'L', desc = 'Lazy', action = ':Lazy', enabled = package.loaded.lazy ~= nil },
       { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },

@@ -28,7 +28,6 @@ local lspconfig = {
 }
 
 autocmd('LspAttach', {
-  once = true,
   group = augroup 'lsp-attach-mappings',
   callback = function(args)
     local bufnr = args.buf
@@ -260,7 +259,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
 
       for ns_id, ns in pairs(vim.diagnostic.get_namespaces()) do
         if ns.name and ns.name:match(client.name) then
-          vim.schedule(function()
+          require('nuance.core.promise').async_promise(100, function()
             vim.diagnostic.reset(ns_id)
           end)
         end
@@ -369,11 +368,15 @@ local tiny_inline_diagnostic = {
 
         -- Safely get cursor position
         local ok, cursor = pcall(win_get_cursor, 0)
-        if not ok then
+        if not ok or cursor == nil then
           return
         end
 
-        local lnum = cursor[1] - 1
+        local lnum = cursor[1]
+        if lnum == nil then
+          return
+        end
+        lnum = lnum - 1 -- 0-indexed
         local diagnostic_count = #diagnostic_get(ev.buf, { lnum = lnum })
 
         if diagnostic_count > 0 then
@@ -416,6 +419,7 @@ local goto_preview = {
     references = { -- Configure the UI for slowing the references cycling window.
       provider = 'snacks', -- telescope|fzf_lua|snacks|mini_pick|default
     },
+
     post_open_hook = function(bufnr, _win_id)
       -- Close the preview window on `q`
       vim.keymap.set('n', 'q', '<cmd>close<CR>', { buffer = bufnr, silent = true })

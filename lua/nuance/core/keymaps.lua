@@ -133,7 +133,6 @@ local maps = {
   -- { { 'n', 't' }, '<C-w><C-t>', require('nuance.core.utils').toggleterm, '[T]oggle [T]erminal' },
 
   -- NOTE: Disable arrow keys in normal mode
-
   { 'n', '<up>', '<cmd>execute "normal! k" | lua vim.notify("Tip: Use j to move down", vim.log.levels.INFO)<CR>' },
   { 'n', '<down>', '<cmd>execute "normal! j" | lua vim.notify("Tip: Use k to move up", vim.log.levels.INFO)<CR>' },
   { 'n', '<left>', '<cmd>execute "normal! h" | lua vim.notify("Tip: Use l to move right", vim.log.levels.INFO)<CR>' },
