@@ -172,7 +172,7 @@ local session_pick = function()
           vim.notify(msg, vim.log.levels.INFO, { title = 'Session' })
           vim.g.active_session = item.name
         end)
-        .catch(function(err)
+        :catch(function(err)
           vim.notify(err, vim.log.levels.ERROR, { title = 'Session' })
         end)
     end,

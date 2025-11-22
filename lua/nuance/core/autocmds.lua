@@ -451,7 +451,7 @@ vim.api.nvim_create_user_command('TSFoldToggle', function(_)
   end
 end, { nargs = 0, desc = 'Toggle Treesitter folding' })
 
----@param args vim.api.keyset.user_command.callback_opts
+---@param args vim.api.keyset.create_user_command.command_args
 vim.api.nvim_create_user_command('SearchEngineQuery', function(args)
   local engines = {
     google = { prompt = ' Google: ', url = 'https://www.google.com/search?q=' },

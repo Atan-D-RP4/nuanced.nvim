@@ -428,9 +428,7 @@ end
 ---@return integer Buffer ID
 local function create_rain_buffer()
   local buf = vim.api.nvim_create_buf(false, true)
-  if not buf then
-    error 'Failed to create buffer'
-  end
+  assert(buf, 'Failed to create buffer')
 
   local dimensions = get_rain_dimensions()
 
@@ -464,11 +462,9 @@ local function create_rain_window(buf)
     col = 0,
     focusable = false,
     zindex = 1,
-  })
+   })
 
-  if not win then
-    error 'Failed to create window'
-  end
+  assert(win, 'Failed to create window')
 
   -- Configure window appearance
   pcall(vim.cmd, 'highlight NormalFloat guibg=none')
@@ -545,7 +541,12 @@ local function create_single_raindrop(buf, start_col, char, move_diagonally)
     vim.schedule_wrap(function()
       local current_dimensions = get_rain_dimensions()
       -- Check if raindrop should stop (reached bottom or right edge)
-       if not STATE.is_running or not is_valid_buffer(buf) or drop_state.row >= current_dimensions.height or drop_state.col >= current_dimensions.width then
+      if
+        not STATE.is_running
+        or not is_valid_buffer(buf)
+        or drop_state.row >= current_dimensions.height
+        or drop_state.col >= current_dimensions.width
+      then
         -- Clean up extmark and timer
         pcall(vim.api.nvim_buf_del_extmark, buf, STATE.namespace, extmark_id)
         cleanup_timer(drop_timer)

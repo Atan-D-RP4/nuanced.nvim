@@ -331,14 +331,13 @@ function M.diagnostics(buf)
           return
         end
 
-        -- Cache language once per tree
-        local lang = 'unknown'
-        if ltree ~= nil then
-          local ok_lang, result = pcall(ltree.lang, ltree)
-          if ok_lang then
-            lang = result
-          end
-        end
+         -- Cache language once per tree
+         local lang = 'unknown'
+         assert(ltree, "Language tree should not be nil in for_each_tree callback")
+         local ok_lang, result = pcall(ltree.lang, ltree)
+         if ok_lang then
+           lang = result
+         end
         local code = lang .. '-syntax'
 
         for _, node in query:iter_captures(tree:root(), buf) do

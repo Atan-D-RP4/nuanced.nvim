@@ -33,6 +33,7 @@ require('nuance.core.rain').setup {
   drop_interval = 35,
   winblend = 100,
   speed_variance = 10,
+  diagonal_chars = { '⋅', '•', '◇', '' },
 }
 
 -- vim: ts=2 sts=2 sw=2 et

@@ -372,10 +372,8 @@ local tiny_inline_diagnostic = {
           return
         end
 
-        local lnum = cursor[1]
-        if lnum == nil then
-          return
-        end
+         local lnum = cursor[1]
+         assert(lnum, "Cursor line number should not be nil after successful get_cursor")
         lnum = lnum - 1 -- 0-indexed
         local diagnostic_count = #diagnostic_get(ev.buf, { lnum = lnum })
 

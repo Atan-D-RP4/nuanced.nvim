@@ -135,11 +135,12 @@ local directory_pick = function()
     confirm = function(picker, item, _)
       local ok, oil = pcall(require, 'oil')
       if ok and oil then
-        oil.open_float(item.path)
+        oil.open_float(item.path, {}, function()
+          vim.notify('Opened ' .. item.path .. ' in Oil', vim.log.levels.INFO)
+        end)
       else
         vim.cmd('cd ' .. vim.fn.fnameescape(item.path))
       end
-      vim.notify('Opened directory: ' .. item.path, vim.log.levels.INFO, { title = 'Oil' })
       picker:close()
     end,
   }
