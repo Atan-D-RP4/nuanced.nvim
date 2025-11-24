@@ -462,7 +462,7 @@ local function create_rain_window(buf)
     col = 0,
     focusable = false,
     zindex = 1,
-   })
+  })
 
   assert(win, 'Failed to create window')
 

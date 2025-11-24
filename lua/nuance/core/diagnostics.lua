@@ -1,4 +1,3 @@
-
 local M = {}
 
 local augroup = require('nuance.core.utils').augroup
@@ -88,12 +87,12 @@ function M.setup()
     float = {
       border = 'rounded',
     },
-     jump = {
-       on_jump = function(_, _)
-         -- Use DEFAULT_FLOAT_CONFIG directly without tbl_extend
-         vim.diagnostic.open_float(DEFAULT_FLOAT_CONFIG)
-       end,
-     },
+    jump = {
+      on_jump = function(_, _)
+        -- Use DEFAULT_FLOAT_CONFIG directly without tbl_extend
+        vim.diagnostic.open_float(DEFAULT_FLOAT_CONFIG)
+      end,
+    },
     signs = vim.g.have_nerd_font and {
       text = {
         [SEVERITY.ERROR] = '󰅚 ',
@@ -105,14 +104,14 @@ function M.setup()
     update_in_insert = false,
     virtual_lines = { current_line = true },
 
-     virtual_text = {
-       source = true,
-       spacing = 2,
-       ---@param diagnostic vim.Diagnostic
-       format = function(diagnostic)
-         return string.format('[%s] %s', diagnostic.code, diagnostic.message)
-       end,
-     },
+    virtual_text = {
+      source = true,
+      spacing = 2,
+      ---@param diagnostic vim.Diagnostic
+      format = function(diagnostic)
+        return string.format('[%s] %s', diagnostic.code, diagnostic.message)
+      end,
+    },
   }
 
   if vim.g.treesitter_lint_available == true then
@@ -331,13 +330,13 @@ function M.diagnostics(buf)
           return
         end
 
-         -- Cache language once per tree
-         local lang = 'unknown'
-         assert(ltree, "Language tree should not be nil in for_each_tree callback")
-         local ok_lang, result = pcall(ltree.lang, ltree)
-         if ok_lang then
-           lang = result
-         end
+        -- Cache language once per tree
+        local lang = 'unknown'
+        assert(ltree, 'Language tree should not be nil in for_each_tree callback')
+        local ok_lang, result = pcall(ltree.lang, ltree)
+        if ok_lang then
+          lang = result
+        end
         local code = lang .. '-syntax'
 
         for _, node in query:iter_captures(tree:root(), buf) do
@@ -346,8 +345,8 @@ function M.diagnostics(buf)
           end
 
           -- Get node range - early exit if invalid
-           local lnum, col, end_lnum, end_col = get_node_range(node)
-           if not lnum then
+          local lnum, col, end_lnum, end_col = get_node_range(node)
+          if not lnum then
             goto continue
           end
 
@@ -375,36 +374,36 @@ function M.diagnostics(buf)
             end_col = col + 1
           end
 
-           -- Build message
-           local message
-           if is_node_missing(node) ~= nil then
-             local node_type = get_node_type(node)
-             message = node_type and string.format('missing `%s`', node_type) or 'missing element'
-           else
-             message = 'syntax error'
-           end
+          -- Build message
+          local message
+          if is_node_missing(node) ~= nil then
+            local node_type = get_node_type(node)
+            message = node_type and string.format('missing `%s`', node_type) or 'missing element'
+          else
+            message = 'syntax error'
+          end
 
-           -- Add context efficiently
-           local previous = node:prev_sibling()
-           if previous then
-             local prev_type = get_node_type(previous)
-             if prev_type and prev_type ~= 'ERROR' then
-               local prev_name = is_node_named(previous) and prev_type or string.format('`%s`', prev_type)
-               message = message .. ' after ' .. prev_name
-             end
-           end
+          -- Add context efficiently
+          local previous = node:prev_sibling()
+          if previous then
+            local prev_type = get_node_type(previous)
+            if prev_type and prev_type ~= 'ERROR' then
+              local prev_name = is_node_named(previous) and prev_type or string.format('`%s`', prev_type)
+              message = message .. ' after ' .. prev_name
+            end
+          end
 
-           -- Use cached parent_type to avoid second lookup
-           if parent_type and parent_type ~= 'ERROR' then
-             local should_add = true
-             if previous then
-               local prev_type = get_node_type(previous)
-               should_add = not (prev_type and prev_type == parent_type)
-             end
-             if should_add then
-               message = message .. ' in ' .. parent_type
-             end
-           end
+          -- Use cached parent_type to avoid second lookup
+          if parent_type and parent_type ~= 'ERROR' then
+            local should_add = true
+            if previous then
+              local prev_type = get_node_type(previous)
+              should_add = not (prev_type and prev_type == parent_type)
+            end
+            if should_add then
+              message = message .. ' in ' .. parent_type
+            end
+          end
 
           -- Create diagnostic using template (reduces allocations)
           diagnostics[#diagnostics + 1] = {

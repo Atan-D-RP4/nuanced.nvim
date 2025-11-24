@@ -70,7 +70,8 @@ return {
           return
         end
 
-        local confirm_msg = force_next_deletion and 'Force delete worktree ' .. worktree.path .. '? [y/N] ' or 'Delete worktree ' .. worktree.path .. '? [y/N] '
+        local confirm_msg = force_next_deletion and 'Force delete worktree ' .. worktree.path .. '? [y/N] '
+          or 'Delete worktree ' .. worktree.path .. '? [y/N] '
 
         local confirmed = vim.fn.input(confirm_msg)
         if confirmed:lower():sub(1, 1) ~= 'y' then

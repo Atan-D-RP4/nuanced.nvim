@@ -205,17 +205,20 @@ Bufline.buf_switch = function(index)
     return vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buflisted
   end, bufs)
 
-   if index > #valid_bufs then
-     vim.notify('Buffer index out of range', vim.log.levels.WARN)
-     return
-   end
+  if index > #valid_bufs then
+    vim.notify('Buffer index out of range', vim.log.levels.WARN)
+    return
+  end
 
-   local target_buf = valid_bufs[index]
-   assert(target_buf, "Buffer index should be valid after bounds check")
-   local ok_set, err = pcall(vim.api.nvim_set_current_buf, target_buf)
-   if not ok_set then
-     vim.notify('Failed to switch buffer: ' .. err, vim.log.levels.ERROR)
-   end
+  local target_buf = valid_bufs[index]
+  if not target_buf then
+    vim.notify('No buffer found at index ' .. index, vim.log.levels.ERROR)
+    return
+  end
+  local ok_set, err = pcall(vim.api.nvim_set_current_buf, target_buf)
+  if not ok_set then
+    vim.notify('Failed to switch buffer: ' .. err, vim.log.levels.ERROR)
+  end
 end
 
 -- Set buftabline. The Lua function called must be globally accessible

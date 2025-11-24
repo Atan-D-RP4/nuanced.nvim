@@ -149,11 +149,6 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   -- By default, Neovim doesn't support everything that is in the LSP specification.
   -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
   -- So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
-
-  -- LSP servers and clients are able to communicate to each other what features they support.
-  -- By default, Neovim doesn't support everything that is in the LSP specification.
-  -- When you add nvim-cmp, luasnip, blink, etc. Neovim now has *more* capabilities.
-  -- So, we create new capabilities with nvim-cmp or blink, and then broadcast that to the servers.
   local has_blink, blink = pcall(require, 'blink.cmp')
   local capabilities = vim.tbl_deep_extend(
     'force',
@@ -163,121 +158,132 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     opts.capabilities or {}
   )
 
-  vim.lsp.config('*', {
-    capabilities = capabilities,
-
-    on_init = function(client, _initialize_result)
-      local msg = 'Initialized Language Server: ' .. client.name
-      if client.config.root_dir then
-        msg = msg .. '\n' .. 'In root directory: ' .. client.config.root_dir
-      end
-      vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
-
-      if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_codeLens) then
-        local codelens_augroup = augroup 'lsp-codelens'
-        vim.b.codelens_enabled = vim.b.codelens_enabled or false
-
-        nmap('<leader>tr', function()
-          vim.b.codelens_enabled = not vim.b.codelens_enabled
-
-          if vim.b.codelens_enabled then
-            vim.lsp.codelens.refresh()
-
-            autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
-              group = codelens_augroup,
-              callback = function()
-                vim.lsp.codelens.refresh()
-              end,
-            })
-          else
-            pcall(vim.api.nvim_clear_autocmds, { group = codelens_augroup })
-            vim.lsp.codelens.clear()
-          end
-
-          vim.notify(
-            'LSP CodeLens ' .. (vim.b.codelens_enabled and 'Enabled' or 'Disabled'),
-            (vim.b.codelens_enabled and vim.log.levels.INFO or vim.log.levels.WARN),
-            { title = 'LSP' }
-          )
-        end, { desc = 'LSP [T]oggle [R]efresh CodeLens', noremap = false })
-
-        autocmd('LspDetach', {
-          group = codelens_augroup,
-          callback = function(ev)
-            pcall(vim.api.nvim_clear_autocmds, { group = codelens_augroup, buffer = ev.buf })
-          end,
-        })
-      end
-
-      if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
-        nmap('<leader>th', function()
-          vim.notify(
-            'LSP Inlay Hints ' .. (vim.lsp.inlay_hint.is_enabled() and 'Disabled' or 'Enabled'),
-            (vim.lsp.inlay_hint.is_enabled() and log_levels.WARN or log_levels.INFO),
-            { title = 'LSP' }
-          )
-          vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-        end, { desc = 'LSP [T]oggle Inlay [H]ints', noremap = false })
-      end
-
-      local cleanup_group = augroup('lsp-detach-cleanup', { clear = false })
-      autocmd('LspDetach', {
-        group = cleanup_group,
-        callback = function(ev)
-          pcall(vim.api.nvim_clear_autocmds, { group = cleanup_group, buffer = ev.buf })
-          vim.defer_fn(function()
-            -- Kill the LS process if no buffers are attached to the client
-            local cur_client = vim.lsp.get_client_by_id(ev.data.client_id)
-            if cur_client == nil or cur_client.name == 'copilot' then
-              return
-            end
-            if cur_client:is_stopped() then
-              return
-            end
-            local attached_buffers_count = vim.tbl_count(cur_client.attached_buffers)
-            if attached_buffers_count == 0 then
-              local msg = 'No buffers attached to client: ' .. client.name .. '\n'
-              msg = msg .. 'Stopping Server: ' .. client.name
-              vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
-              cur_client:stop(true)
-            end
-          end, 3000)
-        end,
-      })
-    end,
-
-    -- before_init = function(_params, client_config)
-    --   client_config.settings = configured_servers[client_config.name].settings or client_config.settings
-    -- end,
-
-    on_exit = function(_code, _signal, client_id)
-      local client = vim.lsp.get_client_by_id(client_id)
-      if not client then
-        vim.notify('LSP client not found for id: ' .. tostring(client_id), vim.log.levels.WARN, { title = 'LSP' })
-        return
-      end
-
-      for ns_id, ns in pairs(vim.diagnostic.get_namespaces()) do
-        if ns.name and ns.name:match(client.name) then
-          require('nuance.core.promise').async_promise(100, function()
-            vim.diagnostic.reset(ns_id)
-          end)
-        end
-      end
-
-      vim.notify('De-Initialized Language Server: ' .. client.name, vim.log.levels.INFO, { title = 'LSP' })
-    end,
-  })
-
   for name, server in pairs(require 'nuance.core.lsps') do
-    vim.tbl_map(function(key)
-      vim.lsp.config(name, { [key] = server[key] })
-    end, vim.tbl_keys(server)) -- just to avoid a warning from luacheck (unused variable '
-
     if not (server.enabled == nil) and (not server.enabled == false) then
       vim.lsp.enable(name)
     end
+
+    vim.tbl_map(function(cb_name)
+      local cb = vim.lsp.config[name][cb_name]
+      if cb then
+        vim.lsp.config(name, {
+          [cb_name] = {
+            lspconfig = cb,
+          },
+        })
+      end
+    end, { 'on_attach', 'on_init', 'on_exit' })
+
+    vim.tbl_map(function(key)
+      vim.lsp.config(name, { [key] = server[key] })
+    end, vim.tbl_keys(server))
   end
+
+  vim.lsp.config('*', {
+    capabilities = capabilities,
+
+    on_init = {
+      global = function(client, _initialize_result)
+        local msg = 'Initialized Language Server: ' .. client.name
+        if client.config.root_dir then
+          msg = msg .. '\n' .. 'In root directory: ' .. client.config.root_dir
+        end
+        vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
+
+        if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_codeLens) then
+          local codelens_augroup = augroup 'lsp-codelens'
+          vim.b.codelens_enabled = vim.b.codelens_enabled or false
+
+          nmap('<leader>tr', function()
+            vim.b.codelens_enabled = not vim.b.codelens_enabled
+
+            if vim.b.codelens_enabled then
+              vim.lsp.codelens.refresh()
+
+              autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
+                group = codelens_augroup,
+                callback = function()
+                  vim.lsp.codelens.refresh()
+                end,
+              })
+            else
+              pcall(vim.api.nvim_clear_autocmds, { group = codelens_augroup })
+              vim.lsp.codelens.clear()
+            end
+
+            vim.notify(
+              'LSP CodeLens ' .. (vim.b.codelens_enabled and 'Enabled' or 'Disabled'),
+              (vim.b.codelens_enabled and vim.log.levels.INFO or vim.log.levels.WARN),
+              { title = 'LSP' }
+            )
+          end, { desc = 'LSP [T]oggle [R]efresh CodeLens', noremap = false })
+
+          autocmd('LspDetach', {
+            group = codelens_augroup,
+            callback = function(ev)
+              pcall(vim.api.nvim_clear_autocmds, { group = codelens_augroup, buffer = ev.buf })
+            end,
+          })
+        end
+
+        if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+          nmap('<leader>th', function()
+            vim.notify(
+              'LSP Inlay Hints ' .. (vim.lsp.inlay_hint.is_enabled() and 'Disabled' or 'Enabled'),
+              (vim.lsp.inlay_hint.is_enabled() and vim.log.WARN or vim.log.INFO),
+              { title = 'LSP' }
+            )
+            vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+          end, { desc = 'LSP [T]oggle Inlay [H]ints', noremap = false })
+        end
+
+        local cleanup_group = augroup('lsp-detach-cleanup', { clear = false })
+        autocmd('LspDetach', {
+          group = cleanup_group,
+          callback = function(ev)
+            pcall(vim.api.nvim_clear_autocmds, { group = cleanup_group, buffer = ev.buf })
+            vim.defer_fn(function()
+              -- Kill the LS process if no buffers are attached to the client
+              local cur_client = vim.lsp.get_client_by_id(ev.data.client_id)
+              if cur_client == nil or cur_client.name == 'copilot' then
+                return
+              end
+              if cur_client:is_stopped() then
+                return
+              end
+              local attached_buffers_count = vim.tbl_count(cur_client.attached_buffers)
+              if attached_buffers_count == 0 then
+                local msg = 'No buffers attached to client: ' .. client.name .. '\n'
+                msg = msg .. 'Stopping Server: ' .. client.name
+                vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
+                cur_client:stop(true)
+              end
+            end, 3000)
+          end,
+        })
+      end,
+    },
+
+    on_exit = {
+      global = function(_code, _signal, client_id)
+        local client = vim.lsp.get_client_by_id(client_id)
+        if not client then
+          vim.notify('LSP client not found for id: ' .. tostring(client_id), vim.log.levels.WARN, { title = 'LSP' })
+          return
+        end
+
+        for ns_id, ns in pairs(vim.diagnostic.get_namespaces()) do
+          if ns.name and ns.name:match(client.name) then
+            require('nuance.core.promise').async_promise(100, function()
+              vim.diagnostic.reset(ns_id)
+            end)
+          end
+        end
+
+        vim.notify('De-Initialized Language Server: ' .. client.name, vim.log.levels.INFO, { title = 'LSP' })
+      end,
+    },
+  })
 end
 
 local _lazydev = {
@@ -372,8 +378,8 @@ local tiny_inline_diagnostic = {
           return
         end
 
-         local lnum = cursor[1]
-         assert(lnum, "Cursor line number should not be nil after successful get_cursor")
+        local lnum = cursor[1]
+        assert(lnum, 'Cursor line number should not be nil after successful get_cursor')
         lnum = lnum - 1 -- 0-indexed
         local diagnostic_count = #diagnostic_get(ev.buf, { lnum = lnum })
 

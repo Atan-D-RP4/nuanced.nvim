@@ -5,15 +5,15 @@ local M = {
 
   init = function()
     vim.api.nvim_create_user_command('ConformFormat', function(args)
-       local range = nil
-       if args.count ~= -1 then
-         local end_line = vim.api.nvim_buf_get_lines(0, args.line2 - 1, args.line2, true)[1]
-         assert(end_line, "Failed to get end line for range formatting")
-         range = {
-           start = { args.line1, 0 },
-           ['end'] = { args.line2, end_line:len() },
-         }
-       end
+      local range = nil
+      if args.count ~= -1 then
+        local end_line = vim.api.nvim_buf_get_lines(0, args.line2 - 1, args.line2, true)[1]
+        assert(end_line, 'Failed to get end line for range formatting')
+        range = {
+          start = { args.line1, 0 },
+          ['end'] = { args.line2, end_line:len() },
+        }
+      end
 
       require('conform').format({ async = true, lsp_format = 'fallback', range = range }, function()
         vim.notify('Buffer Formatted', vim.log.levels.INFO, { title = 'Conform' })
@@ -70,6 +70,7 @@ M.opts = {
   },
 
   formatters = {
+    stylua = { append_args = { '--syntax', 'Lua52' } },
     mdformat = {
       command = 'uv',
       args = { 'tool', 'run', 'mdformat', '--number', '-' },

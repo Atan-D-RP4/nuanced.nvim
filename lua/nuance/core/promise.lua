@@ -199,36 +199,36 @@ function M.async_promise(ms, fn, ...)
     return state, value
   end
 
-   -- Start timer
-   timer:start(
-     ms,
-     0,
-     vim.schedule_wrap(function()
-       if state ~= 'pending' then
-         assert(timer, "Timer must exist in its own callback")
-         timer:close()
-         return
-       end
+  -- Start timer
+  timer:start(
+    ms,
+    0,
+    vim.schedule_wrap(function()
+      if state ~= 'pending' then
+        assert(timer, 'Timer must exist in its own callback')
+        timer:close()
+        return
+      end
 
-       local ok, res = pcall(function()
-         return fn(args)
-       end)
+      local ok, res = pcall(function()
+        return fn(args)
+      end)
 
-       if ok then
-         settle_fulfill(res)
-       else
-         settle_reject(res)
-       end
+      if ok then
+        settle_fulfill(res)
+      else
+        settle_reject(res)
+      end
 
-       assert(timer, "Timer must exist in its own callback")
-       if not timer:is_closing() then
-         pcall(function()
-           timer:close()
-         end)
-         timer = nil
-       end
-     end)
-   )
+      assert(timer, 'Timer must exist in its own callback')
+      if not timer:is_closing() then
+        pcall(function()
+          timer:close()
+        end)
+        timer = nil
+      end
+    end)
+  )
 
   return promise
 end

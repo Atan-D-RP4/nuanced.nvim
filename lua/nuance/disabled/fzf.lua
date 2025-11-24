@@ -94,7 +94,7 @@ return M
 --   local hash = vim.fn.system(str .. " | md5sum | awk '{print $1}'")
 --   return hash
 -- end
---
+
 -- local function fzf_mru(opts)
 --   local fzf = require 'fzf-lua'
 --   opts = fzf.config.normalize_opts(opts, fzf.config.globals.files)
@@ -126,13 +126,13 @@ return M
 --     --   exec_silent = true,
 --     -- },
 --   })
---
+
 --   fzf.core.fzf_wrap(opts, opts.cmd, function(selected)
 --     if not selected or #selected < 2 then return end
 --     vim.fn.system('fre --add ' .. selected[2] .. ' --store_name ' .. hash)
 --     fzf.actions.act(opts.actions, selected, opts)
 --   end)()
 -- end
---
+
 -- vim.api.nvim_create_user_command('FzfMru', fzf_mru, {})
 -- vim.keymap.set("n","<C-p>", fzf_mru, {desc="Open Files"})

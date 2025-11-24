@@ -100,7 +100,7 @@ local maps = {
       local line, col = unpack(vim.api.nvim_win_get_cursor(0))
       line = line - 1
       local node = vim.treesitter.get_node()
-      assert(node, "Failed to get treesitter node")
+      assert(node, 'Failed to get treesitter node')
       local row
       row, col = node:end_()
       vim.api.nvim_win_set_cursor(0, { row + 1, col })
@@ -136,7 +136,6 @@ local maps = {
   { 'n', '<down>', '<cmd>execute "normal! j" | lua vim.notify("Tip: Use k to move up", vim.log.levels.INFO)<CR>' },
   { 'n', '<left>', '<cmd>execute "normal! h" | lua vim.notify("Tip: Use l to move right", vim.log.levels.INFO)<CR>' },
   { 'n', '<right>', '<cmd>execute "normal! l" | lua vim.notify("Tip: Use h to move left", vim.log.levels.INFO)<CR>' },
-
   { 'n', '<M-h>', '<C-w><C-h>', 'Move focus to the left window' },
   { 'n', '<M-l>', '<C-w><C-l>', 'Move focus to the right window' },
   { 'n', '<M-j>', '<C-w><C-j>', 'Move focus to the lower window' },
@@ -162,13 +161,13 @@ local maps = {
   { 'n', '<leader>:', ':<Up><CR>', 'Repeat Last Ex Command' },
 
   -- Smarter Bracket Insertion
-  { 'i', '(;', '(<CR>);<Esc>O' },
-  { 'i', '(,', '(<CR>),<Esc>O' },
-  { 'i', '{;', '{<CR>};<Esc>O' },
-  { 'i', '{,', '{<CR>},<Esc>O' },
-  { 'i', '[;', '[<CR>];<Esc>O' },
-  { 'i', '[,', '[<CR>],<Esc>O' },
-  { 'i', '{<CR>', '{<CR>}<Esc>O' },
+  -- { 'i', '(;', '(<CR>);<Esc>O' },
+  -- { 'i', '(,', '(<CR>),<Esc>O' },
+  -- { 'i', '{;', '{<CR>};<Esc>O' },
+  -- { 'i', '{,', '{<CR>},<Esc>O' },
+  -- { 'i', '[;', '[<CR>];<Esc>O' },
+  -- { 'i', '[,', '[<CR>],<Esc>O' },
+  -- { 'i', '{<CR>', '{<CR>}<Esc>O' },
 
   -- { 'i', '<C-v>', '<C-r>+', {} },
   { { 'n', 'v' }, '<C-q>', '<C-u>' },

@@ -179,7 +179,7 @@ return {
   cssls = {
     enabled = vim.fn.executable 'deno' == 1,
     cmd = { 'deno', 'run', '-A', 'npm:vscode-langservers-extracted/vscode-css-language-server', '--stdio' },
-    before_init = function(init_params, config)
+    before_init = function(init_params, _)
       ---@diagnostic disable-next-line: need-check-nil
       init_params.capabilities.textDocument.completion.completionItem.snippetSupport = true
     end,
@@ -188,7 +188,7 @@ return {
   jsonls = {
     enabled = vim.fn.executable 'deno' == 1,
     cmd = { 'deno', 'run', '-A', 'npm:vscode-langservers-extracted/vscode-json-language-server', '--stdio' },
-    before_init = function(init_params, config)
+    before_init = function(init_params, _)
       ---@diagnostic disable-next-line: need-check-nil
       init_params.capabilities.textDocument.completion.completionItem.snippetSupport = true
     end,
@@ -246,12 +246,14 @@ return {
       organizeImports = { enable = true },
     },
 
-    on_init = function(client, _)
-      client.server_capabilities.hoverProvider = false
-      client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
-        pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
-      })
-    end,
+    on_init = {
+      spec = function(client, _)
+        client.server_capabilities.hoverProvider = false
+        client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
+          pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
+        })
+      end,
+    },
   },
 
   jedi_language_server = {
@@ -320,11 +322,13 @@ return {
   basedpyright = {
     enabled = vim.fn.executable 'basedpyright-langserver' == 1,
 
-    on_init = function(client, _)
-      client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
-        pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
-      })
-    end,
+    on_init = {
+      spec = function(client, _)
+        client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
+          pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
+        })
+      end,
+    },
 
     settings = {
       basedpyright = {
@@ -385,11 +389,30 @@ return {
     enabled = vim.fn.executable 'tinymist' == 1,
 
     settings = {
-      formatterMode = 'typstyle',
-      compileStatus = 'enable',
       fontPaths = { './' },
-      exportPdf = 'onSave',
+      formatterPrintWidth = vim.o.textwidth,
+      formatterIndentSize = vim.o.shiftwidth,
+      exportPdf = 'onType',
       semanticTokens = 'disable',
+
+      preview = { background = { enabled = true } },
+
+      lint = {
+        enable = true,
+        when = 'onSave',
+      },
+    },
+
+    on_attach = {
+      spec = function(client, bufnr)
+        vim.api.nvim_buf_create_user_command(bufnr, 'LspTinymistPreview', function()
+          client:exec_cmd({
+            title = 'Start Tinymist Preview',
+            command = 'tinymist.startDefaultPreview',
+            arguments = { vim.api.nvim_buf_get_name(0) },
+          }, { bufnr = bufnr })
+        end, { desc = 'Start Tinymist Preview', nargs = 0 })
+      end,
     },
   },
 

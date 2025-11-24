@@ -20,7 +20,7 @@ local preset_one = function()
   --   '#b6e84e',
   --   '#aff05b',
   -- }
-  --
+
   -- for i, fg in ipairs(gradient) do
   --   gradient[i] = wilder.make_hl('WilderGradient' .. i, 'Pmenu', { { a = 1 }, { a = 1 }, { foreground = fg } })
   -- end

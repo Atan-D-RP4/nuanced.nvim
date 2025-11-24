@@ -37,7 +37,6 @@ return {
     },
 
     config = function()
-
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
       require 'nuance.core.luasnips'
@@ -81,8 +80,6 @@ return {
 
         -- For an understanding of why these mappings were
 
-        --
-
         mapping = cmp.mapping.preset.insert {
           -- This will auto-import if your LSP supports it.
           -- This will expand snippets if the LSP sent a snippet.
@@ -122,7 +119,7 @@ return {
           -- function $name($args)
           --   $body
           -- end
-          --
+
           -- <c-l> will move you to the right of each of the expansion locations.
           -- <c-h> is similar, except moving you backwards.
           ['<C-k>'] = cmp.mapping(function()

@@ -9,14 +9,12 @@ return {
     -- Set 1
     'nvim-lua/plenary.nvim',
     'nvim-treesitter/nvim-treesitter',
-    --
 
     -- Set 2
     { 'MunifTanjim/nui.nvim', cmd = 'Neorg' },
     { 'pysan3/pathlib.nvim', cmd = 'Neorg' },
     { 'nvim-neorg/lua-utils.nvim', cmd = 'Neorg' },
     { 'nvim-neotest/nvim-nio', cmd = 'Neorg' },
-    --
   },
 
   keys = {

@@ -206,7 +206,7 @@ opt.foldtext = 'v:lua.require("nuance.core.utils").custom_foldtext()'
 opt.foldlevel = global.treesitter_folding_enabled and 99 or 0
 opt.fillchars:append { fold = ' ', foldopen = '▾', foldclose = '▸', foldsep = '│' }
 
--- opt.winborder = 'rounded'
+opt.winborder = 'shadow'
 
 -- global.netrw_banner = 0
 -- global.netrw_fastbrowse = 1

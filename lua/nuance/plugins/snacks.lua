@@ -251,7 +251,7 @@ M.opts = {
   explorer = { enabled = true },
   picker = { enabled = true },
   notifier = { enabled = true, timeout = 3000 },
-  styles = { notification = { wo = { wrap = true } } }, -- Wrap notifications
+  styles = { notification = { wo = { wrap = true }, border = 'rounded' } }, -- Wrap notifications
   scroll = { enabled = false },
   statuscolumn = { enabled = false },
   words = { enabled = false },
@@ -327,6 +327,10 @@ M.opts.picker = {
     cwd_bonus = true,
   },
 
+  layout = {
+    fullscreen = true,
+  },
+
   actions = {
     cd_up = function(picker, _)
       picker:set_cwd(vim.fs.dirname(picker:cwd()))
@@ -396,7 +400,6 @@ M.opts.picker = {
     },
 
     grep = {
-      layout = { preset = 'ivy' },
       win = {
         input = {
           keys = {
