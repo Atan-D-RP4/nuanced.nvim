@@ -82,6 +82,7 @@ return {
             vim.fn.stdpath 'config' .. '/lua',
             vim.fn.stdpath 'data' .. '/lazy/',
           },
+
           enableReindex = true,
           reindexDuration = 10000,
           ignoreDir = { '.git', 'dist', 'build' },
@@ -153,6 +154,7 @@ return {
   harper_ls = {
     enabled = vim.fn.executable 'harper-ls' == 1,
     filetypes = { 'markdown', 'text', 'gitcommit', 'html', 'norg' },
+
     settings = {
       ['harper-ls'] = {
         userDictPath = vim.fn.stdpath 'config' .. '/user.dict',
@@ -194,10 +196,17 @@ return {
     end,
   },
 
+  svelte = {
+    enabled = vim.fn.executable 'deno' == 1,
+    cmd = { 'deno', 'run', '-A', 'npm:svelte-language-server', '--stdio', '--no-color' },
+    filetypes = { 'svelte' },
+  },
+
   vimls = {
     enabled = vim.fn.executable 'deno' == 1,
     cmd = { 'deno', 'run', '-A', 'npm:vim-language-server', '--stdio' },
     filetypes = { 'vim' },
+
     settings = {
       vim = {
         format = {
@@ -230,6 +239,7 @@ return {
   ruff = {
     enabled = true and vim.fn.executable 'uv' == 1,
     cmd = { 'uv', 'tool', 'run', 'ruff', 'server' },
+
     settings = {
       lint = {
         codeAction = { fixViolation = { enable = true } },
@@ -467,8 +477,8 @@ return {
   hls = { enabled = vim.fn.executable 'haskell_language_server_wrapper' == 1 },
 
   elixirls = {
-    cmd = { 'elixir-ls' },
     enabled = vim.fn.executable 'elixir-ls' == 1,
+    cmd = { 'elixir-ls' },
     ft = { 'elixir', 'eelixir' },
   },
 

@@ -259,7 +259,7 @@ M.opts = {
 
 M.opts.bigfile = {
   enabled = true,
-  size = 0.5 * 1024 * 1024, -- 1.5MB
+  size = 0.5 * 1024 * 1024, -- 0.5MB
   line_length = 1000, -- average line length (useful for minified files)
   -- Enable or disable features when big file detected
   ---@param ctx {buf: number, ft:string}
@@ -276,7 +276,7 @@ M.opts.bigfile = {
     vim.treesitter.stop(0)
     vim.schedule(function()
       if vim.api.nvim_buf_is_valid(ctx.buf) then
-        vim.bo[ctx.buf].syntax = ctx.ft
+        vim.bo[ctx.buf].syntax = 'off'
       end
     end)
   end,
@@ -351,23 +351,29 @@ M.opts.picker = {
         vim.print 'You need to install flash.nvim to use this feature'
         return
       end
+
       flash.jump {
         pattern = '^',
         label = { after = { 0, 0 } },
+
         actions = {
           ['<C-l>'] = function(match, state)
             return false
           end,
         },
+
         search = {
           mode = 'search',
+
           exclude = {
             function(win)
               return vim.bo[vim.api.nvim_win_get_buf(win)].filetype ~= 'snacks_picker_list'
             end,
           },
         },
+
         highlight = { backdrop = false },
+
         action = function(match)
           local idx = picker.list:row2idx(match.pos[1])
           picker.list:_move(idx, true, true)
@@ -383,6 +389,7 @@ M.opts.picker = {
     explorer = {
       auto_close = true,
       jump = { close = true },
+
       layout = {
         layout = { height = 0.2, position = 'left' },
       },

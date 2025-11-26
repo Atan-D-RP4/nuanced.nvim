@@ -59,27 +59,20 @@ local neogit = {
   },
 }
 
--- TODO: Implement integration with fzf-lua
-local gitworktree = {
-  'ThePrimeagen/git-worktree.nvim',
-  event = 'VeryLazy',
-
-  dependencies = {
-    'nvim-lua/plenary.nvim',
-    -- 'ibhagwan/fzf-lua',
-  },
+---@type table<Gitsigns.SignType, Gitsigns.SignConfig>
+gitsigns.opts.signs = {
+  add = { text = '+' },
+  change = { text = '~' },
+  delete = { text = '∨' },
+  topdelete = { text = '^' },
+  changedelete = { text = '~' },
+  untracked = { text = '?' },
 }
 
-gitsigns.opts = {
-  ---@type table<Gitsigns.SignType,Gitsigns.SignConfig>
-  signs = {
-    add = { text = '+' },
-    change = { text = '~' },
-    delete = { text = '_' },
-    topdelete = { text = '‾' },
-    changedelete = { text = '~' },
-    untracked = { text = '?' },
-  },
+---@type table<Gitsigns.SignType, Gitsigns.SignConfig>
+gitsigns.opts.signs_staged = {
+  delete = { text = '∨' },
+  topdelete = { text = '^' },
 }
 
 gitsigns.opts.on_attach = function(bufnr)

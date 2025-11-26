@@ -66,7 +66,9 @@ local treesitter_core_main = {
     vim.api.nvim_create_autocmd('FileType', {
       callback = function(ev)
         if vim.tbl_contains(ts.get_installed(), ev.match) then
-          pcall(vim.treesitter.start)
+          require('nuance.core.promise').async_promise(100, function()
+            vim.treesitter.start(ev.buf, ev.match)
+          end)
         end
       end,
     })

@@ -28,12 +28,13 @@ local lspconfig = {
 }
 
 autocmd('LspAttach', {
+  desc = 'LSP Attach Mappings',
   group = augroup 'lsp-attach-mappings',
   callback = function(args)
     local bufnr = args.buf
     local client = vim.lsp.get_client_by_id(args.data.client_id)
     if not client then
-      vim.notify('LSP client not found for id: ' .. tostring(args.data.client_id), vim.log.levels.WARN, { title = 'LSP' })
+      vim.notify('LSP client not found for id: ' .. tostring(args.data.client_id), log_levels.WARN, { title = 'LSP' })
       return
     end
 
@@ -68,11 +69,13 @@ autocmd('LspAttach', {
 })
 
 autocmd('LspAttach', {
+  desc = 'LSP Attach Highlights and Colors',
+  group = augroup 'lsp-attach-highlights-and-colors',
   callback = function(event)
     local bufnr = event.buf
     local client = vim.lsp.get_client_by_id(event.data.client_id)
     if not client then
-      vim.notify('LSP client not found for id: ' .. tostring(event.data.client_id), vim.log.levels.WARN, { title = 'LSP' })
+      vim.notify('LSP client not found for id: ' .. tostring(event.data.client_id), log_levels.WARN, { title = 'LSP' })
       return
     end
 
@@ -96,8 +99,8 @@ autocmd('LspAttach', {
       autocmd('LspDetach', {
         buffer = bufnr,
         group = highlight_augroup,
-        callback = function(ev)
-          pcall(vim.api.nvim_clear_autocmds, { group = highlight_augroup, buffer = ev.buf })
+        callback = function()
+          pcall(vim.api.nvim_clear_autocmds, { group = highlight_augroup, buffer = bufnr })
         end,
       })
     end
@@ -108,17 +111,17 @@ autocmd('LspAttach', {
       autocmd('ColorScheme', {
         buffer = bufnr,
         group = color_augroup,
-        callback = function(ev)
+        callback = function()
           vim.lsp.buf.clear_references()
-          vim.lsp.document_color._buf_refresh(ev.buf, client.id)
+          vim.lsp.document_color._buf_refresh(bufnr, client.id)
         end,
       })
 
       autocmd('LspDetach', {
         buffer = bufnr,
         group = color_augroup,
-        callback = function(ev)
-          pcall(vim.api.nvim_clear_autocmds, { group = color_augroup, buffer = ev.buf })
+        callback = function()
+          pcall(vim.api.nvim_clear_autocmds, { group = color_augroup, buffer = bufnr })
         end,
       })
     end
@@ -132,11 +135,12 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   -- that of Treesitter, so that Treesitter is always highlighting
   -- over LSP semantic tokens.
   vim.hl.priorities.semantic_tokens = 95
+  local log_levels = (vim.lsp.log.levels or vim.log.levels)
 
   if vim.version() >= vim.version { major = 0, minor = 12, patch = 0 } then
     vim.lsp.log.set_format_func(function(level, timestamp, message)
       -- Make message readable (handles tables)
-      if vim.lsp.log.levels[level] < vim.lsp.log.levels.WARN then
+      if log_levels[level] < log_levels.WARN then
         return nil
       end
       local msg = type(message) == 'table' and vim.inspect(message) or tostring(message)
@@ -188,7 +192,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         if client.config.root_dir then
           msg = msg .. '\n' .. 'In root directory: ' .. client.config.root_dir
         end
-        vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
+        vim.notify(msg, log_levels.INFO, { title = 'LSP' })
 
         if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_codeLens) then
           local codelens_augroup = augroup 'lsp-codelens'
@@ -213,7 +217,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
 
             vim.notify(
               'LSP CodeLens ' .. (vim.b.codelens_enabled and 'Enabled' or 'Disabled'),
-              (vim.b.codelens_enabled and vim.log.levels.INFO or vim.log.levels.WARN),
+              (vim.b.codelens_enabled and log_levels.INFO),
               { title = 'LSP' }
             )
           end, { desc = 'LSP [T]oggle [R]efresh CodeLens', noremap = false })
@@ -255,7 +259,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
               if attached_buffers_count == 0 then
                 local msg = 'No buffers attached to client: ' .. client.name .. '\n'
                 msg = msg .. 'Stopping Server: ' .. client.name
-                vim.notify(msg, vim.log.levels.INFO, { title = 'LSP' })
+                vim.notify(msg, log_levels.INFO, { title = 'LSP' })
                 cur_client:stop(true)
               end
             end, 3000)
@@ -268,7 +272,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
       global = function(_code, _signal, client_id)
         local client = vim.lsp.get_client_by_id(client_id)
         if not client then
-          vim.notify('LSP client not found for id: ' .. tostring(client_id), vim.log.levels.WARN, { title = 'LSP' })
+          vim.notify('LSP client not found for id: ' .. tostring(client_id), log_levels.WARN, { title = 'LSP' })
           return
         end
 
@@ -280,7 +284,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
           end
         end
 
-        vim.notify('De-Initialized Language Server: ' .. client.name, vim.log.levels.INFO, { title = 'LSP' })
+        vim.notify('De-Initialized Language Server: ' .. client.name, log_levels.INFO, { title = 'LSP' })
       end,
     },
   })
