@@ -177,10 +177,10 @@ local maps = {
     'J',
     function()
       ---@diagnostic disable-next-line: unused-local, unused-function
-      _G.operatorJ = function(mode)
+      vim.g.operatorJ = function(_mode)
         vim.cmd [[ exec "'[,']join" ]]
       end
-      vim.o.operatorfunc = 'v:lua.operatorJ'
+      vim.o.operatorfunc = 'v:lua.vim.g.operatorJ'
       return 'g@'
     end,
     { expr = true, silent = true, desc = 'Join Operator' },
@@ -222,7 +222,7 @@ local maps = {
           Bufline.buf_switch(Bufline.curr_buf_idx - 1)
         end
       end
-      Bufline.buf_switch((Bufline.curr_buf_idx + 1) % Bufline.buftabs_count)
+      Bufline.buf_switch((Bufline.curr_buf_idx + 1) % Bufline.buftabs_count + 1)
 
       require('nuance.core.utils').safe_buf_delete(bufnr)
     end,

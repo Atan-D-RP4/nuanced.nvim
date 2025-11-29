@@ -27,7 +27,11 @@ local ai = {
     {
       'nvim-treesitter/nvim-treesitter-textobjects',
       branch = 'main',
-      opts = { select = { lookahead = true } },
+      opts = {
+        select = { enable = true, lookahead = true },
+        move = { enable = true, set_jumps = true },
+        swap = { enable = false },
+      },
     },
   },
 
@@ -53,13 +57,55 @@ local ai = {
 
       custom_textobjects = {
         -- Text object for git conflict regions
-        G = function()
-          local from = { line = vim.fn.search('^<<<<<<< ', 'bnW'), col = 1 }
-          local to = { line = vim.fn.search('^>>>>>>> ', 'nW'), col = 1 }
-          if from.line == 0 or to.line == 0 then
-            return nil
+        -- Returns array of all conflict regions so mini.ai can apply search_method
+        G = function(ai_type)
+          local start_pat = '^<<<<<<<'
+          local sep_pat = '^======='
+          local end_pat = '^>>>>>>>'
+
+          local regions = {}
+          local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+          local in_conflict, start_line = false, nil
+
+          for i, line in ipairs(lines) do
+            if line:match(start_pat) then
+              in_conflict = true
+              start_line = i
+            elseif in_conflict and line:match(end_pat) then
+              local end_line = i
+              local from_line, to_line = start_line, end_line
+              local from_col, to_col = 1, #lines[end_line]
+
+              -- For 'i' (inner), exclude the marker lines
+              if ai_type == 'i' then
+                from_line = start_line + 1
+                to_line = end_line - 1
+                if from_line <= to_line then
+                  to_col = #(lines[to_line] or '')
+                  if to_col == 0 then
+                    to_col = 1
+                  end
+                  table.insert(regions, {
+                    from = { line = from_line, col = from_col },
+                    to = { line = to_line, col = to_col },
+                  })
+                end
+              else
+                if to_col == 0 then
+                  to_col = 1
+                end
+                table.insert(regions, {
+                  from = { line = from_line, col = from_col },
+                  to = { line = to_line, col = to_col },
+                })
+              end
+
+              in_conflict = false
+              start_line = nil
+            end
           end
-          return { from = from, to = to }
+
+          return regions
         end,
 
         g = function()
@@ -76,7 +122,8 @@ local ai = {
           i = { '@block.inner', '@conditional.inner', '@loop.inner' },
         },
 
-        f = require('mini.ai').gen_spec.treesitter { a = '@function.outer', i = '@function.inner' }, -- function
+        f = require('mini.ai').gen_spec.treesitter { a = '@function.outer', i = '@function.inner' }, -- function definition
+        u = require('mini.ai').gen_spec.function_call { name_pattern = '[%w_]' }, -- function call without dot in function name
         c = require('mini.ai').gen_spec.treesitter { a = '@class.outer', i = '@class.inner' }, -- class
         t = { '<([%p%w]-)%f[^<%w][^<>]->.-</%1>', '^<.->().*()</[^/]->$' }, -- tags
         d = { '%f[%d]%d+' }, -- digits
@@ -85,8 +132,6 @@ local ai = {
           { '%u[%l%d]+%f[^%l%d]', '%f[%S][%l%d]+%f[^%l%d]', '%f[%P][%l%d]+%f[^%l%d]', '^[%l%d]+%f[^%l%d]' },
           '^().*()$',
         },
-        u = require('mini.ai').gen_spec.function_call(), -- u for "Usage"
-        U = require('mini.ai').gen_spec.function_call { name_pattern = '[%w_]' }, -- without dot in function name
       },
     }
   end,

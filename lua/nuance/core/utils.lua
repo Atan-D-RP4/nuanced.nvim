@@ -35,7 +35,7 @@ function M.is_key_mapped(modes, lhs, opts)
 
   -- Get the leader key and expand it to its notation form
   local leader = vim.g.mapleader
-  if leader then
+  if leader ~= nil then
     -- Convert the leader character to its key notation (e.g., '\r' -> '<CR>')
     local leader_notation = vim.api.nvim_replace_termcodes(leader, true, true, true)
     leader_notation = vim.fn.keytrans(leader_notation)

@@ -8,7 +8,7 @@
 --- - Enum-like values (extracted from code comments or type hints)
 -- Example
 ---@type "a" | "b" | "c" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p"
-local enum = 'a'
+local _enum = 'a'
 
 local M = {}
 
@@ -55,9 +55,9 @@ function M._extract_from_type_comment()
 end
 
 --- Try to get enum members using treesitter-based context analysis
----@param word string -- The current word
+---@param _word string -- The current word
 ---@return table -- List of enum items {label}
-function M._get_context_enum_items(word)
+function M._get_context_enum_items(_word)
   local items = {}
 
   -- Try to extract from type comments first
@@ -170,6 +170,8 @@ function M.lsp_dial(inc)
   end
 
   local next_item = items[index]
+  assert(next_item ~= nil, 'Next enum item should exist')
+  assert(next_item.label ~= nil, 'Next enum item should have a label')
 
   -- Replace the word with the next item
   M._replace_word(word, next_item.label)

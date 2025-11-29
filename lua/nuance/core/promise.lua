@@ -2,11 +2,17 @@ local M = {}
 
 --- A Promise-like object for asynchronous operations
 ---@class AsyncPromise
----@field after fun(self: AsyncPromise, cb: fun(result: any)): AsyncPromise
----@field catch fun(self: AsyncPromise, cb: fun(err: any)): AsyncPromise
----@field settle fun(self: AsyncPromise, cb: fun(success: boolean, value: any)): AsyncPromise
----@field await_sync fun(self: AsyncPromise, timeout_ms?: integer): (string, any)
----@field cancel fun(self: AsyncPromise): AsyncPromise
+---@field after fun(self: AsyncPromise, cb: fun(result: any)): AsyncPromise -- called on fulfillment
+---@field catch fun(self: AsyncPromise, cb: fun(err: any)): AsyncPromise -- called on rejection
+---@field finally fun(self: AsyncPromise, cb: fun()): AsyncPromise -- called regardless of outcome
+---@field settle fun(self: AsyncPromise, cb: fun(success: boolean, value: any)): AsyncPromise -- called on settlement
+---@field await_sync fun(self: AsyncPromise, timeout_ms?: integer): (string, any) -- blocks until settled or timeout
+---@field cancel fun(self: AsyncPromise): AsyncPromise -- cancels the promise
+---@field is_pending fun(self: AsyncPromise): boolean
+---@field is_fulfilled fun(self: AsyncPromise): boolean
+---@field is_rejected fun(self: AsyncPromise): boolean
+---@field is_cancelled fun(self: AsyncPromise): boolean
+---@field state fun(self: AsyncPromise): string -- returns 'pending', 'fulfilled', 'rejected', or 'cancelled'
 AsyncPromise = {}
 
 --- @param ms integer Delay in milliseconds before executing the callback (must be >= 0)
@@ -31,6 +37,7 @@ function M.async_promise(ms, fn, ...)
     rejected = {},
     finally = {},
   }
+  assert(timer, 'Failed to create timer')
 
   local function run_callbacks(list, ...)
     for _, cb in ipairs(list) do
@@ -121,30 +128,28 @@ function M.async_promise(ms, fn, ...)
     if state == 'pending' then
       state = 'cancelled'
       value = nil
-      if timer then
-        timer:stop()
-        timer:close()
-        timer = nil
-      end
+      timer:stop()
+      timer:close()
+      timer = nil
       run_callbacks(callbacks.finally)
       callbacks = { fulfilled = {}, rejected = {}, finally = {} }
     end
     return self
   end
 
-  function promise:is_pending()
+  function promise.is_pending()
     return state == 'pending'
   end
-  function promise:is_fulfilled()
+  function promise.is_fulfilled()
     return state == 'fulfilled'
   end
-  function promise:is_rejected()
+  function promise.is_rejected()
     return state == 'rejected'
   end
-  function promise:is_cancelled()
+  function promise.is_cancelled()
     return state == 'cancelled'
   end
-  function promise:state()
+  function promise.state()
     return state
   end
 
@@ -205,7 +210,6 @@ function M.async_promise(ms, fn, ...)
     0,
     vim.schedule_wrap(function()
       if state ~= 'pending' then
-        assert(timer, 'Timer must exist in its own callback')
         timer:close()
         return
       end
@@ -220,7 +224,6 @@ function M.async_promise(ms, fn, ...)
         settle_reject(res)
       end
 
-      assert(timer, 'Timer must exist in its own callback')
       if not timer:is_closing() then
         pcall(function()
           timer:close()

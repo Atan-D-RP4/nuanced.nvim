@@ -13,12 +13,12 @@ local grugfar = {
   enabled = true,
 
   ---@module 'grug-far'
-  ---@type GrugFarOptions
+  ---@type grug.far.OptionsOverride
   opts = {
     filetypes = {
       ['grug-far'] = true,
-      ['grug-far-history'] = false,
-      ['grug-far-help'] = false,
+      ['grug-far-history'] = true,
+      ['grug-far-help'] = true,
     },
   },
   keys = {

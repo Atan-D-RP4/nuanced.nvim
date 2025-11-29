@@ -1,7 +1,7 @@
 ---@diagnostic disable: unused-local
 local statusline = {
   'echasnovski/mini.statusline',
-  event = 'VeryLazy',
+  event = 'UIEnter',
   -- Simple and easy statusline.
   -- You could remove this setup call if you don't like it,
   -- and try some other statusline plugin
@@ -91,7 +91,7 @@ local statusline = {
       vim.api.nvim_set_hl(0, hl_fg .. '2', fghl)
     end
 
-    require('nuance.core.promise').async_promise(100, function(opts)
+    require('nuance.core.promise').async_promise(100, function()
       statusline.setup {
 
         content = {
@@ -157,7 +157,7 @@ local statusline = {
 
 local icons = {
   'echasnovski/mini.icons',
-  event = 'VeryLazy',
+  event = 'UIEnter',
   config = function()
     require('mini.icons').setup()
   end,
@@ -232,7 +232,7 @@ local themes = {
 
 local noice = {
   'folke/noice.nvim',
-  event = 'VeryLazy',
+  event = 'UIEnter',
   dependencies = { 'MunifTanjim/nui.nvim' },
   -- config = function(_, opts)
   --   require('nuance.core.promise').async_promise(100, function()
@@ -298,7 +298,7 @@ local noice = {
 
 local which_key = { -- Useful plugin to show you pending keybinds.
   'folke/which-key.nvim',
-  event = 'VeryLazy', -- Sets the loading event to 'VimEnter'
+  event = 'UIEnter', -- Sets the loading event to 'UIEnter'
   opts = {
     expand = function(node)
       return not node.desc

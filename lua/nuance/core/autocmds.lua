@@ -1,7 +1,9 @@
--- [[ Basic Autocommands ]]
+-- [[ User and Autocommands ]]
 
 local augroup = require('nuance.core.utils').augroup
 local autocmd = vim.api.nvim_create_autocmd
+
+vim.cmd 'cabbrev git Git'
 
 autocmd('FileType', {
   pattern = { 'markdown', 'text' },
@@ -157,7 +159,7 @@ autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
 autocmd('BufWritePre', {
   desc = 'Clear trailing whitespace and empty comment lines on save',
   group = augroup 'clear-whitespace-and-empty-comments',
-  ---@type vim.api.create_autocmd.callback.args
+  ---@type vim.api.keyset.create_autocmd.callback_args
   callback = function(ev)
     local save = vim.fn.winsaveview()
 
@@ -324,7 +326,7 @@ autocmd('FileType', {
       end
       pcall(vim.cmd.close)
 
-      if Snacks and Snacks.bufdelete then
+      if Snacks ~= nil and Snacks.bufdelete ~= nil then
         pcall(Snacks.bufdelete, bufnr)
       else
         pcall(require('nuance.core.utils').safe_buf_delete, bufnr)
@@ -431,7 +433,7 @@ autocmd({ 'BufRead', 'BufNewFile' }, {
   end,
 })
 
-vim.api.nvim_create_user_command('TSFoldToggle', function(_)
+vim.api.nvim_create_user_command('ToggleTreesitterFolding', function()
   vim.g.treesitter_folding_enabled = not vim.g.treesitter_folding_enabled
   local state = vim.g.treesitter_folding_enabled and 'Enabled' or 'Disabled'
   vim.notify(

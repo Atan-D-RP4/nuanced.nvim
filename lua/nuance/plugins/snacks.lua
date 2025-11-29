@@ -2,134 +2,109 @@ local directory_pick = function()
   require('snacks.picker').pick {
     title = 'Directories',
     preview = 'preview',
+
     ---@param opts snacks.picker.Config
     ---@param ctx snacks.picker.finder.ctx
     finder = function(opts, ctx)
       local items = {}
-      local cwd = opts.cwd or ctx:cwd()
       local uv = vim.uv
+      local cwd = opts.cwd or ctx:cwd()
+      cwd = vim.fs.normalize(cwd) -- normalize cwd
+      local max_depth = opts.max_depth or 3
 
-      -- Read directory entries using vim.uv
-      local ok, entries = pcall(function()
-        local handle = uv.fs_scandir(cwd)
-        local result = {}
-
-        if handle then
-          while true do
-            local name, type = uv.fs_scandir_next(handle)
-
-            if not name then
-              break
-            end
-
-            table.insert(result, { name = name, type = type })
-          end
+      --- Recursively scan directories up to depth
+      local function scan(dir, depth)
+        if depth > max_depth then
+          return
         end
-        return result
-      end)
 
-      if not ok or not entries then
-        vim.schedule(function()
-          vim.notify('Error reading directory: ' .. tostring(cwd), vim.log.levels.ERROR)
-        end)
+        local handle = uv.fs_scandir(dir)
+        if not handle then
+          return
+        end
 
-        return items
-      end
+        while true do
+          local name, t = uv.fs_scandir_next(handle)
+          if not name then
+            break
+          end
+          if name == '.' or name == '..' then
+            goto continue
+          end
 
-      for _, entry in ipairs(entries) do
-        if entry.name ~= '.' and entry.name ~= '..' then
-          local full = vim.fs.joinpath(cwd, entry.name)
+          local full = vim.fs.joinpath(dir, name)
 
-          -- Check if it's a directory using vim.uv
-          local stat = uv.fs_stat(full)
-          if stat and stat.type == 'directory' then
+          if t == 'directory' then
             table.insert(items, {
-              name = entry.name,
-              text = entry.name,
+              name = name,
+              text = full, -- absolute path as text
               path = full,
               type = 'directory',
 
               preview = {
                 text = (function()
-                  -- Build preview lines using vim.uv
                   local lines = {}
-                  local ok2, subents = pcall(function()
-                    local handle = uv.fs_scandir(full)
-                    local result = {}
+                  table.insert(lines, full) -- absolute path
+                  table.insert(lines, '') -- blank line
 
-                    if handle then
-                      while true do
-                        local name, type = uv.fs_scandir_next(handle)
-                        if not name then
-                          break
-                        end
-                        table.insert(result, { name = name, type = type })
-                      end
-                    end
-
-                    return result
-                  end)
-
-                  if not ok2 or not subents then
-                    return 'Error reading: ' .. tostring(full)
+                  local sub = uv.fs_scandir(full)
+                  if not sub then
+                    table.insert(lines, '(could not read directory)')
+                    return table.concat(lines, '\n')
                   end
 
-                  -- Add header with directory info
-                  table.insert(lines, '📁 ' .. entry.name)
-                  table.insert(lines, '📍 ' .. full)
-                  table.insert(lines, '📊 ' .. #subents .. ' entries')
-                  table.insert(lines, '')
+                  local dirs, files = {}, {}
 
-                  -- Separate directories and files
-                  local dirs = {}
-                  local files = {}
-
-                  for _, se in ipairs(subents) do
-                    if se.type == 'directory' then
-                      table.insert(dirs, se.name)
+                  while true do
+                    local sn, st = uv.fs_scandir_next(sub)
+                    if not sn then
+                      break
+                    end
+                    if st == 'directory' then
+                      dirs[#dirs + 1] = sn .. '/'
                     else
-                      table.insert(files, se.name)
+                      files[#files + 1] = sn
                     end
                   end
 
-                  -- Sort and display directories first
                   table.sort(dirs)
                   table.sort(files)
 
-                  -- Display directories
-                  if #dirs > 0 then
-                    table.insert(lines, '📂 Directories:')
-                    for _, dir in ipairs(dirs) do
-                      table.insert(lines, '  📁 ' .. dir)
-                    end
-                    table.insert(lines, '')
+                  for _, d in ipairs(dirs) do
+                    table.insert(lines, d)
+                  end
+                  for _, f in ipairs(files) do
+                    table.insert(lines, f)
                   end
 
-                  -- Display files
-                  if #files > 0 then
-                    table.insert(lines, '📄 Files:')
-                    for _, file in ipairs(files) do
-                      table.insert(lines, '  📄 ' .. file)
-                    end
-                  end
-
-                  if #dirs == 0 and #files == 0 then
-                    table.insert(lines, '(empty directory)')
+                  if #dirs + #files == 0 then
+                    table.insert(lines, '(empty)')
                   end
 
                   return table.concat(lines, '\n')
                 end)(),
               },
             })
+
+            -- recurse
+            scan(full, depth + 1)
           end
+
+          ::continue::
         end
       end
+
+      scan(cwd, 1)
+
+      table.sort(items, function(a, b)
+        return a.path < b.path
+      end)
 
       return items
     end,
 
     format = function(item, _)
-      return { { item.name, '@string' } }
+      return { { item.path, '@string' } }
     end,
 
     confirm = function(picker, item, _)
@@ -307,7 +282,7 @@ M.opts.dashboard = {
 
     ---@type snacks.dashboard.Item[]
     keys = {
-      { icon = ' ', key = 'a', desc = 'Pick Session', action = '<cmd>SessionPick<CR>' },
+      { icon = ' ', key = 'a', desc = 'Pick Session', action = _G.session_pick },
       { icon = ' ', key = 'f', desc = 'Find File', action = ":lua Snacks.dashboard.pick('files')" },
       { icon = ' ', key = 'n', desc = 'New File', action = ':ene | startinsert' },
       { icon = ' ', key = 'd', desc = 'Find Directory', action = directory_pick },
@@ -357,7 +332,7 @@ M.opts.picker = {
         label = { after = { 0, 0 } },
 
         actions = {
-          ['<C-l>'] = function(match, state)
+          ['<C-l>'] = function(_match, _state)
             return false
           end,
         },
@@ -428,7 +403,7 @@ M.init = function()
   end, 50)
 
   vim.api.nvim_create_autocmd('User', {
-    pattern = 'VeryLazy',
+    pattern = 'VimEnter',
     callback = function()
       -- Setup some globals for debugging (lazy-loaded)
       _G.dd = function(...)

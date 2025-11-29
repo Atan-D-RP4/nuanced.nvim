@@ -66,8 +66,11 @@ return {
         completion = { callSnippet = 'Replace' },
 
         diagnostics = {
+          enable = true,
+
           disable = {
             'missing-fields',
+            'param-type-mismatch',
             'param-type-not-match',
             'assign-type-mismatch',
           },

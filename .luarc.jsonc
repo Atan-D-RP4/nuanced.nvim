@@ -1,0 +1,53 @@
+{
+  "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
+  "runtime": {
+    "version": "LuaJIT",
+    "path": [
+      "?.lua",
+      "?/init.lua"
+    ]
+  },
+  "telemetry": {
+    "enable": false
+  },
+  "hint": {
+    "enable": true,
+    "setType": true
+  },
+  "codeLens": {
+    "enable": true
+  },
+  "completion": {
+    "callSnippet": "Replace"
+  },
+  "diagnostics": {
+    "enable": true,
+    "disable": [
+      "missing-fields",
+      "param-type-mismatch",
+      "assign-type-mismatch"
+    ],
+    "globals": [
+      "vim"
+    ]
+  },
+  "workspace": {
+    "library": [
+      "${3rd}/luv/library",
+      "$VIMRUNTIME",
+      "$XDG_CONFIG_HOME/nvim/lua",
+      "$XDG_DATA_HOME/nvim/lazy"
+    ],
+    "enableReindex": true,
+    "reindexDuration": 10000,
+    "ignoreDir": [
+      ".git",
+      "dist",
+      "build"
+    ],
+    "checkThirdParty": true
+  },
+  "format": {
+    "enable": false
+  }
+}

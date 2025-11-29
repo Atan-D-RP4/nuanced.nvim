@@ -1,6 +1,7 @@
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = require('nuance.core.utils').augroup
 local nmap = require('nuance.core.utils').nmap
+local log_levels = (vim.lsp.log.levels or vim.log.levels)
 
 local lspconfig = {
   'neovim/nvim-lspconfig',
@@ -135,7 +136,6 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   -- that of Treesitter, so that Treesitter is always highlighting
   -- over LSP semantic tokens.
   vim.hl.priorities.semantic_tokens = 95
-  local log_levels = (vim.lsp.log.levels or vim.log.levels)
 
   if vim.version() >= vim.version { major = 0, minor = 12, patch = 0 } then
     vim.lsp.log.set_format_func(function(level, timestamp, message)
@@ -257,9 +257,9 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
               end
               local attached_buffers_count = vim.tbl_count(cur_client.attached_buffers)
               if attached_buffers_count == 0 then
-                local msg = 'No buffers attached to client: ' .. client.name .. '\n'
-                msg = msg .. 'Stopping Server: ' .. client.name
-                vim.notify(msg, log_levels.INFO, { title = 'LSP' })
+                local _msg = 'No buffers attached to client: ' .. client.name .. '\n'
+                _msg = _msg .. 'Stopping Server: ' .. client.name
+                vim.notify(_msg, log_levels.INFO, { title = 'LSP' })
                 cur_client:stop(true)
               end
             end, 3000)

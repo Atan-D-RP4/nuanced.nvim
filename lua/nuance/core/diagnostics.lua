@@ -79,6 +79,7 @@ end
 function M.setup()
   -- Cache diagnostic config values upfront
   local current_config = diagnostic_config()
+  assert(current_config, 'Failed to get current diagnostic config')
   local has_virtual_lines = current_config.virtual_lines
 
   diagnostic_config {
@@ -205,9 +206,8 @@ function M.setup()
   end
 
   local diagnostic_float_or_virtlines_by_count = augroup 'diagnostic-float-or-virtlines-by-count'
-  local current_config = diagnostic_config()
 
-  if current_config.virtual_lines then
+  if has_virtual_lines then
     autocmd({ 'CursorHold' }, {
       desc = 'Toggle virtual lines based on diagnostics count',
       group = diagnostic_float_or_virtlines_by_count,
@@ -230,7 +230,9 @@ function M.setup()
           return
         end
 
-        local lnum = cursor[1] - 1
+        local lnum = cursor[1]
+        assert(lnum, 'Failed to get cursor line')
+        lnum = lnum - 1 -- Convert to 0-based
         local diagnostic_count = #diagnostic_get(ev.buf, { lnum = lnum })
 
         if diagnostic_count < 5 then
@@ -261,7 +263,9 @@ function M.setup()
           return
         end
 
-        local line = cursor[1] - 1
+        local line = cursor[1]
+        assert(line, 'Failed to get cursor line')
+        line = line - 1 -- Convert to 0-based
         local diagnostics = diagnostic_get(ev.buf, { lnum = line })
         local count = #diagnostics
 
@@ -278,15 +282,18 @@ end
 
 -- Cache the error query to avoid repeated parsing
 local error_query
+---@return vim.treesitter.Query?
 local function get_error_query()
   if not error_query then
     -- Query pattern for treesitter syntax errors and missing nodes
-    -- Fixed: use proper query syntax with space separator and meaningful capture name
-    local ok, query = pcall(vim.treesitter.query.parse, 'query', '[(ERROR) (MISSING)] @error')
+    local ok, qry = pcall(vim.treesitter.query.parse, 'query', '[(ERROR) (MISSING)] @error')
     if ok then
-      error_query = query
+      error_query = qry
+    else
+      error_query = nil
     end
   end
+  ---@diagnostic disable-next-line: return-type-mismatch
   return error_query
 end
 
@@ -332,7 +339,6 @@ function M.diagnostics(buf)
 
         -- Cache language once per tree
         local lang = 'unknown'
-        assert(ltree, 'Language tree should not be nil in for_each_tree callback')
         local ok_lang, result = pcall(ltree.lang, ltree)
         if ok_lang then
           lang = result

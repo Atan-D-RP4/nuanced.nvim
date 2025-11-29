@@ -30,7 +30,17 @@ if vim.fn.exists 'messagesopt' == 1 then
 end
 
 if vim.fn.exists 'diffopt' == 1 then
-  opt.diffopt = 'algorithm:histogram,anchor,internal,filler,closeoff,inline:char,linematch:40'
+  opt.diffopt = {
+    'internal',
+    'filler',
+    'closeoff',
+    'vertical',
+    'algorithm:histogram',
+    'indent-heuristic',
+    'anchor',
+    'linematch:60',
+    'inline:char',
+  }
 end
 
 -- Separate vim plugins from neovim in case vim still in use
@@ -161,7 +171,7 @@ vim.schedule(function()
       local ok, err, err_name = vim.uv.fs_mkdir(path, 493)
       if not ok and err_name ~= 'EEXIST' then
         vim.notify('Error creating ' .. name .. ': ' .. err, vim.log.levels.ERROR)
-        error(err) -- Let caller handle
+        return false
       else
         opt[name] = path
       end

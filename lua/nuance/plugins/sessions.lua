@@ -87,7 +87,7 @@ local session_files = function(file)
   return result
 end
 
-local session_pick = function()
+_G.session_pick = function()
   require('snacks.picker').pick {
     title = 'Sessions',
     finder = function()
@@ -161,7 +161,7 @@ local session_pick = function()
           return true
         end)
         :after(function(_)
-          local msg = ''
+          local msg
           if vim.g.active_session == '' then
             msg = 'Loaded Session: ' .. item.name
           elseif vim.g.active_session == item.name then
@@ -184,7 +184,7 @@ local M = {
   dependencies = {
     'folke/snacks.nvim',
   },
-  event = 'VeryLazy',
+  event = 'UIEnter',
 
   opts = {
     autoread = false,
@@ -212,9 +212,6 @@ local M = {
 ---@diagnostic disable-next-line: duplicate-set-field
 M.config = function(_, opts)
   require('mini.sessions').setup(opts)
-  vim.api.nvim_create_user_command('SessionPick', function()
-    session_pick()
-  end, { nargs = 0 })
 
   -- Check if session dir exists and if not create it
   if vim.fn.isdirectory(require('mini.sessions').config.directory) == 0 then
@@ -222,7 +219,9 @@ M.config = function(_, opts)
   end
 
   -- Create a default session
-  create_default()
+  if MiniSessions.detected['default'] == nil then
+    create_default()
+  end
 
   local success, statusline = pcall(require, 'mini.statusline')
   if success == false then
@@ -256,7 +255,14 @@ M.keys = {
     desc = '[S]essions [S]ave/Update',
     mode = 'n',
   },
-  { '<leader>ap', '<cmd>SessionPick<CR>', desc = '[S]essions [P]ick', mode = 'n' },
+  {
+    '<leader>ap',
+    function()
+      session_pick()
+    end,
+    desc = '[S]essions [P]ick',
+    mode = 'n',
+  },
   {
     '<leader>ar',
     function()
