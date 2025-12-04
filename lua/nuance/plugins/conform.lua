@@ -17,7 +17,6 @@ local M = {
 
       require('conform').format({ async = true, lsp_format = 'fallback', range = range }, function()
         vim.notify('Buffer Formatted', vim.log.levels.INFO, { title = 'Conform' })
-        -- vim.print(require('conform').get_formatter_config 'mdformat')
         -- vim.cmd 'exec "write"'
       end)
     end, { range = true, nargs = '?', desc = 'Format buffer with Conform' })

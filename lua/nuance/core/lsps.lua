@@ -50,7 +50,7 @@
 ---@type table<string, vim.lsp.ClientConfig>
 return {
   emmylua_ls = {
-    enabled = vim.fn.executable 'emmylua_ls' == 1, -- adjust the binary name if needed
+    enabled = vim.fn.executable 'emmylua_ls' == 1,
     filetypes = { 'lua' },
 
     settings = {
@@ -80,10 +80,10 @@ return {
 
         workspace = {
           library = {
-            vim.fs.joinpath '${3rd}/luv/library',
             vim.fn.expand '$VIMRUNTIME',
             vim.fn.stdpath 'config' .. '/lua',
             vim.fn.stdpath 'data' .. '/lazy/',
+            vim.fs.joinpath '${3rd}/luv/library',
           },
 
           enableReindex = true,
@@ -431,7 +431,37 @@ return {
 
   denols = {
     enabled = vim.fn.executable 'deno' == 1,
-    filetypes = { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' },
+    root_markers = { 'deno.json', 'deno.jsonc', 'deno.lock', 'package.json' },
+
+    root_dir = function(bufnr, on_dir)
+      local config = vim.lsp.config.denols
+      local root_markers = config.root_markers or { 'deno.json', 'deno.jsonc' }
+
+      -- Lockfiles exclusive to Node.js package managers
+      local node_lockfiles = { 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lockb', 'bun.lock' }
+
+      -- If user added a node lockfile to root_markers, don't exclude on it
+      local root_set = {}
+      for _, m in ipairs(root_markers) do
+        root_set[m] = true
+      end
+      local exclude_markers = vim.tbl_filter(function(m)
+        return not root_set[m]
+      end, node_lockfiles)
+
+      -- Append .git as lowest-priority fallback
+      root_markers = vim.fn.has 'nvim-0.11.3' == 1 and { root_markers, { '.git' } } or vim.list_extend(vim.deepcopy(root_markers), { '.git' })
+
+      local project_root = vim.fs.root(bufnr, root_markers)
+      local excluded_root = #exclude_markers > 0 and vim.fs.root(bufnr, exclude_markers) or nil
+
+      -- Skip if a Node.js lockfile is found at same or deeper level than project root
+      if excluded_root and (not project_root or #excluded_root >= #project_root) then
+        return
+      end
+
+      on_dir(project_root or vim.fn.getcwd())
+    end,
   },
 
   rust_analyzer = {

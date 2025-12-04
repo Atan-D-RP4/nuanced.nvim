@@ -91,6 +91,31 @@ M.opts.keymaps = {
   ['`'] = 'actions.cd',
   ['~'] = { 'actions.cd', opts = { scope = 'tab' }, desc = ':tcd to the current oil directory', mode = 'n' },
   ['gs'] = 'actions.change_sort',
+  -- search and replace in the current directory
+  ['g/'] = {
+    callback = function()
+      vim.print('Opening Grug Far Explorer Instance')
+      local oil = require 'oil'
+      local grug_far = require 'grug-far'
+
+      -- get the current directory
+      local prefills = { paths = oil.get_current_dir() }
+
+      -- instance check
+      if not grug_far.has_instance 'explorer' then
+        grug_far.open {
+          instanceName = 'explorer',
+          prefills = prefills,
+          staticTitle = 'Find and Replace from Explorer',
+        }
+      else
+        grug_far.get_instance('explorer'):open()
+        -- updating the prefills without clearing the search and other fields
+        grug_far.get_instance('explorer'):update_input_values(prefills, false)
+      end
+    end,
+    desc = 'oil: Search in directory',
+  },
   ['gx'] = 'actions.open_external',
   ['g.'] = 'actions.toggle_hidden',
   ['g\\'] = 'actions.toggle_trash',
