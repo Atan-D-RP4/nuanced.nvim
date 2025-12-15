@@ -1,8 +1,9 @@
 -- [[ Install `lazy.nvim` plugin manager ]]
-vim.pack.add({ 'https://github.com/folke/lazy.nvim' })
+vim.pack.add { 'https://github.com/folke/lazy.nvim' }
 
 ---@diagnostic disable-next-line: undefined-field
 require('lazy').setup({
+  rocks = { hererocks = false, enabled = false },
   performance = {
     rtp = {
       disabled_plugins = {

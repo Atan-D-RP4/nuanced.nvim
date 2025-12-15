@@ -1,6 +1,6 @@
 local M = {}
 
---@param bufnr integer
+---@param bufnr integer
 function M.safe_buf_delete(bufnr)
   if vim.bo[bufnr].modified then
     local cond = vim.fn.confirm('Save changes to "' .. vim.api.nvim_buf_get_name(bufnr) .. '"?', '&Yes\n&No\n&Cancel', 3)

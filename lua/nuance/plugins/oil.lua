@@ -4,7 +4,7 @@ local M = {
   cmd = 'Oil',
 
   keys = {
-    { '<leader>o', '<cmd>lua require("oil").open()<CR>', mode = 'n', desc = 'Open Oil Window' },
+    { '<leader>oe', '<cmd>lua require("oil").open()<CR>', mode = 'n', desc = 'Open Oil Window' },
   },
 
   init = function()

@@ -5,34 +5,11 @@ M = {
   -- build = 'cargo build --release',
 
   -- use a release tag to download pre-built binaries
-  version = 'v1.*',
+  version = '1.*',
   -- OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
   -- build = 'cargo build --release',
   -- If you use nix, you can build from source using latest nightly rust with:
   -- build = 'nix run .#build-plugin',
-
-  config = function(_, opts)
-    local has_lazydev = vim
-      .iter(require('lazy').plugins())
-      :map(function(p)
-        return p.name
-      end)
-      :any(function(name)
-        return name == 'lazydev.nvim'
-      end)
-    if has_lazydev then
-      opts.sources.default = vim.list_extend(opts.sources.default, { 'lazydev' })
-      opts.sources.providers = {
-        unpack(opts.sources.providers),
-        lazydev = {
-          name = 'LazyDev',
-          module = 'lazydev.integrations.blink',
-          score_offset = 95,
-        },
-      }
-    end
-    require('blink.cmp').setup(opts)
-  end,
 }
 
 local luasnip = {
@@ -201,10 +178,10 @@ M.opts.cmdline = {
       return { 'buffer' }
     end
     if type == ':' or type == '@' then
-      if vim.fn.getcmdline():match '.*!' ~= nil or vim.fn.getcmdline():sub(1, 6) == 'Launch' then
-        return { 'path', 'buffer' }
-      end
-      return { 'cmdline' }
+      -- if vim.fn.getcmdline():match '.*!' ~= nil or vim.fn.getcmdline():sub(1, 6) == 'Launch' then
+      --   return { 'path', 'buffer' }
+      -- end
+      return { 'cmdline', 'path', 'buffer' }
     end
     return {}
   end,

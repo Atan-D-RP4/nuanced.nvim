@@ -290,6 +290,8 @@ M.opts.dashboard = {
       { icon = ' ', key = 'G', desc = 'Git', action = '<cmd>Git ++curwin | Git log | wincmd H | wincmd l<CR>' },
       { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
       { icon = ' ', key = 'o', desc = 'File System', action = '<cmd>Oil<CR>' },
+      -- Icon for opencode AI agent orchestrator ' ',
+      { icon = '󰚩 ', key = 'c', desc = 'Opencode', action = '<cmd>Opencode<CR>' },
       { icon = '󰒲 ', key = 'L', desc = 'Lazy', action = ':Lazy', enabled = package.loaded.lazy ~= nil },
       { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
     },
@@ -302,9 +304,9 @@ M.opts.picker = {
     cwd_bonus = true,
   },
 
-  layout = {
-    fullscreen = true,
-  },
+  -- layout = {
+  --   fullscreen = true,
+  -- },
 
   actions = {
     cd_up = function(picker, _)
