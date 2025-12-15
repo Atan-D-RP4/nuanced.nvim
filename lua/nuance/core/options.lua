@@ -78,7 +78,8 @@ opt.smartindent = true
 opt.autoindent = true
 
 -- Wild Menu and Pop-up Menue Settings
-opt.wildignore = '*.o,*.so*.obj,*~,*swp,*.exe'
+opt.wildignore:append { '*.o', '*.so', '*.obj', '*~', '*.swp', '*.exe', '*.dll', '*.pyc' }
+opt.wildignore:append { '*/node_modules/*', '*/.git/*', '*/build/*', '*/dist/*', '*/target/*' }
 opt.wildmenu = true
 opt.wildmode = 'longest:full,full'
 opt.wildoptions = 'pum,fuzzy,tagfile'

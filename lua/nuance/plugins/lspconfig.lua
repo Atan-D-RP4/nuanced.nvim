@@ -290,22 +290,6 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   })
 end
 
-local _lazydev = {
-  -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
-  -- used for completion, annotations and signatures of Neovim apis
-  'folke/lazydev.nvim',
-  ft = 'lua',
-  dependencies = {
-    -- { 'Bilal2453/luvit-meta', lazy = true },
-  },
-  opts = {
-    library = {
-      -- Load luvit types when the `vim.uv` word is found
-      { path = 'luvit-meta/library', words = { 'vim%.uv' } },
-    },
-  },
-}
-
 local mason = {
   'williamboman/mason.nvim',
   init = function()
@@ -437,7 +421,6 @@ local goto_preview = {
 
 return {
   mason,
-  -- lazydev,
   lspconfig,
   tiny_inline_diagnostic,
   goto_preview,

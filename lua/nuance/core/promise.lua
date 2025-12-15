@@ -13,7 +13,6 @@ local M = {}
 ---@field is_rejected fun(self: AsyncPromise): boolean
 ---@field is_cancelled fun(self: AsyncPromise): boolean
 ---@field state fun(self: AsyncPromise): string -- returns 'pending', 'fulfilled', 'rejected', or 'cancelled'
-AsyncPromise = {}
 
 --- @param ms integer Delay in milliseconds before executing the callback (must be >= 0)
 --- @param fn function The function to execute asynchronously

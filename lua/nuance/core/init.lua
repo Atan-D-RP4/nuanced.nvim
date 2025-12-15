@@ -2,13 +2,12 @@ require 'nuance.core.options'
 require 'nuance.core.keymaps'
 
 -- NOTE: This is for when I convert the nuance.core directory into a Neovim-Lua plugin
-vim.api.nvim_create_autocmd('User', {
+vim.api.nvim_create_autocmd('VimEnter', {
   group = vim.api.nvim_create_augroup('nuance-autocmds', { clear = true }),
   desc = 'Setup Core Autocmds',
-  pattern = 'VeryLazy',
-  callback = function()
+  callback = vim.schedule_wrap(function()
     require 'nuance.core.autocmds'
-  end,
+  end),
 })
 
 require('nuance.core.promise').async_promise(100, require('nuance.core.diagnostics').setup):catch(function(err)

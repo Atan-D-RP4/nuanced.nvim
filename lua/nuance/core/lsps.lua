@@ -53,6 +53,21 @@ return {
     enabled = vim.fn.executable 'emmylua_ls' == 1,
     filetypes = { 'lua' },
 
+    on_init = {
+      spec = function(client, _init_result)
+        if not client.root_dir:match 'nvim' then
+          return
+        end
+        client.config.settings.Lua.workspace.library = vim.tbl_extend('keep', client.config.settings.Lua.workspace.library or {}, {
+          vim.fn.expand '$VIMRUNTIME',
+          vim.fn.expand '$VIMRUNTIME' .. '/lua',
+          vim.fs.joinpath '${3rd}/luv/library',
+          vim.fn.stdpath 'config' .. '/lua',
+          vim.fn.stdpath 'data' .. '/lazy/',
+        }, vim.fn.glob(vim.fn.stdpath 'data' .. '/lazy/*/lua', 0, 1))
+      end,
+    },
+
     settings = {
       Lua = {
         runtime = {
@@ -79,17 +94,10 @@ return {
         },
 
         workspace = {
-          library = {
-            vim.fn.expand '$VIMRUNTIME',
-            vim.fn.stdpath 'config' .. '/lua',
-            vim.fn.stdpath 'data' .. '/lazy/',
-            vim.fs.joinpath '${3rd}/luv/library',
-          },
-
           enableReindex = true,
           reindexDuration = 10000,
           ignoreDir = { '.git', 'dist', 'build' },
-          checkThirdParty = true,
+          checkThirdParty = false,
         },
 
         format = {
@@ -125,12 +133,21 @@ return {
         },
 
         workspace = {
+          library = {
+            vim.fn.expand '$VIMRUNTIME',
+            vim.fn.stdpath 'config' .. '/lua',
+            vim.fn.stdpath 'data' .. '/lazy/',
+            vim.fs.joinpath '${3rd}/luv/library',
+          },
+
+          enableReindex = true,
+          reindexDuration = 10000,
           ignoreDir = { '.git', 'dist', 'build' },
-          checkThirdParty = false,
+          -- checkThirdParty = true,
         },
 
         format = {
-          enable = false,
+          -- enable = false,
           -- defaultConfig = {
           --   max_line_length = 180,
           --   indent_style = 'space',
@@ -226,22 +243,22 @@ return {
 
   zuban = {
     enabled = false and vim.fn.executable 'uv' == 1,
-    cmd = { 'uv', 'tool', 'run', 'zuban', 'server' },
+    cmd = { 'uvx', 'zuban', 'server' },
   },
 
   ty = {
     enabled = false and vim.fn.executable 'uv' == 1,
-    cmd = { 'uv', 'tool', 'run', 'ty', 'server' },
+    cmd = { 'uvx', 'ty', 'server' },
   },
 
   pyrefly = {
     enabled = true and vim.fn.executable 'uv' == 1,
-    cmd = { 'uv', 'tool', 'run', 'pyrefly', 'lsp' },
+    cmd = { 'uvx', 'pyrefly', 'lsp' },
   },
 
   ruff = {
     enabled = true and vim.fn.executable 'uv' == 1,
-    cmd = { 'uv', 'tool', 'run', 'ruff', 'server' },
+    cmd = { 'uvx', 'ruff', 'server' },
 
     settings = {
       lint = {
@@ -271,7 +288,7 @@ return {
 
   jedi_language_server = {
     enabled = false and vim.fn.executable 'uv' == 1,
-    cmd = { 'uv', 'tool', 'run', 'jedi-language-server' },
+    cmd = { 'uvx', 'jedi-language-server' },
 
     before_init = function(_, config)
       local pythonPath = require('nuance.core.utils').get_python_path(config.root_dir)
@@ -517,7 +534,7 @@ return {
 
   systemd_ls = {
     enabled = vim.fn.executable 'uv' == 1,
-    cmd = { 'uv', 'tool', 'run', 'systemd-language-server' },
+    cmd = { 'uvx', 'systemd-language-server' },
     ft = { 'systemd' },
   },
 
