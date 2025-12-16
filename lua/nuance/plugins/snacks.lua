@@ -276,6 +276,10 @@ M.opts.terminal = {
 
 M.opts.dashboard = {
   enabled = true,
+  sections = {
+    { section = 'header' },
+    { section = 'keys', gap = 1, padding = 1 },
+  },
   preset = {
     ---@type fun(cmd:string, opts:table)|nil
     pick = nil,

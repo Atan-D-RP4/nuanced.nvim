@@ -44,7 +44,9 @@ else
 
   -- [[ Install `lazy.nvim` plugin manager ]]
   -- [[ Configure and install plugins ]]
-  require 'nuance.lazy'
+  -- require 'nuance.lazy'
+  require 'nuance.pack'
+  require 'nuance.pack_plugins'
 end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
