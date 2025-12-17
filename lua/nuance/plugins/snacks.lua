@@ -408,8 +408,7 @@ M.init = function()
     vim.ui.select = Snacks.picker.select
   end, 50)
 
-  vim.api.nvim_create_autocmd('User', {
-    pattern = 'VimEnter',
+  vim.api.nvim_create_autocmd('UIEnter', {
     callback = function()
       -- Setup some globals for debugging (lazy-loaded)
       _G.dd = function(...)
