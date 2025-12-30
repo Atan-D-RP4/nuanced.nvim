@@ -405,15 +405,11 @@ M.init = function()
   end, 50)
 
   vim.api.nvim_create_autocmd('User', {
-    pattern = 'VimEnter',
+    pattern = 'UIEnter',
     callback = function()
       -- Setup some globals for debugging (lazy-loaded)
-      _G.dd = function(...)
-        Snacks.debug.inspect(...)
-      end
-      _G.bt = function()
-        Snacks.debug.backtrace()
-      end
+      _G.dd = Snacks.debug.inspect
+      _G.bt = Snacks.debug.backtrace
       vim.print = _G.dd -- Override print to use snacks for `:=` command
     end,
   })

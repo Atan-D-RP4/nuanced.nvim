@@ -1,20 +1,20 @@
 -- [[ User and Autocommands ]]
 
-local augroup = require('nuance.core.utils').augroup
 local autocmd = vim.api.nvim_create_autocmd
+local utils = require 'nuance.core.utils'
 
 vim.cmd 'cabbrev git Git'
 
 autocmd('FileType', {
   pattern = { 'markdown', 'text' },
   desc = 'Use K to show dictionary definition of word under cursor',
-  group = augroup 'dictionary-keymap',
+  group = utils.augroup 'dictionary-keymap',
   callback = function()
-    if not vim.fn.executable 'dict' == 1 and not vim.fn.executable 'wn' == 1 then
+    if vim.fn.executable 'dict' ~= 1 or vim.fn.executable 'wn' ~= 1 then
       vim.notify('Neither "dict" nor "wn" command is available for dictionary lookup', vim.log.levels.WARN)
       return
     end
-    vim.keymap.set('n', 'K', function()
+    utils.map('n', 'K', function()
       local word = vim.fn.expand '<cword>'
       if word == '' then
         vim.notify('No word under cursor', vim.log.levels.WARN)
@@ -49,9 +49,19 @@ autocmd('FileType', {
   end,
 })
 
+-- autocmd BufNewFile,BufRead *.service* set ft=systemd
+autocmd({ 'BufRead', 'BufNewFile' }, {
+  desc = 'Set filetype for systemd service files',
+  group = utils.augroup 'set-systemd-ft',
+  pattern = { '*.service', '*.socket', '*.target', '*.path', '*.timer', '*.mount', '*.automount', '*.swap', '*.slice', '*.scope' },
+  callback = function()
+    vim.bo.filetype = 'systemd'
+  end,
+})
+
 autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
-  group = augroup 'highlight-yank',
+  group = utils.augroup 'highlight-yank',
   callback = function()
     (vim.highlight or vim.hl).on_yank { timeout = 200, on_visual = true }
     if vim.g.cur_yank_pre then
@@ -63,7 +73,7 @@ autocmd('TextYankPost', {
 
 autocmd('Colorscheme', {
   desc = 'Set custom colors for diff highlighting',
-  group = augroup 'diffcolors',
+  group = utils.augroup 'diffcolors',
   callback = function()
     if vim.o.background == 'dark' then
       vim.api.nvim_set_hl(0, 'DiffAdd', { bold = true, fg = 'none', bg = '#2e4b2e' })
@@ -80,7 +90,7 @@ autocmd('Colorscheme', {
 })
 
 autocmd({ 'TextYankPost' }, {
-  group = augroup 'yank-ring',
+  group = utils.augroup 'yank-ring',
   pattern = '*', -- apply for all buffers / files
   desc = 'Maintain ring of recent yanks or deletes in numbered registers 1-9',
   callback = function()
@@ -114,7 +124,7 @@ autocmd({ 'TextYankPost' }, {
 
 autocmd('BufWinEnter', {
   desc = 'Restore Cursor position when entering a buffer',
-  group = augroup 'restore-cursor',
+  group = utils.augroup 'restore-cursor',
   callback = function()
     local last_pos = vim.fn.line '\'"' > 0 and vim.fn.line '\'"' <= vim.fn.line '$'
     if vim.bo.buflisted and last_pos then
@@ -125,7 +135,7 @@ autocmd('BufWinEnter', {
 
 autocmd({ 'RecordingEnter', 'RecordingLeave' }, {
   desc = 'Notify when recording a macro',
-  group = augroup 'macro-notify',
+  group = utils.augroup 'macro-notify',
   callback = function(ev)
     local msg
     if ev.event == 'RecordingEnter' then
@@ -139,7 +149,7 @@ autocmd({ 'RecordingEnter', 'RecordingLeave' }, {
 
 autocmd('VimResized', {
   desc = 'Resize splits when resizing the window',
-  group = augroup 'resize-splits',
+  group = utils.augroup 'resize-splits',
   callback = function()
     vim.cmd 'tabdo wincmd ='
     vim.cmd('tabnext ' .. vim.fn.tabpagenr())
@@ -148,7 +158,7 @@ autocmd('VimResized', {
 
 autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
   desc = 'Check if we need to reload the file when it changed',
-  group = augroup 'checktime',
+  group = utils.augroup 'checktime',
   callback = function()
     if vim.o.buftype ~= 'nofile' then
       vim.cmd 'exec "checktime"'
@@ -158,7 +168,7 @@ autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
 
 autocmd('BufWritePre', {
   desc = 'Clear trailing whitespace and empty comment lines on save',
-  group = augroup 'clear-whitespace-and-empty-comments',
+  group = utils.augroup 'clear-whitespace-and-empty-comments',
   ---@type vim.api.keyset.create_autocmd.callback_args
   callback = function(ev)
     local save = vim.fn.winsaveview()
@@ -208,7 +218,7 @@ autocmd('BufWritePre', {
 -- Close buffer if the terminal is closed
 autocmd({ 'TermClose', 'TermOpen' }, {
   desc = 'Close terminal buffer on exit and disable line numbers in terminal',
-  group = augroup 'term-management',
+  group = utils.augroup 'term-management',
   pattern = '*',
   callback = function(ev)
     if ev.event == 'TermClose' then
@@ -227,14 +237,14 @@ autocmd({ 'TermClose', 'TermOpen' }, {
 
 autocmd('BufEnter', {
   desc = 'Disable auto comment on new line',
-  group = augroup 'disable-auto-comment',
+  group = utils.augroup 'disable-auto-comment',
   pattern = '*',
   command = [[set formatoptions-=cro]],
 })
 
 autocmd('FileType', {
   desc = 'Allow editing and reloading of quickfix window',
-  group = augroup('edit-quickfix', { clear = true }),
+  group = utils.augroup('edit-quickfix', { clear = true }),
   pattern = 'qf',
   callback = function()
     vim.bo.modifiable = true
@@ -247,7 +257,7 @@ autocmd('FileType', {
     }, ',')
 
     -- Update quickfix list after editing entries
-    vim.keymap.set('n', '<C-s>', function()
+    utils.map('n', '<C-s>', function()
       if vim.bo.modified then
         vim.cmd 'cgetbuffer'
         vim.bo.modified = false
@@ -264,7 +274,7 @@ autocmd('FileType', {
     end, { buffer = true, desc = 'Update quickfix/location list from buffer' })
 
     -- Proper reload: repopulate quickfix from the previous command (not just :edit!)
-    vim.keymap.set('n', '<C-r>', function()
+    utils.map('n', '<C-r>', function()
       local qf = vim.fn.getqflist { title = 0 }
       local title = qf.title or ''
       if title:match '^vimgrep' or title:match '^grep' then
@@ -287,7 +297,7 @@ autocmd('FileType', {
     end, { buffer = true, desc = 'Reload quickfix list (re-run vimgrep or buffer)' })
 
     -- Smart deletion
-    vim.keymap.set('n', 'dd', function()
+    utils.map('n', 'dd', function()
       local line = vim.fn.line '.'
       vim.cmd [[ exec "delete" ]]
       if vim.fn.line '$' == 1 then
@@ -299,49 +309,37 @@ autocmd('FileType', {
   end,
 })
 
+local qclose_group = utils.augroup 'close-with-q'
 autocmd('FileType', {
-  group = augroup 'close-with-q',
+  group = qclose_group,
   desc = 'Close miscellaneous buffers with q',
   -- stylua: ignore
   pattern = {
-    'checkhealth', 'cmdwin', 'dbout', 'help', 'lspinfo', 'qf', 'query', 'startuptime',
+    'checkhealth', 'cmdwin', 'dbout', 'help', 'lspinfo', 'qf', 'query', 'startuptime', 'terminal', 'nvim-undotree',
     'fugitive', 'fugitiveblame', 'fugitivediff', 'fugitivediffsplit', 'fugitivediffvsplit',
     'git', 'gitsigns-blame',
     'neotest-output', 'neotest-output-panel', 'neotest-summary',
     'PlenaryTestPopup', 'DiffviewFiles',
     'notify', 'trouble', 'grug-far',
-    'tsplayground',
+    'tsplayground'
   },
-  callback = function(args)
-    local bufnr = args.buf
+  callback = function(ev)
+    utils.set_close_q(ev.buf)
+  end,
+})
 
-    -- Mark as unlisted if needed
-    vim.bo[bufnr].buflisted = false
-
-    -- Set buffer-local keymap: q to close
-    vim.keymap.set('n', 'q', function()
-      if vim.fn.getcmdwintype() ~= '' then
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<C-c>', true, false, true), 'n', false)
-        return
-      end
-      pcall(vim.cmd.close)
-
-      if Snacks ~= nil and Snacks.bufdelete ~= nil then
-        pcall(Snacks.bufdelete, bufnr)
-      else
-        pcall(require('nuance.core.utils').safe_buf_delete, bufnr)
-      end
-    end, {
-      buffer = bufnr,
-      silent = true,
-      desc = 'Quit buffer',
-    })
+-- Terminal buffers
+autocmd('TermOpen', {
+  group = qclose_group,
+  desc = 'Close [No Name] buffers with q',
+  callback = function(ev)
+    utils.set_close_q(ev.buf)
   end,
 })
 
 autocmd({ 'BufWritePre' }, {
   desc = 'Auto-create parent directory for file',
-  group = augroup 'auto-create-parent-dir',
+  group = utils.augroup 'auto-create-parent-dir',
   callback = function(event)
     local bufname = vim.api.nvim_buf_get_name(event.buf)
     if bufname:match '^oil://' then
@@ -359,7 +357,7 @@ autocmd({ 'BufWritePre' }, {
 
 -- ref: https://vi.stackexchange.com/a/169/15292
 -- autocmd('BufReadPre', {
---   group = augroup 'bigfile-optimization',
+--   group = utils.augroup 'bigfile-optimization',
 --   pattern = '*',
 --   desc = 'Optimize for large file',
 --   callback = function(ev)
@@ -389,14 +387,14 @@ autocmd({ 'BufWritePre' }, {
 
 autocmd({ 'FileType' }, {
   desc = 'Treesitter Folding',
-  group = augroup 'treesitter-folding',
+  group = utils.augroup 'treesitter-folding',
   pattern = '*',
   callback = function(ev)
     local ft = ev.match
-    local skip_filetypes = vim.g.treesitter_folding_exclude or {}
-    vim.tbl_extend('keep', skip_filetypes, { 'markdown', 'text', 'gitcommit', 'gitrebase', 'help' })
+    vim.b.treesitter_folding_excluded = vim.tbl_contains(vim.g.treesitter_folding_exclude or {}, ft)
+
     vim.defer_fn(function()
-      if vim.g.treesitter_folding_enabled and not vim.tbl_contains(skip_filetypes, ft) then
+      if vim.g.treesitter_folding_enabled and not vim.b.treesitter_folding_excluded then
         vim.opt.foldenable = true
         vim.opt.foldlevel = 99
         vim.opt.foldmethod = 'expr'
@@ -411,28 +409,6 @@ autocmd({ 'FileType' }, {
   end,
 })
 
-autocmd('FileType', {
-  desc = 'Disable Treesitter folding for certain filetypes',
-  group = augroup 'disable-treesitter-folding',
-  pattern = { 'markdown', 'text', 'gitcommit', 'gitrebase', 'help' }, -- Add filetypes to exclude here
-  callback = function()
-    vim.g.treesitter_folding_enabled = false
-    vim.opt.foldenable = false
-    vim.opt.foldlevel = 0
-    vim.opt.foldmethod = 'manual'
-  end,
-})
-
--- autocmd BufNewFile,BufRead *.service* set ft=systemd
-autocmd({ 'BufRead', 'BufNewFile' }, {
-  desc = 'Set filetype for systemd service files',
-  group = augroup 'set-systemd-ft',
-  pattern = { '*.service', '*.socket', '*.target', '*.path', '*.timer', '*.mount', '*.automount', '*.swap', '*.slice', '*.scope' },
-  callback = function()
-    vim.bo.filetype = 'systemd'
-  end,
-})
-
 vim.api.nvim_create_user_command('ToggleTreesitterFolding', function()
   vim.g.treesitter_folding_enabled = not vim.g.treesitter_folding_enabled
   local state = vim.g.treesitter_folding_enabled and 'Enabled' or 'Disabled'
@@ -441,16 +417,7 @@ vim.api.nvim_create_user_command('ToggleTreesitterFolding', function()
     state == 'Enabled' and vim.log.levels.INFO or vim.log.levels.WARN,
     { title = 'Treesitter Folding', timeout = 5000, hide_from_history = false }
   )
-  if vim.g.treesitter_folding_enabled then
-    vim.opt.foldenable = true
-    vim.opt.foldlevel = 99
-    vim.opt.foldmethod = 'expr'
-  else
-    vim.opt.foldenable = false
-    vim.opt.foldlevel = 0
-    vim.opt.foldmethod = 'manual'
-    vim.cmd 'normal! zE' -- Recalculate folds
-  end
+  vim.api.nvim_exec_autocmds('FileType', { pattern = vim.bo.filetype })
 end, { nargs = 0, desc = 'Toggle Treesitter folding' })
 
 ---@param args vim.api.keyset.create_user_command.command_args
@@ -506,7 +473,7 @@ vim.api.nvim_create_user_command('SearchEngineQuery', function(args)
 end, { nargs = '?', range = true, desc = 'Search using a specified engine' })
 
 autocmd({ 'WinEnter', 'BufEnter', 'FocusGained', 'WinLeave', 'BufLeave', 'FocusLost', 'CmdwinEnter' }, {
-  group = augroup 'toggle-relative-number',
+  group = utils.augroup 'toggle-relative-number',
   pattern = '*',
   callback = function(ev)
     if vim.bo[ev.buf].filetype:match '^snacks_' then

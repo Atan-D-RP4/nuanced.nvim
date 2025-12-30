@@ -97,13 +97,11 @@ local maps = {
     { 'n', 'i' },
     '<C-j>',
     function()
-      local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-      line = line - 1
       local node = vim.treesitter.get_node()
-      assert(node, 'Failed to get treesitter node')
-      local row
-      row, col = node:end_()
-      vim.api.nvim_win_set_cursor(0, { row + 1, col })
+      if node then
+        local row, col = node:end_()
+        vim.api.nvim_win_set_cursor(0, { row + 1, col })
+      end
     end,
     'Treesitter Jump to Node-End',
   },
@@ -115,7 +113,7 @@ local maps = {
 
   -- NOTE: This won't work in all terminal emulators/tmux/etc. Try other mappings
   -- or just use <C-\><C-n> to exit terminal mode
-  { 't', '<C-w>q', '<C-\\><C-n>', 'Exit terminal mode' },
+  { 't', '<Esc><Esc>', '<C-\\><C-n>', 'Exit terminal mode' },
   { 't', '<C-w><C-q>', '<C-\\><C-n>', 'Exit terminal mode' },
 
   -- Better Escape
@@ -215,6 +213,12 @@ local maps = {
     '<leader>ed',
     function()
       local bufnr = vim.api.nvim_get_current_buf()
+      local ok, Bufline = pcall(require, 'nuance.core.bufline')
+      if not ok then
+        require('nuance.core.utils').safe_buf_delete(bufnr)
+        return
+      end
+
       ---@diagnostic disable-next-line: unnecessary-if
       if Bufline.curr_buf_idx + 1 > Bufline.buftabs_count then
         ---@diagnostic disable-next-line: unnecessary-if

@@ -203,6 +203,7 @@ opt.swapfile = true
 opt.backup = true
 
 global.treesitter_diagnostics = true
+global.treesitter_folding_exclude = { 'markdown', 'text', 'gitcommit', 'gitrebase', 'help' }
 global.treesitter_lint_available = vim.version() >= vim.version { major = 0, minor = 11, patch = 0 }
 global.treesitter_folding_enabled = true
 

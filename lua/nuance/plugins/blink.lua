@@ -113,9 +113,9 @@ M.opts.completion = {
 -- elsewhere in your config, without redefining it, via `opts_extend`
 M.opts.sources = {
   default = {
-    'lsp',
     'path',
     'buffer',
+    'lsp',
     'snippets',
     --'dadbod',
   },

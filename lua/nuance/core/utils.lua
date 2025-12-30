@@ -1,5 +1,26 @@
 local M = {}
 
+M.set_close_q = function(bufnr)
+  vim.keymap.set('n', 'q', function()
+    if vim.fn.getcmdwintype() ~= '' then
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<C-c>', true, false, true), 'n', false)
+      return
+    end
+
+    pcall(vim.cmd.close)
+
+    if Snacks ~= nil and Snacks.bufdelete ~= nil then
+      pcall(Snacks.bufdelete, bufnr)
+    else
+      pcall(require('nuance.core.utils').safe_buf_delete, bufnr)
+    end
+  end, {
+    buffer = bufnr,
+    silent = true,
+    desc = 'Quit buffer',
+  })
+end
+
 ---@param bufnr integer
 function M.safe_buf_delete(bufnr)
   if vim.bo[bufnr].modified then

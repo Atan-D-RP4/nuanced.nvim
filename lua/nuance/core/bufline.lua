@@ -204,6 +204,10 @@ Bufline.buf_switch = function(index)
     return vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buflisted
   end, bufs)
 
+  if type(index) ~= 'number' then
+    vim.notify('No active buffers', vim.log.levels.INFO)
+    return
+  end
   if index > #valid_bufs then
     vim.notify('Buffer index out of range', vim.log.levels.WARN)
     return

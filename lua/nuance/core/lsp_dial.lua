@@ -6,7 +6,7 @@
 --- - Numbers (via Vim's built-in increment/decrement)
 --- - Boolean values (true/false, yes/no, on/off, etc.)
 --- - Enum-like values (extracted from code comments or type hints)
--- Example
+--- - Example:
 ---@type "a" | "b" | "c" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p"
 local _enum = 'a'
 

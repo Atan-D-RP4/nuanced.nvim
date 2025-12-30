@@ -78,12 +78,16 @@ M.opts.keymaps = {
         vim.notify('Error syncing Oil buffer: ' .. tostring(err), vim.log.levels.ERROR)
         return
       end
+      local ok, bufline = pcall(require, 'nuance.core.bufline')
+      if ok and bufline then
+        return
+      end
       vim.tbl_map(function(bufnr)
         if vim.api.nvim_buf_is_valid(bufnr) and not vim.uv.fs_stat(vim.api.nvim_buf_get_name(bufnr)) then
           -- File no longer exists — close the buffer
           vim.api.nvim_buf_delete(bufnr, { force = true })
         end
-      end, vim.tbl_keys(Bufline.tab_idx_map))
+      end, vim.tbl_keys(bufline.tab_idx_map))
     end)
   end,
   ['-'] = 'actions.parent',
@@ -94,7 +98,7 @@ M.opts.keymaps = {
   -- search and replace in the current directory
   ['g/'] = {
     callback = function()
-      vim.print('Opening Grug Far Explorer Instance')
+      vim.print 'Opening Grug Far Explorer Instance'
       local oil = require 'oil'
       local grug_far = require 'grug-far'
 

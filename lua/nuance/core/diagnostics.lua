@@ -33,20 +33,42 @@ local DEFAULT_FLOAT_CONFIG = {
 }
 
 -- Debounce timer for diagnostics
-local diagnostics_timer = nil
-local function schedule_diagnostics(bufnr)
-  if diagnostics_timer ~= nil then
-    vim.fn.timer_stop(diagnostics_timer)
+-- Table to hold active timers per buffer
+local diagnostics_timers = {}
+local function schedule_diagnostics(bufnr, delay)
+  delay = delay or 100
+
+  -- Stop existing timer for buffer
+  if diagnostics_timers[bufnr] then
+    diagnostics_timers[bufnr]:stop()
+    diagnostics_timers[bufnr]:close()
+    diagnostics_timers[bufnr] = nil
   end
-  diagnostics_timer = vim.fn.timer_start(100, function()
-    if buf_is_valid(bufnr) then
-      local ok, err = pcall(M.diagnostics, bufnr)
-      if not ok then
-        vim.notify('Treesitter diagnostics error: ' .. tostring(err), vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
+
+  -- Create a new uv timer
+  local timer = vim.uv.new_timer()
+  assert(timer, 'Failed to create uv timer for diagnostics')
+  diagnostics_timers[bufnr] = timer
+
+  timer:start(
+    delay,
+    0,
+    vim.schedule_wrap(function()
+      diagnostics_timers[bufnr] = nil
+
+      -- Only run if buffer still valid
+      if buf_is_valid(bufnr) then
+        local ok, err = pcall(M.diagnostics, bufnr)
+        if not ok then
+          vim.notify('Treesitter diagnostics error: ' .. tostring(err), vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
+        end
       end
-    end
-    diagnostics_timer = nil
-  end)
+
+      -- cleanup
+      timer:stop()
+      timer:close()
+    end)
+  )
 end
 
 -- Optimized node operation helpers - reduced overhead
@@ -135,7 +157,7 @@ function M.setup()
       local buftype = vim.bo[bufnr].buftype
       local filetype = vim.bo[bufnr].filetype
 
-      if buftype ~= '' or vim.g.treesitter_diagnostics == false or excluded_filetypes[filetype] then
+      if vim.g.treesitter_diagnostics == false or excluded_filetypes[filetype] or buftype ~= '' then
         return false, bufnr
       end
 
@@ -299,141 +321,54 @@ end
 
 ---@param buf integer
 function M.diagnostics(buf)
-  -- Fast path: validate buffer and buffer type
-  -- Fixed: properly check buftype - non-empty means special buffer, should skip
   if not buf or not buf_is_valid(buf) or vim.bo[buf].buftype ~= '' then
     return
   end
 
-  -- Fixed: properly check if parser exists, not just if function succeeds
   local parser = vim.treesitter.get_parser(buf, nil, { error = false })
   if not parser then
     return
   end
 
-  local query = get_error_query()
-  if not query then
+  local ok, trees = pcall(parser.parse, parser, true)
+  if not ok or not trees then
     return
   end
 
   local diagnostics = {}
 
-  -- Pre-allocate diagnostic template to reduce table allocations
-  local diag_template = {
-    source = 'Treesitter',
-    bufnr = buf,
-    namespace = M.namespace,
-    severity = SEVERITY.ERROR,
-  }
+  for _, tree in ipairs(trees) do
+    local root = tree:root()
+    if not root or not root:has_error() then
+      goto continue
+    end
 
-  local parse_ok = pcall(function()
-    parser:parse(false, function(_, trees)
-      if not trees then
-        return
+    local query = get_error_query()
+    for _, node in query:iter_captures(root, buf) do
+      if not node then
+        goto continue
+      end
+      local lnum, col, end_lnum, end_col = get_node_range(node)
+      if not lnum then
+        goto continue
       end
 
-      parser:for_each_tree(function(tree, ltree)
-        if not tree or not tree:root() or not tree:root():has_error() then
-          return
-        end
-
-        -- Cache language once per tree
-        local lang = 'unknown'
-        local ok_lang, result = pcall(ltree.lang, ltree)
-        if ok_lang then
-          lang = result
-        end
-        local code = lang .. '-syntax'
-
-        for _, node in query:iter_captures(tree:root(), buf) do
-          if not node then
-            goto continue
-          end
-
-          -- Get node range - early exit if invalid
-          local lnum, col, end_lnum, end_col = get_node_range(node)
-          if not lnum then
-            goto continue
-          end
-
-          -- Fixed: improved nested error detection
-          -- Skip if this node is a child of an ERROR node (duplicate)
-          local parent = node:parent()
-          local parent_type = nil
-
-          -- Check if this is a nested error (child of ERROR node) - skip to avoid duplicates
-          if parent then
-            parent_type = get_node_type(parent)
-            if parent_type == 'ERROR' then
-              goto continue
-            end
-          end
-
-          -- Fixed: proper range clamping - ensure end position is valid
-          -- Don't extend ranges beyond single line for multiline errors
-          if end_lnum > lnum then
-            -- Clamp to next line start
-            end_lnum = lnum
-            end_col = col + 1
-          elseif end_col <= col then
-            -- Ensure end column is after start column
-            end_col = col + 1
-          end
-
-          -- Build message
-          local message
-          if is_node_missing(node) ~= nil then
-            local node_type = get_node_type(node)
-            message = node_type and string.format('missing `%s`', node_type) or 'missing element'
-          else
-            message = 'syntax error'
-          end
-
-          -- Add context efficiently
-          local previous = node:prev_sibling()
-          if previous then
-            local prev_type = get_node_type(previous)
-            if prev_type and prev_type ~= 'ERROR' then
-              local prev_name = is_node_named(previous) and prev_type or string.format('`%s`', prev_type)
-              message = message .. ' after ' .. prev_name
-            end
-          end
-
-          -- Use cached parent_type to avoid second lookup
-          if parent_type and parent_type ~= 'ERROR' then
-            local should_add = true
-            if previous then
-              local prev_type = get_node_type(previous)
-              should_add = not (prev_type and prev_type == parent_type)
-            end
-            if should_add then
-              message = message .. ' in ' .. parent_type
-            end
-          end
-
-          -- Create diagnostic using template (reduces allocations)
-          diagnostics[#diagnostics + 1] = {
-            source = diag_template.source,
-            lnum = lnum,
-            end_lnum = end_lnum,
-            col = col,
-            end_col = end_col,
-            message = message,
-            code = code,
-            bufnr = diag_template.bufnr,
-            namespace = diag_template.namespace,
-            severity = diag_template.severity,
-          }
-
-          ::continue::
-        end
-      end)
-    end)
-  end)
-
-  if parse_ok then
-    pcall(diagnostic_set, M.namespace, buf, diagnostics)
+      diagnostics[#diagnostics + 1] = {
+        source = 'Treesitter',
+        bufnr = buf,
+        lnum = lnum,
+        end_lnum = end_lnum,
+        col = col,
+        end_col = end_col,
+        message = 'syntax error',
+        severity = SEVERITY.ERROR,
+      }
+      ::continue::
+    end
+    ::continue::
   end
+
+  pcall(diagnostic_set, M.namespace, buf, diagnostics)
 end
 
 return M

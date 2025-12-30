@@ -532,9 +532,8 @@ return {
     ft = { 'elixir', 'eelixir' },
   },
 
-  systemd_ls = {
-    enabled = vim.fn.executable 'uv' == 1,
-    cmd = { 'uvx', 'systemd-language-server' },
+  systemd_lsp = {
+    enabled = 'systemd_lsp',
     ft = { 'systemd' },
   },
 

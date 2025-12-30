@@ -212,9 +212,10 @@ local M = {
 ---@diagnostic disable-next-line: duplicate-set-field
 M.config = function(_, opts)
   require('mini.sessions').setup(opts)
+  local MiniSessions = require 'mini.sessions'
 
   -- Check if session dir exists and if not create it
-  if vim.fn.isdirectory(require('mini.sessions').config.directory) == 0 then
+  if vim.fn.isdirectory(MiniSessions.config.directory) == 0 then
     vim.fn.mkdir(vim.fn.stdpath 'data' .. '/sessions', 'p')
   end
 

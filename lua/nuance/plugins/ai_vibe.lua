@@ -27,12 +27,24 @@ M.copilot = {
 
 M.opencode = {
   'sudo-tee/opencode.nvim',
-  event = 'VimEnter',
+  event = 'UIEnter',
 
   config = function()
     require('opencode').setup {
-      ui = { input = { text = { wrap = true } } },
-      context = { enabled = false },
+      ui = {
+        position = 'current',
+        input = { text = { wrap = true } },
+      },
+
+      context = {
+        enabled = false,
+        current_file = { enabled = false },
+        diagnostics = {
+          info = false, -- Include diagnostics info in the context (default to false)
+          warn = false, -- Include diagnostics warnings in the context
+          error = false, -- Include diagnostics errors in the context
+        },
+      },
 
       keymap = {
         input_window = {
