@@ -162,8 +162,14 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     opts.capabilities or {}
   )
 
-  for name, server in pairs(require 'nuance.core.lsps') do
-    if not (server.enabled == nil) and (not server.enabled == false) then
+  local lsps_ok, lsps = pcall(require, 'nuance.core.lsps')
+  if not lsps_ok then
+    vim.notify('Failed to load LSP configs: ' .. tostring(lsps), log_levels.ERROR, { title = 'LSP' })
+    return
+  end
+
+  for name, server in pairs(lsps) do
+    if server.enabled ~= nil and server.enabled ~= false then
       vim.lsp.enable(name)
     end
 

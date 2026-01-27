@@ -164,8 +164,8 @@ M.keys = {
         vim.o.statuscolumn = ''
       end
       vim.notify(
-        'Snacks statuscolumn ' .. (flag and 'disabled' or 'enabled'),
-        (flag and vim.log.levels.WARN or vim.log.levels.INFO),
+        'Snacks statuscolumn ' .. (flag and 'enabled' or 'disabled'),
+        (flag and vim.log.levels.INFO or vim.log.levels.WARN),
         { title = 'Snacks Statuscolumn' }
       )
     end,
@@ -177,7 +177,8 @@ M.keys = {
   { '<leader>eo', '<cmd>lua Snacks.picker.explorer()<CR>', desc = '[E]xplorer [O]pen', mode = 'n' },
 
   { '<leader>fp', '<cmd>lua Snacks.picker.pickers()<CR>', desc = '[F]zf [P]ickers', mode = 'n' },
-  { '<leader>fr', '<cmd>lua Snacks.picker.registers({confirm = { "copy", "close" }})<CR>', desc = '[F]zf [K]eymaps', mode = 'n' },
+  { '<leader>fr', '<cmd>lua Snacks.picker.registers({ confirm = { "copy", "close" } })<CR>', desc = '[F]zf [R]egisters', mode = 'n' },
+  { '<leader>fr', '<cmd>lua Snacks.picker.resume()<CR>', desc = '[F]zf [R]esume', mode = 'n' },
   { '<leader>fh', '<cmd>lua Snacks.picker.help()<CR>', desc = '[F]zf [H]elp tags', mode = 'n' },
   { '<leader>fk', '<cmd>lua Snacks.picker.keymaps()<CR>', desc = '[F]zf [K]eymaps', mode = 'n' },
   { '<leader>fo', '<cmd>lua Snacks.picker.recent()<CR>', desc = '[F]zf [O]ld files', mode = 'n' },
@@ -249,11 +250,11 @@ M.opts.bigfile = {
     vim.b.minianimate_disable = true
     vim.b.minihipatterns_disable = true
     vim.treesitter.stop(0)
-    vim.schedule(function()
-      if vim.api.nvim_buf_is_valid(ctx.buf) then
-        vim.bo[ctx.buf].syntax = 'off'
-      end
-    end)
+    -- vim.schedule(function()
+    --   if vim.api.nvim_buf_is_valid(ctx.buf) then
+    --     vim.bo[ctx.buf].syntax = 'off'
+    --   end
+    -- end)
   end,
 }
 
@@ -287,7 +288,7 @@ M.opts.dashboard = {
       { icon = ' ', key = 'n', desc = 'New File', action = ':ene | startinsert' },
       { icon = ' ', key = 'd', desc = 'Find Directory', action = directory_pick },
       { icon = ' ', key = 'g', desc = 'Find Text', action = ":lua Snacks.dashboard.pick('live_grep')" },
-      { icon = ' ', key = 'G', desc = 'Git', action = '<cmd>Git ++curwin | Git log | wincmd H | wincmd l<CR>' },
+      { icon = ' ', key = 'G', desc = 'Git', action = '<cmd>Git ++curwin | Git log | wincmd L | wincmd h<CR>' },
       { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
       { icon = ' ', key = 'o', desc = 'File System', action = '<cmd>Oil<CR>' },
       -- Icon for opencode AI agent orchestrator ' ',

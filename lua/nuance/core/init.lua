@@ -23,6 +23,16 @@ if vim.version() >= vim.version { major = 0, minor = 12, patch = 0 } then
     :catch(function(err)
       vim.notify('Failed to load 0.12 Native plugins: ' .. err, vim.log.levels.ERROR)
     end)
+
+  require('vim._extui').enable {
+    enable = true, -- Whether to enable or disable the UI.
+    msg = { -- Options related to the message module.
+      ---@type 'cmd'|'msg' Where to place regular messages, either in the
+      ---cmdline or in a separate ephemeral message window.
+      target = 'msg',
+      timeout = 1000, -- Time a message is visible in the message window.
+    },
+  }
 end
 
 require('nuance.core.bufline').setup()
@@ -35,4 +45,5 @@ require('nuance.core.rain').setup {
   diagonal_chars = { '⋅', '•', '◇', '' },
 }
 
+require 'nuance.core.music'
 -- vim: ts=2 sts=2 sw=2 et

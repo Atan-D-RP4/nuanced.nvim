@@ -2,6 +2,7 @@
 vim.pack.add { 'https://github.com/folke/lazy.nvim' }
 
 ---@diagnostic disable-next-line: undefined-field
+---@module 'lazy.nvim'
 require('lazy').setup({
   rocks = { hererocks = false, enabled = false },
   performance = {

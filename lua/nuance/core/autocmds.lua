@@ -5,6 +5,24 @@ local utils = require 'nuance.core.utils'
 
 vim.cmd 'cabbrev git Git'
 
+-- One more step towards getting rid of Noice
+autocmd({ 'CmdlineEnter', 'CmdlineLeave' }, {
+  group = utils.augroup 'dynamic-cmdheight',
+  desc = 'Dynamically adjust cmdheight based on command line activity',
+  callback = function(opts)
+    local cmdheight = 1
+    if opts.event == 'CmdlineEnter' then
+      cmdheight = 1
+    elseif opts.event == 'CmdlineLeave' then
+      cmdheight = 0
+    end
+    if vim.opt.cmdheight:get() ~= cmdheight then
+      vim.opt.cmdheight = cmdheight
+      vim.cmd.redrawstatus()
+    end
+  end,
+})
+
 autocmd('FileType', {
   pattern = { 'markdown', 'text' },
   desc = 'Use K to show dictionary definition of word under cursor',
@@ -49,7 +67,6 @@ autocmd('FileType', {
   end,
 })
 
--- autocmd BufNewFile,BufRead *.service* set ft=systemd
 autocmd({ 'BufRead', 'BufNewFile' }, {
   desc = 'Set filetype for systemd service files',
   group = utils.augroup 'set-systemd-ft',
@@ -204,7 +221,7 @@ autocmd('BufWritePre', {
         end
 
         -- Execute substitution
-        vim.cmd(cmd)
+        -- vim.cmd(cmd)
       end
     end
 
@@ -315,7 +332,7 @@ autocmd('FileType', {
   desc = 'Close miscellaneous buffers with q',
   -- stylua: ignore
   pattern = {
-    'checkhealth', 'cmdwin', 'dbout', 'help', 'lspinfo', 'qf', 'query', 'startuptime', 'terminal', 'nvim-undotree',
+    'checkhealth', 'cmdwin', 'dbout', 'help', 'lspinfo', 'qf', 'query', 'startuptime', 'terminal', 'nvim-undotree', 'msg',
     'fugitive', 'fugitiveblame', 'fugitivediff', 'fugitivediffsplit', 'fugitivediffvsplit',
     'git', 'gitsigns-blame',
     'neotest-output', 'neotest-output-panel', 'neotest-summary',
@@ -393,7 +410,7 @@ autocmd({ 'FileType' }, {
     local ft = ev.match
     vim.b.treesitter_folding_excluded = vim.tbl_contains(vim.g.treesitter_folding_exclude or {}, ft)
 
-    vim.defer_fn(function()
+    vim.schedule(function()
       if vim.g.treesitter_folding_enabled and not vim.b.treesitter_folding_excluded then
         vim.opt.foldenable = true
         vim.opt.foldlevel = 99
@@ -405,7 +422,7 @@ autocmd({ 'FileType' }, {
       end
       -- Close all folds initially
       -- vim.cmd 'normal! zM'
-    end, 100)
+    end)
   end,
 })
 

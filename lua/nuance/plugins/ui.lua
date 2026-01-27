@@ -28,7 +28,7 @@ local statusline = {
         return ''
       end
       -- Construct output string if truncated or buffer is not normal
-      if MiniStatusline.is_truncated(args.trunc_width) or vim.bo.buftype ~= '' then
+      if statusline.is_truncated(args.trunc_width) or vim.bo.buftype ~= '' then
         return filetype
       end
 
@@ -76,20 +76,133 @@ local statusline = {
       return table.concat(parts, '')
     end
 
-    -- This function takes a hl class and updates the class with the BG
-    -- of another class. The result is stored in a new group
-    --@param hl_fg string : The highlight name of the highlight class
-    --@param hl_bg string : The highlight name of a highlight class
-    local make_color = function(hl_fg, hl_bg)
-      local fghl = vim.api.nvim_get_hl(0, { name = hl_fg })
-      local bghl = vim.api.nvim_get_hl(0, { name = hl_bg })
-      fghl.fg = fghl.bg
-      fghl.bg = bghl.bg
-      ---@diagnostic disable-next-line: inject-field
-      fghl.force = true
-      ---@diagnostic disable-next-line: param-type-mismatch
-      vim.api.nvim_set_hl(0, hl_fg .. '2', fghl)
+    -- Get effective background color from a highlight group.
+    -- Handles: reverse attribute (swaps fg/bg visually), linked groups.
+    -- For reverse highlights: visual_bg = fg, visual_fg = bg
+    -- Returns nil if no usable background can be determined.
+    local function get_effective_bg(name)
+      local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
+      if not next(hl) then
+        return nil
+      end
+      local bg = hl.reverse and hl.fg or hl.bg
+      return bg
     end
+
+    -- Get effective foreground color from a highlight group.
+    local function get_effective_fg(name)
+      local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
+      if not next(hl) then
+        return nil
+      end
+      local fg = hl.reverse and hl.bg or hl.fg
+      return fg
+    end
+
+    -- Try multiple highlight groups, return first valid bg
+    local function get_bg_with_fallbacks(...)
+      for _, name in ipairs { ... } do
+        local bg = get_effective_bg(name)
+        if bg then
+          return bg
+        end
+      end
+      return nil
+    end
+
+    -- Create transition highlight for powerline separators (█).
+    -- The █ char shows as fg color on bg color background.
+    -- For clean transitions: fg = section's bg, bg = StatusLine's bg
+    local function make_transition_hl(section_hl)
+      local section_bg = get_bg_with_fallbacks(section_hl, 'StatusLine', 'Normal')
+      local statusline_bg = get_effective_bg 'StatusLine'
+
+      if not section_bg then
+        return
+      end
+
+      vim.api.nvim_set_hl(0, section_hl .. '2', {
+        fg = section_bg,
+        bg = statusline_bg,
+      })
+    end
+
+    -- Ensure MiniStatusline base highlights exist for colorschemes that don't define them
+    local function ensure_mini_highlights()
+      local statusline_bg = get_effective_bg 'StatusLine'
+      local statusline_fg = get_effective_fg 'StatusLine'
+      local normal_fg = get_effective_fg 'Normal'
+
+      -- If MiniStatuslineFilename is empty, create it from StatusLine
+      local filename_hl = vim.api.nvim_get_hl(0, { name = 'MiniStatuslineFilename', link = false })
+      if not next(filename_hl) then
+        vim.api.nvim_set_hl(0, 'MiniStatuslineFilename', {
+          fg = normal_fg or statusline_fg,
+          bg = statusline_bg,
+        })
+      end
+
+      -- Mode highlights: always use distinct colors for visual clarity
+      -- These are vim's traditional mode colors adapted for modern themes
+      local mode_colors = {
+        MiniStatuslineModeNormal = { fg = 0x000000, bg = 0x87afaf }, -- cyan-ish
+        MiniStatuslineModeInsert = { fg = 0x000000, bg = 0x87af5f }, -- green
+        MiniStatuslineModeVisual = { fg = 0x000000, bg = 0xd7af5f }, -- orange/yellow
+        MiniStatuslineModeReplace = { fg = 0x000000, bg = 0xd78787 }, -- red/pink
+        MiniStatuslineModeCommand = { fg = 0x000000, bg = 0xd7af5f }, -- orange/yellow
+        MiniStatuslineModeOther = { fg = 0x000000, bg = 0x8787af }, -- purple
+      }
+
+      for name, colors in pairs(mode_colors) do
+        local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
+        -- Check effective bg (accounting for reverse attribute)
+        local effective_bg = hl.reverse and hl.fg or hl.bg
+        -- Set if empty OR if existing highlight has no usable bg
+        local has_valid_bg = next(hl) and effective_bg and effective_bg > 0
+        if not has_valid_bg then
+          vim.api.nvim_set_hl(0, name, { fg = colors.fg, bg = colors.bg, bold = true })
+        end
+      end
+
+      -- Devinfo and Fileinfo
+      for _, name in ipairs { 'MiniStatuslineDevinfo', 'MiniStatuslineFileinfo' } do
+        local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
+        if not next(hl) then
+          vim.api.nvim_set_hl(0, name, { fg = normal_fg, bg = statusline_bg })
+        end
+      end
+    end
+
+    local function refresh_statusline_colors()
+      ensure_mini_highlights()
+
+      local mode_hls = {
+        'MiniStatuslineModeNormal',
+        'MiniStatuslineModeInsert',
+        'MiniStatuslineModeVisual',
+        'MiniStatuslineModeReplace',
+        'MiniStatuslineModeCommand',
+        'MiniStatuslineModeOther',
+      }
+      for _, mode_hl in ipairs(mode_hls) do
+        make_transition_hl(mode_hl)
+      end
+      make_transition_hl 'MiniStatuslineDevinfo'
+      make_transition_hl 'MiniStatuslineFileinfo'
+      make_transition_hl 'MiniStatuslineFilename'
+    end
+
+    -- Defer to ensure mini.statusline has set up its highlights first
+    vim.api.nvim_create_autocmd('ColorScheme', {
+      group = vim.api.nvim_create_augroup('statusline-colors', { clear = true }),
+      pattern = '*',
+      callback = function()
+        -- Defer to run after mini.statusline has processed the colorscheme change
+        vim.defer_fn(function()
+          refresh_statusline_colors()
+        end, 50)
+      end,
+    })
 
     require('nuance.core.promise').async_promise(100, function()
       statusline.setup {
@@ -106,10 +219,6 @@ local statusline = {
             local fileinfo = statusline.section_fileinfo { trunc_width = 120 }
             local location = statusline.section_location { trunc_width = 75 }
             local search = statusline.section_searchcount { trunc_width = 75 }
-
-            make_color(mode_hl, 'MiniStatuslineFilename')
-            make_color('MiniStatuslineDevinfo', 'MiniStatuslineFilename')
-            make_color('MiniStatuslineFileInfo', 'MiniStatuslineFilename')
 
             local tab = {
               { hl = mode_hl .. '2', strings = { '█' } },
@@ -151,6 +260,7 @@ local statusline = {
         use_icons = vim.g.have_nerd_font,
         set_vim_settings = true,
       }
+      refresh_statusline_colors()
     end)
   end,
 }
@@ -164,6 +274,31 @@ local icons = {
 }
 
 local themes = {
+  matugen_base16 = {
+    'nvim-mini/mini.base16',
+    version = false,
+    config = function()
+      require('matugen').setup()
+      -- Register a signal handler for SIGUSR1 (matugen updates)
+      local signal = vim.uv.new_signal()
+      assert(signal, 'Failed to create new signal')
+      signal:start(
+        'sigusr1',
+        vim.schedule_wrap(function()
+          vim.notify('Reloading matugen theme due to SIGUSR1 signal', vim.log.levels.INFO, {
+            title = 'matugen',
+          })
+          package.loaded['matugen'] = nil
+          require('matugen').setup()
+
+          -- Any other options you wish to set upon matugen reloads can also go here!
+          -- Make comments italic
+          vim.api.nvim_set_hl(0, 'Comment', { italic = true })
+        end)
+      )
+    end,
+  },
+
   tokyonight = {
     'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
@@ -252,7 +387,6 @@ local noice = {
       override = {
         ['vim.lsp.util.convert_input_to_markdown_lines'] = true,
         ['vim.lsp.util.stylize_markdown'] = true,
-        ['cmp.entry.get_documentation'] = true,
       },
 
       signature = {
@@ -279,6 +413,7 @@ local noice = {
     },
 
     cmdline = {
+      enabled = false,
       ---@type table<string, CmdlineFormat>
       format = {
         selections = { pattern = ":'<,'>", title = ' Selections ' },
@@ -365,7 +500,8 @@ local which_key = { -- Useful plugin to show you pending keybinds.
 local M = {
   which_key,
   statusline,
-  themes.tokyonight,
+  themes.catpuccin,
+  -- themes.matugen_base16,
   icons,
   noice,
 }

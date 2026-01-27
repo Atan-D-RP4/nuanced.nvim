@@ -152,13 +152,18 @@ vim.schedule(function()
   end
 
   -- Platform-specific clipboard configuration
-  opt.clipboard = 'unnamedplus,unnamed'
+  opt.clipboard = 'unnamed,unnamedplus'
   global.clipboard = {
     name = 'OSC 52 with improved fallbacks',
     copy = {
       ['+'] = require('vim.ui.clipboard.osc52').copy '+',
       ['*'] = require('vim.ui.clipboard.osc52').copy '*',
     },
+    -- This is not done because pasting via OSC52 is unreliable
+    -- paste = {
+    --   ['+'] = require('vim.ui.clipboard.osc52').paste '+',
+    --   ['*'] = require('vim.ui.clipboard.osc52').paste '*',
+    -- },
     cache_enabled = 1,
   }
 end)

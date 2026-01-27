@@ -128,7 +128,8 @@ Bufline.build = function()
       s = s .. bufIndex .. ':'
     end
 
-    local icon = MiniIcons ~= nil and MiniIcons.get('file', 'file.' .. vim.bo[bufnr].filetype) or '' -- Default icon if Mini Icons is not available
+    local icons_ok, icons = pcall(require, 'mini.icons')
+    local icon = icons_ok and icons.get('file', 'file.' .. vim.bo[bufnr].filetype) or '' -- Default icon if Mini Icons is not available
     s = s .. icon .. ' '
 
     -- Buffer name

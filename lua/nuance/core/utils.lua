@@ -9,8 +9,9 @@ M.set_close_q = function(bufnr)
 
     pcall(vim.cmd.close)
 
-    if Snacks ~= nil and Snacks.bufdelete ~= nil then
-      pcall(Snacks.bufdelete, bufnr)
+    local snacks = package.loaded.snacks
+    if snacks ~= nil and snacks.bufdelete ~= nil then
+      pcall(snacks.bufdelete, bufnr)
     else
       pcall(require('nuance.core.utils').safe_buf_delete, bufnr)
     end

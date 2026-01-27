@@ -58,13 +58,19 @@ return {
         if not client.root_dir or not client.root_dir:match 'nvim' then
           return
         end
-        client.config.settings.Lua.workspace.library = vim.tbl_extend('keep', client.config.settings.Lua.workspace.library or {}, {
-          vim.fn.expand '$VIMRUNTIME',
-          vim.fn.expand '$VIMRUNTIME' .. '/lua',
-          vim.fs.joinpath '${3rd}/luv/library',
-          vim.fn.stdpath 'config' .. '/lua',
-          vim.fn.stdpath 'data' .. '/lazy/',
-        }, vim.fn.glob(vim.fn.stdpath 'data' .. '/lazy/*/lua', 0, 1))
+        local libs = client.config.settings.Lua.workspace.library or {}
+        table.insert(libs, vim.fn.expand '$VIMRUNTIME')
+        table.insert(libs, vim.fn.expand '$VIMRUNTIME' .. '/lua')
+        table.insert(libs, vim.fs.joinpath '${3rd}/luv/library')
+        table.insert(libs, vim.fn.stdpath 'config' .. '/lua')
+        table.insert(libs, vim.fn.stdpath 'data' .. '/lazy/')
+        for _, path in ipairs(vim.fn.glob(vim.fn.stdpath 'data' .. '/lazy/*/lua', 0, 1)) do
+          table.insert(libs, path)
+        end
+        for _, path in ipairs(vim.fn.glob(vim.fn.stdpath 'data' .. '/site/pack/*/opt/*/', 0, 1)) do
+          table.insert(libs, path)
+        end
+        client.config.settings.Lua.workspace.library = libs
       end,
     },
 
@@ -202,8 +208,10 @@ return {
     enabled = vim.fn.executable 'deno' == 1,
     cmd = { 'deno', 'run', '-A', 'npm:vscode-langservers-extracted/vscode-css-language-server', '--stdio' },
     before_init = function(init_params, _)
-      ---@diagnostic disable-next-line: need-check-nil
-      init_params.capabilities.textDocument.completion.completionItem.snippetSupport = true
+      local caps = init_params.capabilities
+      if caps and caps.textDocument and caps.textDocument.completion and caps.textDocument.completion.completionItem then
+        caps.textDocument.completion.completionItem.snippetSupport = true
+      end
     end,
   },
 
@@ -211,8 +219,10 @@ return {
     enabled = vim.fn.executable 'deno' == 1,
     cmd = { 'deno', 'run', '-A', 'npm:vscode-langservers-extracted/vscode-json-language-server', '--stdio' },
     before_init = function(init_params, _)
-      ---@diagnostic disable-next-line: need-check-nil
-      init_params.capabilities.textDocument.completion.completionItem.snippetSupport = true
+      local caps = init_params.capabilities
+      if caps and caps.textDocument and caps.textDocument.completion and caps.textDocument.completion.completionItem then
+        caps.textDocument.completion.completionItem.snippetSupport = true
+      end
     end,
   },
 
@@ -448,11 +458,19 @@ return {
 
   denols = {
     enabled = vim.fn.executable 'deno' == 1,
-    root_markers = { 'deno.json', 'deno.jsonc', 'deno.lock', 'package.json' },
+    root_markers = { 'deno.json', 'deno.jsonc', 'deno.lock', 'package.json', 'tsconfig.json' },
+
+    on_init = {
+      spec = function(client, _)
+        vim.g.markdown_fenced_languages = {
+          'ts=typescript',
+        }
+      end,
+    },
 
     root_dir = function(bufnr, on_dir)
       local config = vim.lsp.config.denols
-      local root_markers = config.root_markers or { 'deno.json', 'deno.jsonc' }
+      local root_markers = config.root_markers or { 'deno.json', 'deno.jsonc', 'package-lock.json' }
 
       -- Lockfiles exclusive to Node.js package managers
       local node_lockfiles = { 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lockb', 'bun.lock' }
@@ -483,9 +501,71 @@ return {
 
   rust_analyzer = {
     enabled = vim.fn.executable 'rust-analyzer' == 1,
+    cmd = vim.lsp.rpc.connect('127.0.0.1', 27631),
+
+    on_init = {
+      spec = function(client, _)
+        -- Register custom commands
+        --- rust-analyzer macro expansion command (reference implementation)
+        --- Display expansion in hover window
+        vim.api.nvim_buf_create_user_command(0, 'RustExpandMacro', function()
+          local params = vim.lsp.util.make_position_params(0, client.offset_encoding or 'utf-8')
+          vim.lsp.buf_request_all(0, 'rust-analyzer/expandMacro', params, function(results)
+            for _, resp in pairs(results) do
+              local r = resp.result
+              if r and r.expansion then
+                vim.lsp.util.open_floating_preview(vim.split(r.expansion, '\n'), 'rust', {
+                  border = 'rounded',
+                  max_width = math.floor(vim.o.columns * 0.6),
+                  max_height = math.floor(vim.o.lines * 0.6),
+                })
+                return
+              end
+            end
+            vim.notify('No macro expansion found', vim.log.levels.INFO)
+          end)
+        end, { desc = 'Expand Rust macro under cursor' })
+      end,
+    },
+
+    capabilities = {
+      experimental = {
+        hoverActions = true,
+        colorDiagnosticOutput = true,
+        hoverRange = true,
+        serverStatusNotification = true,
+        snippetTextEdit = true,
+        codeActionGroup = true,
+        ssr = true,
+        localDocs = true,
+
+        commands = {
+          'rust-analyzer.runSingle',
+          'rust-analyzer.showReferences',
+          'rust-analyzer.gotoLocation',
+          'editor.action.triggerParameterHints',
+        },
+      },
+
+      textDocument = {
+        completion = {
+          completionItem = {
+            resolveSupport = {
+              properties = { 'documentation', 'detail', 'additionalTextEdits' },
+            },
+          },
+        },
+      },
+    },
 
     settings = {
       ['rust-analyzer'] = {
+        lspMux = {
+          version = '1',
+          method = 'connect',
+          server = 'rust-analyzer',
+        },
+
         cargo = {
           allFeatures = true,
           loadOutDirsFromCheck = true,
@@ -516,8 +596,9 @@ return {
         -- highlightRelated = { enable = true },
 
         imports = { granularity = { group = 'module' }, prefix = 'self' },
-        checkOnSave = { command = 'clippy' }, -- Add "enabled = false", if you want to disable it
-        diagnostics = {}, -- Add "enabled = false", if you want to disable them
+        checkOnSave = true,
+        check = { command = 'clippy' },
+        diagnostics = { enabled = true }, -- Add "enabled = false", if you want to disable them
       },
     },
   },
