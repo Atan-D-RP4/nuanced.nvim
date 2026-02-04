@@ -1,5 +1,8 @@
 local gitcore = {
   'tpope/vim-fugitive',
+  dependencies = {
+    'barrettruth/diffs.nvim',
+  },
   cmd = { 'Git', 'Gstatus', 'Gblame', 'Gpush', 'Gpull', 'Gcommit', 'Gdiff', 'GcLog' },
 
   keys = {

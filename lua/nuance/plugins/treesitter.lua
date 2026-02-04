@@ -30,7 +30,7 @@ local treesitter_core_main = {
       'lua', 'luadoc', 'luap',
       'markdown', 'markdown_inline',
       'bash', 'vim', 'vimdoc',
-      'latex', 'norg', 'scss', 'svelte', 'typst', 'vue'
+      'latex', --[['norg', ]] 'scss', 'svelte', 'typst', 'vue'
     },
   },
 

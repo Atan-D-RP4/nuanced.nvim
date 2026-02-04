@@ -461,7 +461,7 @@ return {
     root_markers = { 'deno.json', 'deno.jsonc', 'deno.lock', 'package.json', 'tsconfig.json' },
 
     on_init = {
-      spec = function(client, _)
+      spec = function(_client, _)
         vim.g.markdown_fenced_languages = {
           'ts=typescript',
         }
@@ -469,7 +469,7 @@ return {
     },
 
     root_dir = function(bufnr, on_dir)
-      local config = vim.lsp.config.denols
+      local config = vim.lsp.config['denols'] or {}
       local root_markers = config.root_markers or { 'deno.json', 'deno.jsonc', 'package-lock.json' }
 
       -- Lockfiles exclusive to Node.js package managers
@@ -525,6 +525,14 @@ return {
             vim.notify('No macro expansion found', vim.log.levels.INFO)
           end)
         end, { desc = 'Expand Rust macro under cursor' })
+
+        -- Use root_dir/../target/rust_analyzer to share target dir between
+        -- multiple worktrees of the same repo.
+        local cargo_toml = client.config.root_dir .. '/Cargo.toml'
+        if vim.fn.filereadable(cargo_toml) == 1 then
+          local parent_dir = vim.fs.dirname(client.config.root_dir)
+          client.config.settings['rust-analyzer'].cargo.targetDir = parent_dir .. '/target/rust_analyzer'
+        end
       end,
     },
 

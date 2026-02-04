@@ -412,8 +412,13 @@ local noice = {
       },
     },
 
+    messages = {
+      enabled = true,
+    },
+
     cmdline = {
-      enabled = false,
+      enabled = true,
+      view = "cmdline",
       ---@type table<string, CmdlineFormat>
       format = {
         selections = { pattern = ":'<,'>", title = ' Selections ' },
@@ -425,6 +430,7 @@ local noice = {
       lsp_doc_border = vim.o.winborder == '' and false or true, -- add a border to hover docs and signature help
       command_palette = true,
       long_message_to_split = true, -- long messages will be sent to a split
+      -- bottom_search = true, -- use a classic bottom cmdline for search
     },
 
     redirect = { filter = '' },
