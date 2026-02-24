@@ -177,7 +177,7 @@ M.opts.cmdline = {
     if type == '/' or type == '?' then
       return { 'buffer' }
     end
-    if type == ':' or type == '@' then
+    if type == ':' or type == '@' or vim.fn.getcmdline():match 'term' ~= nil then
       -- if vim.fn.getcmdline():match '.*!' ~= nil or vim.fn.getcmdline():sub(1, 6) == 'Launch' then
       --   return { 'path', 'buffer' }
       -- end

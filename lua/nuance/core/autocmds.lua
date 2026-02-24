@@ -6,6 +6,7 @@ local utils = require 'nuance.core.utils'
 vim.cmd 'cabbrev git Git'
 
 -- One more step towards getting rid of Noice
+--[[
 autocmd({ 'CmdlineEnter', 'CmdlineLeave' }, {
   group = utils.augroup 'dynamic-cmdheight',
   desc = 'Dynamically adjust cmdheight based on command line activity',
@@ -22,6 +23,7 @@ autocmd({ 'CmdlineEnter', 'CmdlineLeave' }, {
     end
   end,
 })
+--]]
 
 autocmd('FileType', {
   pattern = { 'markdown', 'text' },
@@ -248,6 +250,7 @@ autocmd({ 'TermClose', 'TermOpen' }, {
       vim.opt.relativenumber = false
       vim.opt.spell = false
       vim.opt.number = false
+      vim.cmd [[ startinsert ]]
     end
   end,
 })

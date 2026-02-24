@@ -279,23 +279,6 @@ local themes = {
     version = false,
     config = function()
       require('matugen').setup()
-      -- Register a signal handler for SIGUSR1 (matugen updates)
-      local signal = vim.uv.new_signal()
-      assert(signal, 'Failed to create new signal')
-      signal:start(
-        'sigusr1',
-        vim.schedule_wrap(function()
-          vim.notify('Reloading matugen theme due to SIGUSR1 signal', vim.log.levels.INFO, {
-            title = 'matugen',
-          })
-          package.loaded['matugen'] = nil
-          require('matugen').setup()
-
-          -- Any other options you wish to set upon matugen reloads can also go here!
-          -- Make comments italic
-          vim.api.nvim_set_hl(0, 'Comment', { italic = true })
-        end)
-      )
     end,
   },
 
@@ -418,7 +401,7 @@ local noice = {
 
     cmdline = {
       enabled = true,
-      view = "cmdline",
+      view = 'cmdline',
       ---@type table<string, CmdlineFormat>
       format = {
         selections = { pattern = ":'<,'>", title = ' Selections ' },
@@ -507,7 +490,7 @@ local M = {
   which_key,
   statusline,
   themes.catpuccin,
-  -- themes.matugen_base16,
+  themes.matugen_base16,
   icons,
   noice,
 }

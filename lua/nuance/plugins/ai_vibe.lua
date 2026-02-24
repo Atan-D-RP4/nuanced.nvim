@@ -4,6 +4,12 @@ M.copilot = {
   'zbirenbaum/copilot.lua',
   cmd = 'Copilot',
   event = { 'InsertEnter' },
+  config = function(_, opts)
+    require('copilot').setup(opts)
+    vim.defer_fn(function()
+      require('copilot.model').set { args = '', force = true, model = 'oswe-vscode-prime' }
+    end, 1000)
+  end,
 
   ---@module 'copilot'
   ---@type CopilotConfig

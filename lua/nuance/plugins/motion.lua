@@ -58,9 +58,9 @@ local ai = {
       custom_textobjects = {
         -- Text object for git conflict regions
         -- Returns array of all conflict regions so mini.ai can apply search_method
-        G = function(ai_type)
+        g = function(ai_type)
           local start_pat = '^<<<<<<<'
-          local sep_pat = '^======='
+          -- local sep_pat = '^======='
           local end_pat = '^>>>>>>>'
 
           local regions = {}
@@ -108,7 +108,7 @@ local ai = {
           return regions
         end,
 
-        g = function()
+        G = function()
           local from = { line = 1, col = 1 }
           local to = {
             line = vim.fn.line '$',

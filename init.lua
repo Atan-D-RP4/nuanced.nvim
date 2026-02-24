@@ -1,6 +1,13 @@
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
+local init_path = debug.getinfo(1, 'S').source:sub(2)
+local init_realpath = vim.uv.fs_realpath(init_path) or init_path
+local config_root = vim.fn.fnamemodify(init_realpath, ':p:h')
+if not vim.o.runtimepath:find(vim.pesc(config_root), 1, true) then
+  vim.opt.runtimepath:prepend(config_root)
+end
+
 -- Neovide settings
 if vim.g.neovide then
   local cursor_vfx = { 'railgun', 'torpedo', 'pixiedust', 'sonicboom', 'ripple', 'wireframe' }
@@ -45,6 +52,10 @@ else
   -- [[ Install `lazy.nvim` plugin manager ]]
   -- [[ Configure and install plugins ]]
   require 'nuance.lazy'
+
+  if not vim.o.runtimepath:find(config_root, 1, true) then
+    vim.opt.runtimepath:prepend(config_root)
+  end
 end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
