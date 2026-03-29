@@ -107,6 +107,25 @@ local directory_pick = function()
       return { { item.path, '@string' } }
     end,
 
+    actions = {
+      open_dir = function(picker, item, _)
+        if vim.fn.isdirectory(item.path) == 1 then
+          picker:set_cwd(item.path)
+          picker:find()
+        else
+          vim.notify(item.path .. ' is not a directory', vim.log.levels.ERROR)
+        end
+      end,
+    },
+
+    win = {
+      input = {
+        keys = {
+          ['<C-e>'] = { 'o', desc = 'rename_session', mode = { 'n', 'i' } },
+        },
+      },
+    },
+
     confirm = function(picker, item, _)
       local ok, oil = pcall(require, 'oil')
       if ok and oil then

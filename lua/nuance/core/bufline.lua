@@ -156,11 +156,11 @@ Bufline.build = function()
 
     -- Add close button
     s = s .. ' %' .. bufnr .. '@BufferClose@'
-    s = s .. (vim.g.have_nerd_font and '' or 'X')
+    s = s .. (vim.g.have_nerd_font and '' or '[x]')
     s = s .. '%X'
 
     s = s .. ' '
-    s = s .. '%#TabLineFill# '
+    s = s .. '%#TabLineFill#'
     ::continue::
   end
 

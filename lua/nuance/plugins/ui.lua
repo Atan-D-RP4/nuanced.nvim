@@ -277,9 +277,6 @@ local themes = {
   matugen_base16 = {
     'nvim-mini/mini.base16',
     version = false,
-    config = function()
-      require('matugen').setup()
-    end,
   },
 
   tokyonight = {
@@ -396,11 +393,11 @@ local noice = {
     },
 
     messages = {
-      enabled = true,
+      enabled = false,
     },
 
     cmdline = {
-      enabled = true,
+      enabled = false,
       view = 'cmdline',
       ---@type table<string, CmdlineFormat>
       format = {
@@ -489,8 +486,9 @@ local which_key = { -- Useful plugin to show you pending keybinds.
 local M = {
   which_key,
   statusline,
-  themes.catpuccin,
   themes.matugen_base16,
+  themes.catpuccin,
+  themes.tokyonight,
   icons,
   noice,
 }

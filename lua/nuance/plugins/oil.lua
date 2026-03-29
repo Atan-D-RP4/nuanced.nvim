@@ -4,7 +4,7 @@ local M = {
   cmd = 'Oil',
 
   keys = {
-    { '<leader>oe', '<cmd>lua require("oil").open()<CR>', mode = 'n', desc = 'Open Oil Window' },
+    { '<leader>oe', '<cmd>Oil<CR>', mode = 'n', desc = 'Open Oil Window' },
   },
 
   init = function()
@@ -27,7 +27,7 @@ M.opts = {
   keymaps_help = { border = 'rounded' },
   constrain_cursor = 'editable',
   watch_for_changes = true,
-  columns = { 'icon', 'size', 'mtime', 'modified' },
+  columns = { 'icon', 'permissions', 'size', 'mtime', 'modified' },
   cleanup_delay_ms = 2000,
   extra_scp_args = {},
 }
@@ -74,12 +74,14 @@ M.opts.keymaps = {
   ['q'] = 'actions.close',
   ['='] = function() -- Save the current buffer
     require('oil').save({}, function(err)
+      vim.print 'Saved Oil buffer, syncing with filesystem...'
       if err then
         vim.notify('Error syncing Oil buffer: ' .. tostring(err), vim.log.levels.ERROR)
         return
       end
       local ok, bufline = pcall(require, 'nuance.core.bufline')
-      if ok and bufline then
+      if not (ok and bufline) then
+        vim.notify('Bufline plugin not found, cannot refresh buffers', vim.log.levels.WARN)
         return
       end
       vim.tbl_map(function(bufnr)
@@ -98,7 +100,7 @@ M.opts.keymaps = {
   -- search and replace in the current directory
   ['g/'] = {
     callback = function()
-      vim.print 'Opening Grug Far Explorer Instance'
+      vim.notify('Opening Grug Far Explorer Instance', vim.log.levels.INFO)
       local oil = require 'oil'
       local grug_far = require 'grug-far'
 

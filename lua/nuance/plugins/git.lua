@@ -2,7 +2,15 @@ local gitcore = {
   'tpope/vim-fugitive',
   dependencies = {
     'barrettruth/diffs.nvim',
+    lazy = false,
+    init = function()
+      vim.g.diffs = {
+        integrations = { fugitive = true },
+        extra_filetypes = { 'diff' },
+      }
+    end,
   },
+
   cmd = { 'Git', 'Gstatus', 'Gblame', 'Gpush', 'Gpull', 'Gcommit', 'Gdiff', 'GcLog' },
 
   keys = {
@@ -10,10 +18,12 @@ local gitcore = {
     { '<leader>gh', '<cmd>vsplit | Git ++curwin reflog<CR>', desc = '[G]it [h]istory', mode = 'n' },
     {
       '<leader>gl',
-      '<cmd>'
-        .. 'Git ++curwin log --oneline --decorate --graph'
-        .. ' --pretty=format:"%C(bold blue)%h%Creset %C(bold green)(%ar)%Creset %C(bold red)%d%Creset %s %C(dim white)<%an>%Creset" --abbrev-commit'
-        .. '<CR>p',
+      function()
+        local cmd = 'Git ++curwin log --oneline --decorate --graph '
+        cmd = cmd .. "--pretty=format:'%C(bold blue)%h%Creset %C(bold green)(%ar)%Creset %C(bold red)%d%Creset %s %C(dim white)<%an>%Creset'"
+        vim.cmd(cmd)
+        vim.cmd [[ exec "normal p" ]]
+      end,
       desc = '[G]it [l]og',
       mode = 'n',
     },
@@ -121,12 +131,12 @@ gitsigns.opts.on_attach = function(bufnr)
   end, '[G]it rest hunk')
 
   -- normal mode
-  map('n', '<leader>ga', signs.stage_hunk, '[G]it [t]oggle hunk stage status')
-  map('n', '<leader>gr', signs.reset_hunk, '[G]it [r]eset hunk')
+  map({ 'n', 'v' }, '<leader>ga', signs.stage_hunk, '[G]it [t]oggle hunk stage status')
+  map({ 'n', 'v' }, '<leader>gr', signs.reset_hunk, '[G]it [r]eset hunk')
+  map({ 'n', 'v' }, '<leader>gp', signs.preview_hunk, '[G]it [p]review hunk')
+  map({ 'n', 'v' }, '<leader>gb', signs.blame_line, '[G]it [b]lame line')
   map('n', '<leader>gA', signs.stage_buffer, '[G]it [S]tage buffer')
   map('n', '<leader>gR', signs.reset_buffer, '[G]it [R]eset buffer')
-  map('n', '<leader>gb', signs.blame_line, '[G]it [b]lame line')
-  map({ 'n', 'v' }, '<leader>gp', signs.preview_hunk, '[G]it [p]review hunk')
   -- map('n', '<leader>gd', function()
   --   signs.diffthis ''
   -- end, 'git [D]iff against index')

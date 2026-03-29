@@ -37,6 +37,12 @@ M.opencode = {
 
   config = function()
     require('opencode').setup {
+      server = {
+        url = 'localhost',
+        port = 4096,
+        timeout = 5,
+      },
+
       ui = {
         position = 'current',
         input = { text = { wrap = true } },
@@ -79,6 +85,9 @@ M.opencode = {
         file_types = { 'markdown', 'opencode_output' },
       },
     },
+
+    'saghen/blink.cmp',
+    'folke/snacks.nvim',
   },
 }
 

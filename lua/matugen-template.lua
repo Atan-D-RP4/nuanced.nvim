@@ -14,7 +14,7 @@ end
 
 local function apply_overrides()
   -- Make selected text stand out with stronger contrast.
-  vim.api.nvim_set_hl(0, 'Visual', {
+  set_hl_multiple({ 'VisualNOS', 'Visual', 'Search' }, {
     bg = '{{colors.primary_container.default.hex}}',
     fg = '{{colors.on_primary_container.default.hex}}',
   })
@@ -49,7 +49,7 @@ local function apply_overrides()
   local chrome_bg_alt = '{{colors.surface_container_low.default.hex}}'
   local chrome_bg_dim = '{{colors.surface_container.default.hex}}'
 
-  set_hl_multiple({ 'StatusLine', 'StatusLineNC', 'StatusColumn', 'SignColumn', 'FoldColumn', 'TabLine', 'WinBar', 'WinBarNC' }, {
+  set_hl_multiple({ 'StatusLine', 'StatusLineNC', 'TabLine', 'WinBar', 'WinBarNC' }, {
     bg = chrome_bg,
   })
 
@@ -73,7 +73,7 @@ local function apply_overrides()
   })
 
   vim.api.nvim_set_hl(0, 'TabLineFill', {
-    bg = chrome_bg_dim,
+    bg = chrome_bg,
   })
 
   vim.api.nvim_set_hl(0, 'TabLineSel', {

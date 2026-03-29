@@ -524,11 +524,12 @@ vim.api.nvim_create_user_command('ToggleTransparency', function()
     transparency.hl1 = vim.api.nvim_get_hl(0, { name = 'Normal' })
     transparency.hl2 = vim.api.nvim_get_hl(0, { name = 'NormalNC' })
     transparency.hl3 = vim.api.nvim_get_hl(0, { name = 'EndOfBuffer' })
+    transparency.enabled = true
+    vim.g.transparency = transparency
+
     vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
     vim.api.nvim_set_hl(0, 'NormalNC', { bg = 'none' })
     vim.api.nvim_set_hl(0, 'EndOfBuffer', { bg = 'none' })
-    transparency.enabled = true
-    vim.g.transparency = transparency
   end
 end, {
   nargs = 0,

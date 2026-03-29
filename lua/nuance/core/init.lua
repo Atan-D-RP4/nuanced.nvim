@@ -24,8 +24,8 @@ if vim.version() >= vim.version { major = 0, minor = 12, patch = 0 } then
       vim.notify('Failed to load 0.12 Native plugins: ' .. err, vim.log.levels.ERROR)
     end)
 
-  require('vim._extui').enable {
-    enable = false, -- Whether to enable or disable the UI.
+  require('vim._core.ui2').enable {
+    enable = true, -- Whether to enable or disable the UI.
     msg = { -- Options related to the message module.
       ---@type 'cmd'|'msg' Where to place regular messages, either in the
       ---cmdline or in a separate ephemeral message window.

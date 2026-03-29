@@ -317,12 +317,15 @@ local rustowl = vim.fn.executable 'rustowl' == 1
       -- lazy = false, -- This plugin is already lazy
       enabled = vim.fn.executable 'rustowl' == 1,
       ft = 'rust',
+      build = 'cargo binstall rustowl',
+
       dependencies = {
         lspconfig,
       },
 
       opts = {
         client = {
+          -- cmd = vim.lsp.rpc.connect('127.0.0.1', 27631),
           on_attach = function(_, buffer)
             vim.keymap.set('n', '<C-l>', function()
               vim.cmd [[ exec 'silent! redraw' ]]
