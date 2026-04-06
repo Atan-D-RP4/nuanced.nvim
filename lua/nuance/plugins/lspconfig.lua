@@ -38,7 +38,6 @@ autocmd('LspAttach', {
       vim.notify('LSP client not found for id: ' .. tostring(args.data.client_id), log_levels.WARN, { title = 'LSP' })
       return
     end
-
     local mappings = {
       { 'gO', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', 'LSP Document [S]ymbols' },
       { 'gws', '<cmd>lua Snacks.picker.lsp_workspace_symbols()<CR>', 'LSP [W]orkspace [S]ymbols' },
@@ -129,6 +128,20 @@ autocmd('LspAttach', {
   end,
 })
 
+autocmd('LspProgress', {
+  callback = function(ev)
+    local value = ev.data.params.value
+    vim.api.nvim_echo({ { value.message or 'done' } }, false, {
+      id = 'lsp.' .. ev.data.client_id,
+      kind = 'progress',
+      source = 'vim.lsp',
+      title = value.title,
+      status = value.kind ~= 'end' and 'running' or 'success',
+      percent = value.percentage,
+    })
+  end,
+})
+
 ---@module 'lspconfig'
 ---@param opts lspconfig.Config
 lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvim context
@@ -137,7 +150,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   -- over LSP semantic tokens.
   vim.hl.priorities.semantic_tokens = 95
 
-  if vim.version() >= vim.version { major = 0, minor = 12, patch = 0 } then
+  if vim.version.ge(vim.version(), { 0, 12 }) then
     vim.lsp.log.set_format_func(function(level, timestamp, message)
       -- Make message readable (handles tables)
       if log_levels[level] < log_levels.WARN then
@@ -147,6 +160,32 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
       msg = msg:gsub('\t', '  ')
       return string.format('[%s] [%s] %s\n', level, timestamp, msg)
     end)
+  end
+
+  vim.lsp.handlers['textDocument/hover'] = function(_, result, _ctx, config)
+    if not (result and result.contents) then
+      return
+    end
+    ---@type vim.lsp.util.open_floating_preview.Opts
+    config = vim.tbl_deep_extend('force', {
+      border = 'rounded',
+      max_width = math.floor(vim.o.columns * 0.75),
+      max_height = math.floor(vim.o.lines * 0.4),
+      silent = true,
+    }, config or {})
+    vim.print(config)
+
+    local bufnr, winnr = vim.lsp.util.open_floating_preview(vim.lsp.util.convert_input_to_markdown_lines(result.contents), 'markdown', config)
+    if not bufnr or not winnr then
+      return
+    end
+
+    -- stylize_markdown applies Treesitter injections for fenced code blocks
+    vim.treesitter.start(bufnr, 'markdown')
+
+    -- Conceal the fence markers (``` lines) without hiding the content
+    vim.wo[winnr].conceallevel = 2
+    vim.wo[winnr].concealcursor = 'n'
   end
 
   -- LSP servers and clients are able to communicate to each other what features they support.
@@ -208,17 +247,17 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
             vim.b.codelens_enabled = not vim.b.codelens_enabled
 
             if vim.b.codelens_enabled then
-              vim.lsp.codelens.refresh()
+              vim.lsp.codelens.enable(true)
 
               autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
                 group = codelens_augroup,
                 callback = function()
-                  vim.lsp.codelens.refresh()
+                  vim.lsp.codelens.enable(true)
                 end,
               })
             else
               pcall(vim.api.nvim_clear_autocmds, { group = codelens_augroup })
-              vim.lsp.codelens.clear()
+              vim.lsp.codelens.enable(false)
             end
 
             vim.notify(
@@ -376,7 +415,10 @@ local tiny_inline_diagnostic = {
         end
 
         local lnum = cursor[1]
-        assert(lnum, 'Cursor line number should not be nil after successful get_cursor')
+        if lnum == nil then
+          vim.notify('Cursor line number should not be nil after successful get_cursor', vim.log.levels.ERROR, { title = 'LSP' })
+          return
+        end
         lnum = lnum - 1 -- 0-indexed
         local diagnostic_count = #diagnostic_get(ev.buf, { lnum = lnum })
 

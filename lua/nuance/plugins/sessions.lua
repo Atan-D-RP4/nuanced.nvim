@@ -240,6 +240,11 @@ M.config = function(_, opts)
     end
     return session .. ' ' .. default_section_filename(args)
   end
+
+  vim.api.nvim_create_user_command('Restart', function()
+    MiniSessions.write()
+    vim.cmd [[ restart lua require('mini.sessions').read() ]]
+  end, { desc = 'Restart Neovim' })
 end
 
 M.keys = {

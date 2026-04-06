@@ -29,43 +29,47 @@ autocmd('FileType', {
   pattern = { 'markdown', 'text' },
   desc = 'Use K to show dictionary definition of word under cursor',
   group = utils.augroup 'dictionary-keymap',
-  callback = function()
-    if vim.fn.executable 'dict' ~= 1 or vim.fn.executable 'wn' ~= 1 then
-      vim.notify('Neither "dict" nor "wn" command is available for dictionary lookup', vim.log.levels.WARN)
+  callback = function(args)
+    if vim.g.dict_cmd == nil then
+      if vim.fn.executable 'wn' == 1 then
+        vim.g.dict_cmd = 'wn'
+      elseif vim.fn.executable 'dict' == 1 then
+        vim.g.dict_cmd = 'dict'
+      else
+        vim.g.dict_cmd = false
+      end
+    end
+    if not vim.g.dict_cmd then
       return
     end
+    if vim.bo[args.buf].buftype ~= '' then
+      return
+    end
+
     utils.map('n', 'K', function()
       local word = vim.fn.expand '<cword>'
       if word == '' then
         vim.notify('No word under cursor', vim.log.levels.WARN)
         return
       end
-
-      local cmd
-      if vim.fn.executable 'wn' == 1 then
-        cmd = { 'wn', word, '-over' }
-      else
-        cmd = { 'dict', word }
-      end
-
-      -- Run asynchronously and show in LSP-style hover
+      local cmd = vim.g.dict_cmd == 'wn' and { 'wn', word, '-over' } or { 'dict', word }
       vim.system(cmd, { text = true }, function(res)
-        if not res.stdout or res.stdout == '' then
+        local stdout = (res.stdout or ''):gsub('^%s+', ''):gsub('%s+$', '')
+        if stdout == '' then
           vim.schedule(function()
             vim.notify("No definition found for '" .. word .. "'", vim.log.levels.INFO)
           end)
           return
         end
-
         vim.schedule(function()
-          vim.lsp.util.open_floating_preview(vim.split(res.stdout, '\n'), 'markdown', {
+          vim.lsp.util.open_floating_preview(vim.split(stdout, '\n'), 'text', {
             border = 'rounded',
             focusable = true,
-            title = 'Definition: ' .. word,
+            title = ' ' .. word .. ' ',
           })
         end)
       end)
-    end, { buffer = true, desc = 'Show dictionary definition' })
+    end, { buffer = args.buf, desc = 'Show dictionary definition' })
   end,
 })
 

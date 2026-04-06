@@ -14,7 +14,7 @@ require('nuance.core.promise').async_promise(100, require('nuance.core.diagnosti
   vim.notify(err, vim.log.levels.ERROR, { title = 'Treesitter Diagnostics' })
 end)
 
-if vim.version() >= vim.version { major = 0, minor = 12, patch = 0 } then
+if vim.version.ge(vim.version(), { 0, 12 }) then
   require('nuance.core.promise')
     .async_promise(100, function()
       vim.cmd [[ packadd nvim.difftool ]]
@@ -24,15 +24,19 @@ if vim.version() >= vim.version { major = 0, minor = 12, patch = 0 } then
       vim.notify('Failed to load 0.12 Native plugins: ' .. err, vim.log.levels.ERROR)
     end)
 
-  require('vim._core.ui2').enable {
-    enable = true, -- Whether to enable or disable the UI.
-    msg = { -- Options related to the message module.
-      ---@type 'cmd'|'msg' Where to place regular messages, either in the
-      ---cmdline or in a separate ephemeral message window.
-      target = 'msg',
-      timeout = 1000, -- Time a message is visible in the message window.
-    },
-  }
+  require('nuance.core.promise')
+    .async_promise(100, function()
+      require('vim._core.ui2').enable {
+        enable = true,
+        msg = {
+          target = 'msg',
+          timeout = 1000,
+        },
+      }
+    end)
+    :catch(function(err)
+      vim.notify('Failed to load vim._core.ui2: ' .. err, vim.log.levels.ERROR)
+    end)
 end
 
 require('nuance.core.bufline').setup()

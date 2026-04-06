@@ -38,6 +38,12 @@ local ai = {
   config = function()
     require('mini.ai').setup {
       mappings = {
+        -- change these
+        around_next = 'aN',
+        inside_next = 'iN',
+        around_last = 'aL',
+        inside_last = 'iL',
+
         -- Move cursor to corresponding edge of `a` textobject
         goto_left = '<leader>[',
         goto_right = '<leader>]',
@@ -162,22 +168,6 @@ local flash = {
     { 'r', '<cmd>lua require("flash").remote()<CR>', mode = 'o', desc = 'Remote Flash' },
     { 'R', '<cmd>lua require("flash").treesitter_search()<CR>', mode = { 'o', 'x' }, desc = 'Treesitter Search' },
     { '<c-s>', '<cmd>lua require("flash").toggle()<CR>', mode = { 'c' }, desc = 'Toggle Flash Search in "/" mode' },
-
-    -- Simulate nvim-treesitter incremental selection
-    {
-      '<C-g>',
-      mode = { 'n', 'o', 'x' },
-      function()
-        require('flash').treesitter {
-          -- label = { before = false, after = false },
-          actions = {
-            ['<C-g>'] = 'next',
-            ['<BS>'] = 'prev',
-          },
-        }
-      end,
-      desc = 'Treesitter Incremental Selection',
-    },
   },
 
   ---@type Flash.Config

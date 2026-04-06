@@ -290,7 +290,27 @@ local maps = {
 
   { { 'n', 'i' }, '<M-a>', '<cmd>%y<CR>', 'Yank All Text in Buffer' },
 
-  { { 'i' }, '<C-k>', '<C-g>u<ESC>1z=`]a<C-g>u', 'Fix Current Word Under Cursor' },
+  { { 'i' }, '<C-l>', '<C-g>u<ESC>1z=`]a<C-g>u', 'Fix Current Word Under Cursor' },
+
+  {
+    { 'n', 'x' },
+    '<C-g>',
+    function()
+      -- Check for mode to prevent infinite loop of feeding keys
+      if vim.api.nvim_get_mode().mode == 'n' then
+        vim.cmd 'normal! v'
+      end
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('an', true, false, true), 'x', false)
+    end,
+  },
+
+  {
+    { 'x' },
+    '<BS>',
+    function()
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('in', true, false, true), 'x', false)
+    end,
+  },
 }
 
 local map = require('nuance.core.utils').map
