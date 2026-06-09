@@ -84,12 +84,22 @@ M.opts.keymaps = {
         vim.notify('Bufline plugin not found, cannot refresh buffers', vim.log.levels.WARN)
         return
       end
-      vim.tbl_map(function(bufnr)
-        if vim.api.nvim_buf_is_valid(bufnr) and not vim.uv.fs_stat(vim.api.nvim_buf_get_name(bufnr)) then
+
+      vim
+        .iter(pairs(require('nuance.core.bufline').tab_idx_map))
+        :filter(function(bufnr, _)
+          -- Check buffer is valid
+          return vim.api.nvim_buf_is_valid(bufnr)
+            -- Check buffer is not listed and has a name that no longer exists on the filesystem
+            and not vim.uv.fs_stat(vim.api.nvim_buf_get_name(bufnr))
+            -- Check buffer has a name (avoid closing unnamed buffers)
+            and vim.api.nvim_buf_get_name(bufnr) ~= ''
+        end)
+        :each(function(bufnr, tab_idx)
           -- File no longer exists — close the buffer
-          vim.api.nvim_buf_delete(bufnr, { force = true })
-        end
-      end, vim.tbl_keys(bufline.tab_idx_map))
+          -- vim.api.nvim_buf_delete(bufnr, { force = true })
+          vim.print('Checking buffer: ' .. bufnr .. ' :: ' .. 'Tab Index: ' .. tab_idx)
+        end)
     end)
   end,
   ['-'] = 'actions.parent',

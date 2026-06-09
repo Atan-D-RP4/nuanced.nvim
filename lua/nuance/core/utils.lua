@@ -1,5 +1,6 @@
 local M = {}
 
+---@param bufnr integer
 M.set_close_q = function(bufnr)
   vim.keymap.set('n', 'q', function()
     if vim.fn.getcmdwintype() ~= '' then

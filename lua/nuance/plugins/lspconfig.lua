@@ -113,7 +113,6 @@ autocmd('LspAttach', {
         group = color_augroup,
         callback = function()
           vim.lsp.buf.clear_references()
-          vim.lsp.document_color._buf_refresh(bufnr, client.id)
         end,
       })
 
@@ -151,41 +150,65 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
   vim.hl.priorities.semantic_tokens = 95
 
   if vim.version.ge(vim.version(), { 0, 12 }) then
-    vim.lsp.log.set_format_func(function(level, timestamp, message)
-      -- Make message readable (handles tables)
-      if log_levels[level] < log_levels.WARN then
+    vim.lsp.log.set_format_func(function(level, timestamp, msg)
+      local curr_log_level = log_levels[level] or log_levels.INFO
+
+      if curr_log_level < vim.lsp.log.get_level() then
         return nil
       end
-      local msg = type(message) == 'table' and vim.inspect(message) or tostring(message)
-      msg = msg:gsub('\t', '  ')
-      return string.format('[%s] [%s] %s\n', level, timestamp, msg)
+
+      if type(msg) == 'table' then
+        msg = vim.inspect(msg, {
+          newline = ' ',
+          indent = '',
+        })
+      end
+
+      msg = tostring(msg):gsub('\t', '  ')
+
+      return string.format('[%s][%s] %s\n', log_levels[curr_log_level] or curr_log_level, timestamp or '', msg)
     end)
   end
 
-  vim.lsp.handlers['textDocument/hover'] = function(_, result, _ctx, config)
-    if not (result and result.contents) then
-      return
-    end
-    ---@type vim.lsp.util.open_floating_preview.Opts
-    config = vim.tbl_deep_extend('force', {
+  local orig_open_floating_preview = vim.lsp.util.open_floating_preview
+
+  ---@diagnostic disable-next-line: duplicate-set-field
+  vim.lsp.util.open_floating_preview = function(contents, syntax, float_opts)
+    opts = vim.tbl_extend('force', {
       border = 'rounded',
-      max_width = math.floor(vim.o.columns * 0.75),
-      max_height = math.floor(vim.o.lines * 0.4),
-      silent = true,
-    }, config or {})
-    vim.print(config)
+    }, float_opts or {})
 
-    local bufnr, winnr = vim.lsp.util.open_floating_preview(vim.lsp.util.convert_input_to_markdown_lines(result.contents), 'markdown', config)
-    if not bufnr or not winnr then
-      return
-    end
+    local bufnr, winnr = orig_open_floating_preview(contents, syntax, opts)
 
-    -- stylize_markdown applies Treesitter injections for fenced code blocks
-    vim.treesitter.start(bufnr, 'markdown')
+    -- The critical part: enable concealment so ``` fences are hidden
+    -- and markdown_inline TS highlights (bold, italic, code spans) render
+    vim.schedule(function()
+      if winnr and vim.api.nvim_win_is_valid(winnr) then
+        vim.wo[winnr].wrap = true
+        vim.wo[winnr].linebreak = true
+        vim.wo[winnr].conceallevel = 2
+        vim.wo[winnr].linebreak = true
+      end
 
-    -- Conceal the fence markers (``` lines) without hiding the content
-    vim.wo[winnr].conceallevel = 2
-    vim.wo[winnr].concealcursor = 'n'
+      local ns = vim.api.nvim_create_namespace 'nuance_hover_fence_conceal'
+      vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+      local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+      for i = 1, #lines do
+        if lines[i]:match '^%s*```' then
+          vim.api.nvim_buf_set_extmark(bufnr, ns, i - 1, 0, {
+            end_col = #lines[i],
+            conceal_lines = '',
+            hl_mode = 'combine',
+            hl_group = 'Italic',
+          })
+        end
+      end
+
+      vim.treesitter.start(bufnr, syntax or 'markdown')
+      vim.bo[bufnr].syntax = 'ON' -- only if additional legacy syntax is needed
+    end)
+
+    return bufnr, winnr
   end
 
   -- LSP servers and clients are able to communicate to each other what features they support.
@@ -232,6 +255,7 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
     capabilities = capabilities,
 
     on_init = {
+      ---@param client vim.lsp.Client,
       global = function(client, _initialize_result)
         local msg = 'Initialized Language Server: ' .. client.name
         if client.config.root_dir then
@@ -240,46 +264,18 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
         vim.notify(msg, log_levels.INFO, { title = 'LSP' })
 
         if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_codeLens) then
-          local codelens_augroup = augroup 'lsp-codelens'
-          vim.b.codelens_enabled = vim.b.codelens_enabled or false
-
           nmap('<leader>tr', function()
-            vim.b.codelens_enabled = not vim.b.codelens_enabled
-
-            if vim.b.codelens_enabled then
-              vim.lsp.codelens.enable(true)
-
-              autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
-                group = codelens_augroup,
-                callback = function()
-                  vim.lsp.codelens.enable(true)
-                end,
-              })
-            else
-              pcall(vim.api.nvim_clear_autocmds, { group = codelens_augroup })
-              vim.lsp.codelens.enable(false)
-            end
-
-            vim.notify(
-              'LSP CodeLens ' .. (vim.b.codelens_enabled and 'Enabled' or 'Disabled'),
-              (vim.b.codelens_enabled and log_levels.INFO),
-              { title = 'LSP' }
-            )
-          end, { desc = 'LSP [T]oggle [R]efresh CodeLens', noremap = false })
-
-          autocmd('LspDetach', {
-            group = codelens_augroup,
-            callback = function(ev)
-              pcall(vim.api.nvim_clear_autocmds, { group = codelens_augroup, buffer = ev.buf })
-            end,
-          })
+            local enabled = vim.lsp.codelens.is_enabled()
+            vim.notify('LSP CodeLens ' .. (not enabled and 'Enabled' or 'Disabled'), (enabled and log_levels.INFO), { title = 'LSP' })
+            vim.lsp.codelens.enable(not enabled)
+          end, { desc = 'LSP [T]oggle CodeLens', noremap = false })
         end
 
         if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
           nmap('<leader>th', function()
             vim.notify(
               'LSP Inlay Hints ' .. (vim.lsp.inlay_hint.is_enabled() and 'Disabled' or 'Enabled'),
-              (vim.lsp.inlay_hint.is_enabled() and vim.log.WARN or vim.log.INFO),
+              (vim.lsp.inlay_hint.is_enabled() and vim.log.levels.WARN or vim.log.levels.INFO),
               { title = 'LSP' }
             )
             vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
@@ -315,21 +311,34 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
 
     on_exit = {
       global = function(_code, _signal, client_id)
-        local client = vim.lsp.get_client_by_id(client_id)
-        if not client then
-          vim.notify('LSP client not found for id: ' .. tostring(client_id), log_levels.WARN, { title = 'LSP' })
-          return
-        end
-
-        for ns_id, ns in pairs(vim.diagnostic.get_namespaces()) do
-          if ns.name and ns.name:match(client.name) then
-            require('nuance.core.promise').async_promise(100, function()
-              vim.diagnostic.reset(ns_id)
-            end)
+        vim.schedule(function()
+          local client = vim.lsp.get_client_by_id(client_id)
+          if not client then
+            vim.notify('LSP client not found for id: ' .. tostring(client_id), log_levels.WARN, { title = 'LSP' })
+            return
           end
-        end
 
-        vim.notify('De-Initialized Language Server: ' .. client.name, log_levels.INFO, { title = 'LSP' })
+          for ns_id, ns in pairs(vim.diagnostic.get_namespaces()) do
+            if ns.name and ns.name:match(client.name) then
+              require('nuance.core.promise')
+                .async_promise(100, function()
+                  vim.schedule_wrap(function()
+                    vim.notify('Resetting diagnostics for namespace: ' .. ns.name, log_levels.INFO, { title = 'LSP' })
+                    vim.diagnostic.reset(ns_id)
+                  end)()
+                end)
+                :catch(function(err)
+                  vim.notify(
+                    'Failed to reset diagnostics for namespace: ' .. ns.name .. '\nError: ' .. tostring(err),
+                    log_levels.ERROR,
+                    { title = 'LSP' }
+                  )
+                end)
+            end
+          end
+
+          vim.notify('De-Initialized Language Server: ' .. client.name, log_levels.INFO, { title = 'LSP' })
+        end)
       end,
     },
   })

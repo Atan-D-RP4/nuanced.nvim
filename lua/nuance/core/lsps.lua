@@ -54,28 +54,73 @@ return {
     filetypes = { 'lua' },
 
     on_init = {
-      spec = function(client, _init_result)
-        if not client.root_dir or not client.root_dir:match 'nvim' then
+      ---@param client vim.lsp.Client
+      spec = function(client, _)
+        if not client.root_dir then
           return
         end
-        local libs = client.config.settings.Lua.workspace.library or {}
-        table.insert(libs, vim.fn.expand '$VIMRUNTIME')
-        table.insert(libs, vim.fn.expand '$VIMRUNTIME' .. '/lua')
-        table.insert(libs, vim.fs.joinpath '${3rd}/luv/library')
-        table.insert(libs, vim.fn.stdpath 'config' .. '/lua')
-        table.insert(libs, vim.fn.stdpath 'data' .. '/lazy/')
-        for _, path in ipairs(vim.fn.glob(vim.fn.stdpath 'data' .. '/lazy/*/lua', 0, 1)) do
-          table.insert(libs, path)
+
+        -- Quick guard: only configure for nvim config dirs
+        local is_nvim = client.root_dir:match 'nvim' and vim.fs.root(0, { '.git', 'init.lua' })
+        if not is_nvim then
+          return
         end
-        for _, path in ipairs(vim.fn.glob(vim.fn.stdpath 'data' .. '/site/pack/*/opt/*/', 0, 1)) do
-          table.insert(libs, path)
-        end
-        client.config.settings.Lua.workspace.library = libs
+
+        local data = vim.fn.stdpath 'data'
+        local cfg = vim.fn.stdpath 'config'
+
+        -- ── Phase 1: Essential paths (sync, non-blocking) ──
+        local libs = client.config.settings.emmylua.workspace.library
+          or {
+            vim.env.VIMRUNTIME,
+            vim.fs.joinpath(vim.env.VIMRUNTIME, 'lua'),
+            '${3rd}/luv/library',
+            vim.fs.joinpath(cfg, 'lua'),
+            vim.fs.joinpath(data, 'lazy'),
+          }
+
+        client.config.settings.emmylua.workspace.library = libs
+
+        -- ── Phase 2: Plugin paths (lazy + async) ──
+        vim.schedule(function()
+          -- Lazy plugin lua dirs: lazy/<name>/lua
+          local lazy_dir = vim.fs.joinpath(data, 'lazy')
+          if vim.uv.fs_stat(lazy_dir) then
+            for _, lua_dir in
+              ipairs(vim.fs.find('lua', {
+                path = lazy_dir,
+                type = 'directory',
+                depth = 2,
+                limit = math.huge,
+              }))
+            do
+              table.insert(libs, lua_dir)
+            end
+          end
+
+          -- Pack opt dirs: site/pack/<org>/opt/<plugin>
+          local pack_dir = vim.fs.joinpath(data, 'site', 'pack')
+          if vim.uv.fs_stat(pack_dir) then
+            for org in vim.fs.dir(pack_dir) do
+              local opt_dir = vim.fs.joinpath(pack_dir, org, 'opt')
+              if vim.uv.fs_stat(opt_dir) then
+                for plugin in vim.fs.dir(opt_dir) do
+                  table.insert(libs, vim.fs.joinpath(opt_dir, plugin))
+                end
+              end
+            end
+          end
+
+          -- Push expanded settings to the server
+          client:notify('workspace/didChangeConfiguration', {
+            settings = client.config.settings,
+          })
+        end)
       end,
     },
 
     settings = {
-      Lua = {
+      emmylua = {
         runtime = {
           version = 'LuaJIT',
           path = vim.split(package.path, ';'),
@@ -188,6 +233,11 @@ return {
     },
   },
 
+  marksman = {
+    enabled = vim.fn.executable 'marksman' == 1,
+    filetypes = { 'markdown' },
+  },
+
   bashls = {
     enabled = vim.fn.executable 'deno' == 1,
     cmd = { 'deno', 'run', '-A', 'npm:bash-language-server', 'start' },
@@ -287,6 +337,7 @@ return {
     },
 
     on_init = {
+      ---@param client vim.lsp.Client,
       spec = function(client, _)
         client.server_capabilities.hoverProvider = false
         client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
@@ -363,6 +414,7 @@ return {
     enabled = vim.fn.executable 'basedpyright-langserver' == 1,
 
     on_init = {
+      ---@param client vim.lsp.Client,
       spec = function(client, _)
         client.settings.python = vim.tbl_extend('force', client.settings.python or {}, {
           pythonPath = require('nuance.core.utils').get_python_path(client.root_dir),
@@ -504,6 +556,7 @@ return {
     cmd = vim.lsp.rpc.connect('127.0.0.1', 27631),
 
     on_init = {
+      ---@param client vim.lsp.Client,
       spec = function(client, _)
         -- Register custom commands
         --- rust-analyzer macro expansion command (reference implementation)
@@ -515,7 +568,7 @@ return {
               local r = resp.result
               if r and r.expansion then
                 vim.lsp.util.open_floating_preview(vim.split(r.expansion, '\n'), 'rust', {
-                  border = 'rounded',
+                  title = r.name,
                   max_width = math.floor(vim.o.columns * 0.6),
                   max_height = math.floor(vim.o.lines * 0.6),
                 })
@@ -526,13 +579,19 @@ return {
           end)
         end, { desc = 'Expand Rust macro under cursor' })
 
-        -- Use root_dir/../target/rust_analyzer to share target dir between
-        -- multiple worktrees of the same repo.
-        local cargo_toml = client.config.root_dir .. '/Cargo.toml'
-        if vim.fn.filereadable(cargo_toml) == 1 then
-          local parent_dir = vim.fs.dirname(client.config.root_dir)
-          client.config.settings['rust-analyzer'].cargo.targetDir = parent_dir .. '/target/rust_analyzer'
-        end
+        vim.api.nvim_buf_create_user_command(0, 'RustExternalDocs', function()
+          local params = vim.lsp.util.make_position_params(0, client.offset_encoding or 'utf-8')
+          vim.lsp.buf_request_all(0, 'experimental/externalDocs', params, function(results)
+            for _, resp in pairs(results) do
+              local r = resp.result
+              if r and r['local'] then
+                vim.ui.open(r['local'])
+                return
+              end
+            end
+            vim.notify('No rust external docs found', vim.log.levels.INFO)
+          end)
+        end, { desc = 'Open Rust External Docs' })
       end,
     },
 
@@ -541,16 +600,12 @@ return {
         hoverActions = true,
         colorDiagnosticOutput = true,
         hoverRange = true,
-        serverStatusNotification = true,
         snippetTextEdit = true,
         codeActionGroup = true,
         ssr = true,
         localDocs = true,
 
         commands = {
-          'rust-analyzer.runSingle',
-          'rust-analyzer.showReferences',
-          'rust-analyzer.gotoLocation',
           'editor.action.triggerParameterHints',
         },
       },
@@ -563,6 +618,9 @@ return {
             },
           },
         },
+        codeLens = {
+          dynamicRegistration = true,
+        },
       },
     },
 
@@ -574,16 +632,21 @@ return {
           server = 'rust-analyzer',
         },
 
+        procMacro = { enable = true },
+
         cargo = {
-          allFeatures = true,
           loadOutDirsFromCheck = true,
           buildScripts = { enable = true },
-          targetDir = 'target/rust_analyzer',
+        },
+
+        rust = {
+          analyzerTargetDir = true,
         },
 
         inlayHints = {
           closureCaptureHints = { enable = true },
           closureReturnTypeHints = { enable = true },
+          chainingHints = { enable = true },
           genericParameterHints = {
             lifetimeElisionHints = { enable = true },
             implicitSizedBoundHints = { enable = true },
@@ -594,19 +657,19 @@ return {
 
         lens = {
           enable = true,
-          references = {
-            adt = { enable = true },
-            method = { enable = true },
-            trait = { enable = true },
-            enumVariant = { enable = true },
-          },
+          debug = { enable = true },
         },
         -- highlightRelated = { enable = true },
+
+        diagnostics = {
+          enabled = true, -- Add "enabled = false", if you want to disable them
+          experimental = { enable = true },
+          styleLints = { enable = true },
+        },
 
         imports = { granularity = { group = 'module' }, prefix = 'self' },
         checkOnSave = true,
         check = { command = 'clippy' },
-        diagnostics = { enabled = true }, -- Add "enabled = false", if you want to disable them
       },
     },
   },

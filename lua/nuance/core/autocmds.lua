@@ -25,6 +25,55 @@ autocmd({ 'CmdlineEnter', 'CmdlineLeave' }, {
 })
 --]]
 
+autocmd({ 'CmdlineLeave', 'CursorMoved', 'CursorMovedI' }, {
+  desc = 'Show search count as ghost text',
+  group = utils.augroup 'search_count',
+
+  callback = function()
+    vim.g.search_count_ns = vim.g.search_count_ns or vim.api.nvim_create_namespace 'search_count'
+
+    local ns = vim.g.search_count_ns
+
+    local function clear()
+      vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
+    end
+
+    -- If highlighting is off, remove virtual text too
+    if vim.v.hlsearch == 0 then
+      clear()
+      return
+    end
+
+    local ok, sc = pcall(vim.fn.searchcount, {
+      recompute = 1,
+      maxcount = 9999,
+    })
+
+    if not ok or not sc.total or sc.total == 0 then
+      clear()
+      return
+    end
+
+    local pattern = vim.fn.getreg '/'
+    if not pattern or pattern == '' then
+      clear()
+      return
+    end
+
+    clear()
+
+    vim.api.nvim_buf_set_extmark(0, ns, vim.fn.line '.' - 1, -1, {
+      virt_text = {
+        {
+          string.format('  %s \t\t [%d/%d] ', pattern, sc.current, sc.total),
+          'Keyword',
+        },
+      },
+      virt_text_pos = 'eol',
+    })
+  end,
+})
+
 autocmd('FileType', {
   pattern = { 'markdown', 'text' },
   desc = 'Use K to show dictionary definition of word under cursor',
@@ -82,17 +131,23 @@ autocmd({ 'BufRead', 'BufNewFile' }, {
   end,
 })
 
-autocmd('TextYankPost', {
-  desc = 'Highlight when yanking (copying) text',
-  group = utils.augroup 'highlight-yank',
-  callback = function()
-    (vim.highlight or vim.hl).on_yank { timeout = 200, on_visual = true }
-    if vim.g.cur_yank_pre then
-      vim.api.nvim_win_set_cursor(0, vim.g.cur_yank_pre)
-      vim.g.cur_yank_pre = nil
-    end
-  end,
-})
+if vim.version.eq(vim.version(), { 0, 13 }) then
+  autocmd({ 'TextYankPost', 'TextPutPost' }, {
+    desc = 'Highlight when yanking or putting text in buffer',
+    group = utils.augroup 'highlight-yank-put',
+    callback = function()
+      vim.hl.hl_op { timeout = 200 }
+    end,
+  })
+else
+  autocmd('TextYankPost', {
+    desc = 'Highlight when yanking (copying) text',
+    group = utils.augroup 'highlight-yank',
+    callback = function()
+      (vim.highlight or vim.hl).on_yank { timeout = 200, on_visual = true }
+    end,
+  })
+end
 
 autocmd('Colorscheme', {
   desc = 'Set custom colors for diff highlighting',
@@ -264,73 +319,6 @@ autocmd('BufEnter', {
   group = utils.augroup 'disable-auto-comment',
   pattern = '*',
   command = [[set formatoptions-=cro]],
-})
-
-autocmd('FileType', {
-  desc = 'Allow editing and reloading of quickfix window',
-  group = utils.augroup('edit-quickfix', { clear = true }),
-  pattern = 'qf',
-  callback = function()
-    vim.bo.modifiable = true
-    vim.bo.buflisted = false
-
-    -- Handle both legacy and modern quickfix formats (with column ranges)
-    vim.bo.errorformat = table.concat({
-      '%f|%l col %c| %m',
-      '%f|%l col %c-%k| %m',
-    }, ',')
-
-    -- Update quickfix list after editing entries
-    utils.map('n', '<C-s>', function()
-      if vim.bo.modified then
-        vim.cmd 'cgetbuffer'
-        vim.bo.modified = false
-        vim.notify('Quickfix/location list updated', vim.log.levels.INFO, {
-          title = 'Quickfix',
-          timeout = 1500,
-        })
-      else
-        vim.notify('No changes to update', vim.log.levels.WARN, {
-          title = 'Quickfix',
-          timeout = 1000,
-        })
-      end
-    end, { buffer = true, desc = 'Update quickfix/location list from buffer' })
-
-    -- Proper reload: repopulate quickfix from the previous command (not just :edit!)
-    utils.map('n', '<C-r>', function()
-      local qf = vim.fn.getqflist { title = 0 }
-      local title = qf.title or ''
-      if title:match '^vimgrep' or title:match '^grep' then
-        -- Re-run the same vimgrep command if available
-        vim.cmd [[ exec "cexpr []" ]] -- clear
-        vim.cmd('silent ' .. title)
-        vim.cmd [[ exec "copen" ]]
-        vim.notify('Quickfix list reloaded from previous vimgrep', vim.log.levels.INFO, {
-          title = 'Quickfix',
-          timeout = 1500,
-        })
-      else
-        -- Fallback: reload buffer content into quickfix
-        vim.cmd 'cgetbuffer'
-        vim.notify('Quickfix list reloaded from buffer', vim.log.levels.INFO, {
-          title = 'Quickfix',
-          timeout = 1500,
-        })
-      end
-    end, { buffer = true, desc = 'Reload quickfix list (re-run vimgrep or buffer)' })
-
-    -- Smart deletion
-    utils.map('n', 'dd', function()
-      local line = vim.fn.line '.'
-      vim.cmd [[ exec "delete" ]]
-      if vim.fn.line '$' == 1 then
-        vim.cmd [[ exec "cclose" ]]
-      else
-        vim.cmd(('cgetbuffer | call cursor(%d, 1)'):format(math.max(1, line)))
-      end
-    end, { buffer = true, desc = 'Delete quickfix entry' })
-  end,
 })
 
 local qclose_group = utils.augroup 'close-with-q'

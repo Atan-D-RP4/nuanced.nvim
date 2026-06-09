@@ -1,3 +1,5 @@
+local utils = require 'nuance.core.utils'
+
 local gitcore = {
   'tpope/vim-fugitive',
   dependencies = {
@@ -8,6 +10,106 @@ local gitcore = {
         integrations = { fugitive = true },
         extra_filetypes = { 'diff' },
       }
+
+      local function commit_hunks_to_qf(commit)
+        local result = vim.fn.FugitiveExecute { 'show', '--unified=0', '--format=', commit, '--' }
+        if result.exit_status ~= 0 then
+          vim.notify('FugitiveExecute failed: ' .. table.concat(result.stderr, '\n'), vim.log.levels.ERROR)
+          return
+        end
+
+        local qflist = {}
+        local fname = ''
+
+        for _, line in ipairs(result.stdout) do
+          if line:match '^%+%+%+ b/' then
+            fname = line:sub(7)
+          elseif line:match '^@@ ' then
+            local lnum = line:match '%+(%d+)'
+            table.insert(qflist, {
+              filename = fname,
+              lnum = tonumber(lnum),
+              text = line,
+            })
+          end
+        end
+
+        -- close fugitive buffer if still focused
+        local ft = vim.bo.filetype
+        if ft == 'fugitive' or ft == 'git' then
+          utils.safe_buf_delete(vim.api.nvim_get_current_buf())
+        end
+        vim.fn.setqflist({}, 'r', { items = qflist })
+        vim.cmd 'copen'
+      end
+
+      vim.api.nvim_create_user_command('CommitHunks', function(opts)
+        commit_hunks_to_qf(opts.args)
+      end, { nargs = 1 })
+
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = { 'fugitive', 'git' },
+        callback = function(ev)
+          vim.keymap.set('n', 'Q', function()
+            local sha
+
+            -- Strategy 1: Parse the fugitive:// buffer URL (works in diff/file views)
+            local bufname = vim.fn.expand '%'
+            if bufname:match '^fugitive://' then
+              local rev = vim.fn['fugitive#Parse'](bufname)[1]
+              if rev and rev ~= '' then
+                sha = rev:match '^([^:]+)'
+                -- Index stages (0, 1, 2) and '.' aren't real commits
+                if sha and sha ~= '' and not sha:match '^[012]$' and sha ~= '.' then
+                  return sha
+                end
+                sha = nil
+              end
+            end
+
+            -- Strategy 2: Fugitive porcelain buffer — replicate s:SquashArgument() regex
+            -- Matches: "abc1234 (HEAD -> main) message" or "Merge: abc1234"
+            if vim.bo.filetype == 'fugitive' then
+              local line = vim.fn.getline '.'
+              -- SHA at start of line (fugitive status format: "abc1234 message")
+              sha = vim.fn.matchstr(line, '^\\%(\\%(\\x\\x\\x\\)\\@!\\l\\+\\s\\+\\)\\=\\zs[0-9a-f]\\{4,\\}\\ze ')
+              if sha ~= '' then
+                return sha
+              end
+              -- Ref header lines (Merge:, Rebase:, Upstream:, Pull:, Push:)
+              sha = vim.fn.matchstr(line, '^\\%(Merge\\|Rebase\\|Upstream\\|Pull\\|Push\\): \\zs\\S\\+')
+              if sha ~= '' then
+                return sha
+              end
+            end
+
+            -- Strategy 3: Git filetype — walk up to find commit/tag header
+            if vim.bo.filetype == 'git' then
+              local lnum = vim.fn.line '.'
+              while lnum > 0 do
+                local l = vim.fn.getline(lnum)
+                sha = vim.fn.matchstr(l, '^commit \\zs\\x\\{40,\\}')
+                if sha ~= '' then
+                  return sha
+                end
+                sha = vim.fn.matchstr(l, '^tag \\zs\\S\\+')
+                if sha ~= '' then
+                  return sha
+                end
+                lnum = lnum - 1
+              end
+            end
+
+            -- Strategy 4: Word under cursor as 7+ hex string (fugitive's final fallback)
+            local cword = vim.fn.expand '<cword>'
+            if cword and cword:match '^%x%x%x%x%x%x%x' then
+              return cword
+            end
+
+            vim.notify('No git object found', vim.log.levels.WARN)
+          end, { buffer = ev.buf, desc = 'Commit hunks to quickfix' })
+        end,
+      })
     end,
   },
 
@@ -23,6 +125,8 @@ local gitcore = {
         cmd = cmd .. "--pretty=format:'%C(bold blue)%h%Creset %C(bold green)(%ar)%Creset %C(bold red)%d%Creset %s %C(dim white)<%an>%Creset'"
         vim.cmd(cmd)
         vim.cmd [[ exec "normal p" ]]
+        vim.cmd [[ exec "wincmd j" ]]
+        vim.cmd [[ exec "wincmd L" ]]
       end,
       desc = '[G]it [l]og',
       mode = 'n',
@@ -38,7 +142,9 @@ local gitsigns = { -- Adds git related signs to the gutter, as well as utilities
   'lewis6991/gitsigns.nvim',
   event = 'BufReadPre',
   ---@type Gitsigns.Config
-  opts = {},
+  opts = {
+    current_line_blame = true,
+  },
 }
 
 local gitdiffview = {
@@ -52,7 +158,7 @@ local gitdiffview = {
 local neogit = {
   'NeogitOrg/neogit',
   cmd = 'Neogit',
-  dependencies = { 'nvim-lua/plenary.nvim', gitdiffview },
+  -- dependencies = { 'nvim-lua/plenary.nvim', gitdiffview },
   opts = {
     mappings = {
       status = {
@@ -68,7 +174,7 @@ local neogit = {
     },
   },
   keys = {
-    { '<leader>ng', '<cmd>Neogit<CR>', desc = '[N]eo[G]it', mode = 'n' },
+    { '<leader>gg', '<cmd>Neogit<CR>', desc = '[N]eo[G]it', mode = 'n' },
   },
 }
 
@@ -98,7 +204,7 @@ gitsigns.opts.on_attach = function(bufnr)
       end
       opts.buffer = bufnr
     end
-    require('nuance.core.utils').map(modes, lhs, rhs, opts)
+    utils.map(modes, lhs, rhs, opts)
   end
 
   -- Navigation
@@ -131,10 +237,10 @@ gitsigns.opts.on_attach = function(bufnr)
   end, '[G]it rest hunk')
 
   -- normal mode
-  map({ 'n', 'v' }, '<leader>ga', signs.stage_hunk, '[G]it [t]oggle hunk stage status')
-  map({ 'n', 'v' }, '<leader>gr', signs.reset_hunk, '[G]it [r]eset hunk')
-  map({ 'n', 'v' }, '<leader>gp', signs.preview_hunk, '[G]it [p]review hunk')
-  map({ 'n', 'v' }, '<leader>gb', signs.blame_line, '[G]it [b]lame line')
+  map({ 'n' }, '<leader>ga', signs.stage_hunk, '[G]it [t]oggle hunk stage status')
+  map({ 'n' }, '<leader>gr', signs.reset_hunk, '[G]it [r]eset hunk')
+  map({ 'n' }, '<leader>gp', signs.preview_hunk, '[G]it [p]review hunk')
+  map({ 'n' }, '<leader>gb', signs.blame_line, '[G]it [b]lame line')
   map('n', '<leader>gA', signs.stage_buffer, '[G]it [S]tage buffer')
   map('n', '<leader>gR', signs.reset_buffer, '[G]it [R]eset buffer')
   -- map('n', '<leader>gd', function()
@@ -166,6 +272,7 @@ end
 return {
   gitcore,
   gitsigns,
+  -- { 'justinmk/guh.nvim', },
   -- neogit,
   -- gitdiffview,
   -- gitworktree,

@@ -75,15 +75,58 @@ M.opencode = {
   dependencies = {
     'nvim-lua/plenary.nvim',
 
-    {
-      'MeanderingProgrammer/render-markdown.nvim',
-      ft = { 'markdown', 'Avante', 'copilot-chat', 'opencode_output' },
+    -- {
+    --   'MeanderingProgrammer/render-markdown.nvim',
+    --   ft = { 'markdown', 'Avante', 'copilot-chat', 'opencode_output' },
+    --
+    --   opts = {
+    --     enabled = false,
+    --     anti_conceal = { enabled = false },
+    --     file_types = { 'markdown', 'opencode_output' },
+    --     render = {
+    --       latex = true, -- Enable LaTeX math rendering
+    --     },
+    --   },
+    -- },
 
-      opts = {
-        enabled = false,
-        anti_conceal = { enabled = false },
-        file_types = { 'markdown', 'opencode_output' },
+    {
+      'OXY2DEV/markview.nvim',
+      ft = { 'markdown', 'typst', 'opencode_output', 'yaml', 'toml' },
+
+      keys = {
+        {
+          '<leader>tm',
+          function()
+            local msg = 'Markview '
+            if not vim.g.markview then
+              vim.cmd 'Markview attach'
+              msg = msg .. 'enabled'
+            else
+              vim.cmd 'Markview detach'
+              msg = msg .. 'disabled'
+            end
+            vim.notify(msg, vim.g.markview and vim.log.levels.WARN or vim.log.levels.INFO, { title = 'Markview' })
+            vim.g.markview = not vim.g.markview
+          end,
+          desc = '[T]oggle [M]arkview',
+        },
       },
+
+      ---@module 'markview.nvim'
+      ---@type markview.config
+      opts = {
+        markdown = {
+          enable = true,
+        },
+        markdown_inline = {
+          enable = true,
+        },
+      },
+
+      config = function()
+        vim.g.markview = false
+        vim.cmd 'Markview Stop'
+      end,
     },
 
     'saghen/blink.cmp',

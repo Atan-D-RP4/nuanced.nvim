@@ -142,31 +142,21 @@ opt.fileencoding = 'utf-8'
 opt.path:append '**'
 opt.autoread = true
 
--- Sync clipboard between OS and Neovim.
--- Schedule the setting after `UiEnter` because it can increase startup-time.
-vim.schedule(function()
-  -- Check if clipboard support is available
-  if vim.fn.has 'clipboard' == 0 then
-    vim.notify('Clipboard support is not available', vim.log.levels.WARN)
-    return
-  end
-
-  -- Platform-specific clipboard configuration
-  opt.clipboard = 'unnamed,unnamedplus'
-  global.clipboard = {
-    name = 'OSC 52 with improved fallbacks',
-    copy = {
-      ['+'] = require('vim.ui.clipboard.osc52').copy '+',
-      ['*'] = require('vim.ui.clipboard.osc52').copy '*',
-    },
-    -- This is not done because pasting via OSC52 is unreliable
-    -- paste = {
-    --   ['+'] = require('vim.ui.clipboard.osc52').paste '+',
-    --   ['*'] = require('vim.ui.clipboard.osc52').paste '*',
-    -- },
-    cache_enabled = 1,
-  }
-end)
+-- Sync clipboard over SSH via OSC 52.
+opt.clipboard = 'unnamed,unnamedplus'
+global.clipboard = {
+  name = 'OSC 52',
+  -- Both copy and paste must be defined, otherwise the clipboard provider will break.
+  copy = {
+    ['+'] = require('vim.ui.clipboard.osc52').copy '+',
+    ['*'] = require('vim.ui.clipboard.osc52').copy '*',
+  },
+  paste = {
+    ['+'] = require('vim.ui.clipboard.osc52').paste '+',
+    ['*'] = require('vim.ui.clipboard.osc52').paste '*',
+  },
+  cache_enabled = 1,
+}
 
 local cache_dir = vim.fn.stdpath 'cache'
 vim.schedule(function()

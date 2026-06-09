@@ -3,6 +3,9 @@
 vim.g.mapleader = '\r'
 vim.g.maplocalleader = '\r'
 
+local autocmd = vim.api.nvim_create_autocmd
+local utils = require 'nuance.core.utils'
+
 local maps = {
   -- {
   --   { 'n', 't' },
@@ -278,10 +281,22 @@ local maps = {
     end,
     'Better Paste Action',
   },
+
   {
     { 'n', 'x' },
     'y',
     function()
+      autocmd('TextYankPost', {
+        desc = 'Preserve Cursor Pos on Yank',
+        group = utils.augroup 'yank-cursor-preserve',
+        once = true,
+        callback = function()
+          if vim.g.cur_yank_pre then
+            vim.api.nvim_win_set_cursor(0, vim.g.cur_yank_pre)
+            vim.g.cur_yank_pre = nil
+          end
+        end,
+      })
       vim.g.cur_yank_pre = vim.api.nvim_win_get_cursor(0)
       vim.api.nvim_feedkeys('y', 'n', true)
     end,
@@ -290,18 +305,20 @@ local maps = {
 
   { { 'n', 'i' }, '<M-a>', '<cmd>%y<CR>', 'Yank All Text in Buffer' },
 
-  { { 'i' }, '<C-l>', '<C-g>u<ESC>1z=`]a<C-g>u', 'Fix Current Word Under Cursor' },
+  { { 'i' }, '<C-l>', '<C-g>u<ESC>1z=`]a<C-g>u', 'Fix Current Word Under Cursor - Insert mode Autocorrect' },
 
   {
     { 'n', 'x' },
     '<C-g>',
     function()
       -- Check for mode to prevent infinite loop of feeding keys
-      if vim.api.nvim_get_mode().mode == 'n' then
-        vim.cmd 'normal! v'
-      end
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('an', true, false, true), 'x', false)
+      vim.api.nvim_feedkeys(
+        vim.api.nvim_replace_termcodes((vim.api.nvim_get_mode().mode == 'n' and 'v' or '') .. 'an', true, false, true),
+        'x',
+        false
+      )
     end,
+    'Start/Expand Incremental Selection',
   },
 
   {
@@ -310,6 +327,7 @@ local maps = {
     function()
       vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('in', true, false, true), 'x', false)
     end,
+    'Shrink Incremental Selection',
   },
 }
 
