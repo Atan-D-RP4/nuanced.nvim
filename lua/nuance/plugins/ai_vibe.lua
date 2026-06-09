@@ -7,7 +7,8 @@ M.copilot = {
   config = function(_, opts)
     require('copilot').setup(opts)
     vim.defer_fn(function()
-      require('copilot.model').set { args = '', force = true, model = 'oswe-vscode-prime' }
+      -- require('copilot.model').set { args = '', force = true, model = 'oswe-vscode-prime' }
+      require('copilot.model').set { args = '', force = true, model = 'opencode/deepseek-v4-flash-free' }
     end, 1000)
   end,
 
@@ -15,7 +16,6 @@ M.copilot = {
   ---@type CopilotConfig
   opts = {
     filetypes = { markdown = true }, -- overrides default
-    copilot_model = 'gpt-41-copilot', -- Select preferred copilot model
 
     suggestion = {
       hide_during_completion = false,
@@ -44,6 +44,12 @@ M.opencode = {
       },
 
       ui = {
+        output = {
+          tools = {
+            show_output = true, -- Show tools output [diffs, cmd output, etc.] (default: true)
+            show_reasoning_output = true, -- Show reasoning/thinking steps output (default: true)
+          },
+        },
         position = 'current',
         input = { text = { wrap = true } },
       },
@@ -69,21 +75,82 @@ M.opencode = {
           ['q'] = { 'close' },
         },
       },
+
+      quick_chat = { default_model = 'opencode/deepseek-v4-flash-free' },
     }
   end,
 
   dependencies = {
     'nvim-lua/plenary.nvim',
 
-    {
-      'MeanderingProgrammer/render-markdown.nvim',
-      ft = { 'markdown', 'Avante', 'copilot-chat', 'opencode_output' },
+    -- {
+    --   'MeanderingProgrammer/render-markdown.nvim',
+    --   ft = { 'markdown', 'Avante', 'copilot-chat', 'opencode_output' },
+    --
+    --   opts = {
+    --     enabled = false,
+    --     anti_conceal = { enabled = false },
+    --     file_types = { 'markdown', 'opencode_output' },
+    --     render = {
+    --       latex = true, -- Enable LaTeX math rendering
+    --     },
+    --   },
+    -- },
 
-      opts = {
-        enabled = false,
-        anti_conceal = { enabled = false },
-        file_types = { 'markdown', 'opencode_output' },
+    {
+      'OXY2DEV/markview.nvim',
+      ft = { 'markdown', 'typst', 'opencode_output', 'yaml', 'toml' },
+
+      keys = {
+        {
+          '<leader>tm',
+          function()
+            local msg = 'Markview '
+            if not vim.g.markview then
+              vim.cmd 'Markview attach'
+              msg = msg .. 'enabled'
+            else
+              vim.cmd 'Markview detach'
+              msg = msg .. 'disabled'
+            end
+            vim.notify(msg, vim.g.markview and vim.log.levels.WARN or vim.log.levels.INFO, { title = 'Markview' })
+            vim.g.markview = not vim.g.markview
+          end,
+          desc = '[T]oggle [M]arkview',
+        },
       },
+
+      ---@module 'markview.nvim'
+      ---@type markview.config
+      opts = {
+        markdown = {
+          enable = true,
+        },
+        markdown_inline = {
+          enable = true,
+        },
+      },
+
+      config = function()
+        vim.g.markview = false
+        vim.cmd 'Markview Stop'
+        --- Autocmd that disables line numbers in markdown files when markview is attaches
+        --- Should also check if line numbers are enabled before markview is attached, and restore them when markview is detached
+        vim.api.nvim_create_autocmd('User', {
+          pattern = 'MarkviewAttach',
+          callback = function()
+            vim.wo.number = vim.wo.number and false
+            vim.wo.relativenumber = vim.wo.relativenumber and false
+          end,
+        })
+        vim.api.nvim_create_autocmd('User', {
+          pattern = 'MarkviewDetach',
+          callback = function()
+            vim.wo.number = not vim.wo.number and true
+            vim.wo.relativenumber = not vim.wo.relativenumber and true
+          end,
+        })
+      end,
     },
 
     'saghen/blink.cmp',

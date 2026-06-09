@@ -148,7 +148,13 @@ H.check_clipboard = function()
   -- Check if clipboard is configured
   local clipboard = vim.g.clipboard
   if clipboard then
-    vim.health.ok(string.format('Custom clipboard configured: %s', clipboard.name or 'unnamed'))
+    local name
+    if type(clipboard) == 'string' then
+      name = clipboard
+    else
+      name = clipboard.name or 'unnamed'
+    end
+    vim.health.ok(string.format('Custom clipboard configured: %s', name))
     return
   end
 

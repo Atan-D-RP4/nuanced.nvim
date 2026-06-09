@@ -66,9 +66,13 @@ local treesitter_core_main = {
     vim.api.nvim_create_autocmd('FileType', {
       callback = function(ev)
         if vim.tbl_contains(ts.get_installed(), ev.match) then
-          require('nuance.core.promise').async_promise(100, function()
-            vim.treesitter.start(ev.buf, ev.match)
-          end)
+          require('nuance.core.promise')
+            .async_promise(100, function()
+              pcall(vim.treesitter.start, ev.buf, ev.match)
+            end)
+            :catch(function()
+              vim.notify("Failed to start treesitter highlighting", vim.log.levels.ERROR, "Treesitter")
+            end)
         end
       end,
     })

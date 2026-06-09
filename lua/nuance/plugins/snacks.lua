@@ -257,7 +257,7 @@ M.opts.bigfile = {
   size = 0.5 * 1024 * 1024, -- 0.5MB
   line_length = 1000, -- average line length (useful for minified files)
   -- Enable or disable features when big file detected
-  ---@param ctx {buf: number, ft:string}
+  ---@param ctx { buf: number, ft:string }
   setup = function(ctx)
     if vim.fn.exists ':NoMatchParen' ~= 0 then
       vim.cmd [[NoMatchParen]]
@@ -266,14 +266,15 @@ M.opts.bigfile = {
     Snacks.util.bo(0, { bufhidden = 'unload', undolevels = -1, swapfile = false })
     -- show ruler
     vim.o.ruler = true
+    vim.b.completion = false
     vim.b.minianimate_disable = true
     vim.b.minihipatterns_disable = true
     vim.treesitter.stop(0)
-    -- vim.schedule(function()
-    --   if vim.api.nvim_buf_is_valid(ctx.buf) then
-    --     vim.bo[ctx.buf].syntax = 'off'
-    --   end
-    -- end)
+    vim.schedule(function()
+      if vim.api.nvim_buf_is_valid(ctx.buf) then
+        vim.bo[ctx.buf].syntax = ctx.ft
+      end
+    end)
   end,
 }
 

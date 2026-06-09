@@ -56,7 +56,7 @@ M.opts = {
 
   formatters_by_ft = {
     yaml = { 'yamlfmt' },
-    markdown = { 'mdformat' },
+    markdown = { 'rumdl' },
     lua = { 'stylua' },
     rust = { 'rustfmt' },
     sh = { 'shfmt' },
@@ -70,11 +70,10 @@ M.opts = {
 
   formatters = {
     stylua = { append_args = { '--syntax', 'Lua52' } },
-    mdformat = {
-      command = 'uv',
-      args = { 'tool', 'run', 'mdformat', '--number', '-' },
-      stdin = true,
-    },
+    -- rumdl = {
+    --   command = 'rumdl',
+    --   stdin = true,
+    -- },
 
     ['clang-format'] = {
       command = 'clang-format',

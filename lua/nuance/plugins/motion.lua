@@ -158,7 +158,7 @@ local spider = {
 }
 
 local flash = {
-  'folke/flash.nvim',
+  'onion108/flash.nvim',
   -- stylua: ignore
   keys = {
     'f', 'F', 't', 'T', ';', ',',
