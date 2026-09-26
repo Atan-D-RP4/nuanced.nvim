@@ -143,7 +143,8 @@ opt.path:append '**'
 opt.autoread = true
 
 -- Sync clipboard over SSH via OSC 52.
-opt.clipboard = 'unnamed,unnamedplus'
+opt.clipboard:append 'unnamed'
+opt.clipboard:append 'unnamedplus'
 global.clipboard = {
   name = 'OSC 52',
   -- Both copy and paste must be defined, otherwise the clipboard provider will break.

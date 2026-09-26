@@ -14,15 +14,17 @@ assignees: ''
 
 ## To Reproduce
 <!-- Steps to reproduce the behavior. -->
+
 1. ...
 
 ## Desktop
 <!-- please complete the following information. -->
-- OS: 
-- Terminal: 
+
+- OS:
+- Terminal:
 
 ## Neovim Version
 <!-- Output of running `:version` from inside of neovim. -->
 
-```
+```text
 ```

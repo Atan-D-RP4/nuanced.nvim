@@ -325,10 +325,6 @@ M.opts.picker = {
     cwd_bonus = true,
   },
 
-  -- layout = {
-  --   fullscreen = true,
-  -- },
-
   actions = {
     cd_up = function(picker, _)
       picker:set_cwd(vim.fs.dirname(picker:cwd()))
@@ -417,6 +413,12 @@ M.opts.picker = {
 
     lsp_symbols = { layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } } },
     treesitter = { layout = { preset = 'vscode', preview = 'main', layout = { border = 'rounded' } } },
+  },
+
+  layout = {
+    -- fullscreen = true,
+    preset = 'vertical',
+    layout = { min_width = 200 },
   },
 }
 

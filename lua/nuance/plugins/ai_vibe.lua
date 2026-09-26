@@ -8,7 +8,7 @@ M.copilot = {
     require('copilot').setup(opts)
     vim.defer_fn(function()
       -- require('copilot.model').set { args = '', force = true, model = 'oswe-vscode-prime' }
-      require('copilot.model').set { args = '', force = true, model = 'opencode/deepseek-v4-flash-free' }
+      require('copilot.model').set { args = '', force = true, model = 'opencode/muse-spark-1.3-contributor-free' }
     end, 1000)
   end,
 
@@ -76,7 +76,7 @@ M.opencode = {
         },
       },
 
-      quick_chat = { default_model = 'opencode/deepseek-v4-flash-free' },
+      quick_chat = { default_model = 'opencode/muse-spark-1.3-contributor-free' },
     }
   end,
 
