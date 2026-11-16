@@ -31,28 +31,29 @@ local lspconfig = {
 autocmd('LspAttach', {
   desc = 'LSP Attach Mappings',
   group = augroup 'lsp-attach-mappings',
-  callback = function(args)
-    local bufnr = args.buf
-    local client = vim.lsp.get_client_by_id(args.data.client_id)
+  callback = function(ev)
+    local bufnr = ev.buf
+    local client = vim.lsp.get_client_by_id(ev.data.client_id)
     if not client then
-      vim.notify('LSP client not found for id: ' .. tostring(args.data.client_id), log_levels.WARN, { title = 'LSP' })
+      vim.notify('LSP client not found for id: ' .. tostring(ev.data.client_id), log_levels.WARN, { title = 'LSP' })
       return
     end
     local mappings = {
       { 'gO', '<cmd>lua Snacks.picker.lsp_symbols()<CR>', 'LSP Document [S]ymbols' },
       { 'gws', '<cmd>lua Snacks.picker.lsp_workspace_symbols()<CR>', 'LSP [W]orkspace [S]ymbols' },
-
-      -- { 'gD', '<cmd>lua Snacks.picker.lsp_type_definitions()<CR>', 'LSP [T]ype [D]efinition' },
-      -- { 'gd', '<cmd>lua Snacks.picker.lsp_definitions()<CR>', 'LSP [G]oto [D]efinition' },
-      -- { 'grr', '<cmd>lua Snacks.picker.lsp_references()<CR>', 'LSP [G]oto [R]eferences' }, -- override `grr` mapping
-      -- { 'gri', '<cmd>lua Snacks.picker.lsp_implementations()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
-      { 'gD', '<cmd>lua require("goto-preview").goto_preview_type_definition()<CR>', 'LSP [T]ype [D]efinition' },
-      { 'gd', '<cmd>lua require("goto-preview").goto_preview_definition()<CR>', 'LSP [G]oto [D]efinition' },
-      { 'grr', '<cmd>lua require("goto-preview").goto_preview_references()<CR>', 'LSP [G]oto [R]eferences' }, -- override `grr` mapping
-      { 'gri', '<cmd>lua require("goto-preview").goto_preview_implementation()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
-
-      { 'grn', "<cmd>lua vim.lsp.buf.rename() vim.cmd [[ exec 'wa' ]]<CR>", 'LSP [R]ename' }, -- override `grn` mapping
       { 'gwd', '<cmd>lua vim.lsp.buf.workspace_diagnostics { client_id = ' .. client.id .. ' }<CR>', 'LSP [W]orkspace [D]iagnostics' },
+
+      { 'gD', '<cmd>lua Snacks.picker.lsp_type_definitions()<CR>', 'LSP [T]ype [D]efinition' },
+      { 'gd', '<cmd>lua Snacks.picker.lsp_definitions()<CR>', 'LSP [G]oto [D]efinition' },
+      { 'gi', '<cmd>lua Snacks.picker.lsp_implementations()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
+
+      { 'gpD', '<cmd>lua require("goto-preview").goto_preview_type_definition()<CR>', 'LSP [T]ype [D]efinition' },
+      { 'gpd', '<cmd>lua require("goto-preview").goto_preview_definition()<CR>', 'LSP [G]oto [D]efinition' },
+      { 'gpi', '<cmd>lua require("goto-preview").goto_preview_implementation()<CR>', 'LSP [G]oto [I]mplementation' }, -- override `gri` mapping
+      { 'gpr', '<cmd>lua require("goto-preview").goto_preview_references()<CR>', 'LSP [G]oto [R]eferences' }, -- override `grr` mapping
+
+      { 'grr', '<cmd>lua Snacks.picker.lsp_references()<CR>', 'LSP [G]oto [R]eferences' }, -- override `grr` mapping
+      { 'grn', "<cmd>lua vim.lsp.buf.rename() vim.cmd [[ exec 'wa' ]]<CR>", 'LSP [R]ename' }, -- override `grn` mapping
     }
 
     vim.tbl_map(function(map)
@@ -281,6 +282,8 @@ lspconfig.config = function(_, opts) -- The '_' parameter is the entire lazy.nvi
             vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
           end, { desc = 'LSP [T]oggle Inlay [H]ints', noremap = false })
         end
+
+        client.debounce_text_changes = 500
 
         local cleanup_group = augroup('lsp-detach-cleanup', { clear = false })
         autocmd('LspDetach', {

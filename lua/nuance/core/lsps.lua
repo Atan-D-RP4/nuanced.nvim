@@ -610,6 +610,8 @@ return {
         },
       },
 
+      semanticTokensProvider = nil,
+
       textDocument = {
         completion = {
           completionItem = {

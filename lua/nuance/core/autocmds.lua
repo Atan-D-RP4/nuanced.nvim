@@ -167,38 +167,38 @@ autocmd('Colorscheme', {
   end,
 })
 
-autocmd({ 'TextYankPost' }, {
-  group = utils.augroup 'yank-ring',
-  pattern = '*', -- apply for all buffers / files
-  desc = 'Maintain ring of recent yanks or deletes in numbered registers 1-9',
-  callback = function()
-    -- ev is a table with info: ev.operator, ev.regname, ev.regtype, ev.buf, etc :contentReference[oaicite:1]{index=1}
-    local ev = vim.v.event
-
-    -- Filter: only handle operator "y" (yank) or "d" (delete)
-    -- and the default register (i.e., no explicit regname)
-    if ev.operator ~= 'y' and ev.operator ~= 'd' and ev.regname ~= '' then
-      return
-    end
-
-    -- Optionally, skip huge yanks/deletes: for example if register 0 contents > X lines
-    local latest = vim.fn.getreg '0'
-    local max_lines = 1000 -- for example: skip if too many lines
-    local newline_count = #vim.fn.split(latest, '\n')
-    if newline_count > max_lines then
-      return
-    end
-
-    -- Slide the registers: 9 ← 8 ← … ← 1 ← 0
-    for i = 9, 1, -1 do
-      local from = tostring(i - 1)
-      local to = tostring(i)
-      local text = vim.fn.getreg(from)
-      local regtype = vim.fn.getregtype(from)
-      vim.fn.setreg(to, text, regtype)
-    end
-  end,
-})
+-- autocmd({ 'TextYankPost' }, {
+--   group = utils.augroup 'yank-ring',
+--   pattern = '*', -- apply for all buffers / files
+--   desc = 'Maintain ring of recent yanks or deletes in numbered registers 1-9',
+--   callback = function()
+--     -- ev is a table with info: ev.operator, ev.regname, ev.regtype, ev.buf, etc :contentReference[oaicite:1]{index=1}
+--     local ev = vim.v.event
+--
+--     -- Filter: only handle operator "y" (yank) or "d" (delete)
+--     -- and the default register (i.e., no explicit regname)
+--     if ev.operator ~= 'y' and ev.operator ~= 'd' and ev.regname ~= '' then
+--       return
+--     end
+--
+--     -- Optionally, skip huge yanks/deletes: for example if register 0 contents > X lines
+--     local latest = vim.fn.getreg '0'
+--     local max_lines = 1000 -- for example: skip if too many lines
+--     local newline_count = #vim.fn.split(latest, '\n')
+--     if newline_count > max_lines then
+--       return
+--     end
+--
+--     -- Slide the registers: 9 ← 8 ← … ← 1 ← 0
+--     for i = 9, 1, -1 do
+--       local from = tostring(i - 1)
+--       local to = tostring(i)
+--       local text = vim.fn.getreg(from)
+--       local regtype = vim.fn.getregtype(from)
+--       vim.fn.setreg(to, text, regtype)
+--     end
+--   end,
+-- })
 
 autocmd('BufWinEnter', {
   desc = 'Restore Cursor position when entering a buffer',

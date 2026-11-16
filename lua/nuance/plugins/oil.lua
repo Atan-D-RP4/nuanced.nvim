@@ -1,4 +1,4 @@
-local M = {
+local oil = {
   'stevearc/oil.nvim',
   version = '*',
   cmd = 'Oil',
@@ -17,7 +17,7 @@ local M = {
 
 ---@module 'oil'
 ---@type oil.SetupOpts
-M.opts = {
+oil.opts = {
   default_file_explorer = true,
   use_default_keymaps = true,
   skip_confirm_for_simple_edits = true,
@@ -32,12 +32,12 @@ M.opts = {
   extra_scp_args = {},
 }
 
-M.opts.buf_options = {
+oil.opts.buf_options = {
   buflisted = false,
   bufhidden = 'hide',
 }
 
-M.opts.win_options = {
+oil.opts.win_options = {
   wrap = false,
   signcolumn = 'yes:2',
   cursorcolumn = false,
@@ -50,13 +50,13 @@ M.opts.win_options = {
   relativenumber = false,
 }
 
-M.opts.lsp_file_methods = {
+oil.opts.lsp_file_methods = {
   enabled = true,
   timeout_ms = 1000,
   autosave_changes = 'unmodified',
 }
 
-M.opts.keymaps = {
+oil.opts.keymaps = {
   ['<leader>:'] = {
     'actions.open_cmdline',
     opts = { shorten_path = true },
@@ -138,7 +138,7 @@ M.opts.keymaps = {
   ['g?'] = 'actions.show_help',
 }
 
-M.opts.view_options = {
+oil.opts.view_options = {
   show_hidden = false,
   natural_order = true,
 
@@ -158,7 +158,7 @@ M.opts.view_options = {
   },
 }
 
-M.opts.git = {
+oil.opts.git = {
   add = function(path)
     return false
   end,
@@ -188,7 +188,7 @@ M.opts.git = {
 --   end,
 -- }
 
-M.opts.progress = {
+oil.opts.progress = {
   max_width = 0.9,
   min_width = { 40, 0.4 },
   width = nil,
@@ -200,4 +200,15 @@ M.opts.progress = {
   win_options = { winblend = 0 },
 }
 
-return M
+local fyler = {
+  'FylerOrg/fyler.nvim',
+  opts = {
+    auto_confirm_simple_mutation = true,
+    extensions = { 'git' },
+  },
+}
+
+return {
+  oil
+  -- fyler,
+}

@@ -153,6 +153,12 @@ local STATE = {
 
 local api = vim.api
 
+---Last time a redraw was requested (nanoseconds from vim.uv.hrtime()).
+---Shared throttle so concurrent drop timers trigger at most one :redraw
+---every REDRAW_INTERVAL_NS (~60 fps), instead of one per extmark move.
+local last_redraw_ns = 0
+local REDRAW_INTERVAL_NS = 16 * 1e6
+
 ---Safely close a libuv timer handle.
 ---
 ---PATTERN: Always check is_closing() before stop()/close() to avoid
@@ -464,6 +470,18 @@ local function create_single_raindrop(buf, start_col, char, move_diagonally)
       if ok_update then
         drop.row = drop.row + 1
         drop.col = drop.col + (move_diagonally and 1 or 0)
+
+        -- Explicitly request a redraw after moving the extmark so the drop's
+        -- new position is painted promptly. Throttled globally to ~60 fps:
+        -- many drops may move back-to-back within one event loop tick, and a
+        -- per-move redraw would be wasteful (but a refresh is still needed).
+        pcall(function()
+          local now_ns = vim.uv.hrtime()
+          if now_ns - last_redraw_ns >= REDRAW_INTERVAL_NS then
+            last_redraw_ns = now_ns
+            vim.cmd('redraw')
+          end
+        end)
       else
         -- Extmark update failed, clean up this drop
         pcall(api.nvim_buf_del_extmark, buf, STATE.namespace, extmark_id)

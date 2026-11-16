@@ -33,16 +33,10 @@ M.copilot = {
 
 M.opencode = {
   'sudo-tee/opencode.nvim',
-  event = 'UIEnter',
+  branch = 'v2',
 
   config = function()
     require('opencode').setup {
-      server = {
-        url = 'localhost',
-        port = 4096,
-        timeout = 5,
-      },
-
       ui = {
         output = {
           tools = {
@@ -68,6 +62,8 @@ M.opencode = {
         input_window = {
           ['<esc>'] = {},
           ['q'] = { 'close' },
+          ['<leader><CR>'] = { 'submit_input_prompt', mode = { 'n' } }, -- Submit prompt (normal mode)
+          ['<S-CR>'] = { 'submit_input_prompt', mode = { 'i' } }, -- Submit prompt (insert mode)
         },
 
         output_window = {

@@ -156,7 +156,7 @@ global.clipboard = {
     ['+'] = require('vim.ui.clipboard.osc52').paste '+',
     ['*'] = require('vim.ui.clipboard.osc52').paste '*',
   },
-  cache_enabled = 1,
+  -- cache_enabled = 1,
 }
 
 local cache_dir = vim.fn.stdpath 'cache'

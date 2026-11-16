@@ -1,7 +1,6 @@
 local M = {
   'folke/trouble.nvim',
   cmd = 'Trouble',
-  enabled = true,
 }
 
 M.keys = {
